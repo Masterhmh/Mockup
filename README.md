@@ -122,6 +122,11 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
 - Cách nhuộm: ảnh áo gốc `multiply` với màu đã chọn, rồi cắt đúng vùng áo
   bằng **mask** (`destination-in`) — nền xung quanh không bị lem. Nếp vải và
   bóng đổ được giữ nguyên vì multiply giữ lại độ sáng tương đối của vải.
+- **Khôi phục vân vải:** multiply nhân màu tối nghiền nát chi tiết vải (vùng
+  sáng 240-255 thành 25-27) nên áo đen trông như mảng phẳng/mờ. Sau bước
+  multiply, app vẽ thêm một lớp chi tiết high-pass của độ sáng ảnh gốc
+  (`luminance - luminance làm mờ`, tính ở 1/8 độ phân giải bằng blend
+  `overlay`) để nếp vải hiện lại trên áo màu tối.
 - Nền đã nhuộm được **cache theo (mẫu áo + màu)** nên đổi qua lại không phải
   tính lại. Màu trắng = dùng thẳng ảnh gốc, không tính toán gì thêm.
 - **Hình in trên áo tối** (độ sáng màu áo < 0.45, VD đen/navy): app tự chuyển
