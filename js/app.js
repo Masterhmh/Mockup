@@ -71,6 +71,57 @@ Object.defineProperty(S, 'design', {
   configurable: true,
 });
 
+// Tùy chọn màu file in: 'orig' = giữ nguyên màu gốc (in ảnh),
+// 'single' = ép về 1 màu (in logo). Áp dụng cho MỌI đầu ra: mockup
+// preview, mockup PNG, file in PNG (thường + theo vị trí), SVG.
+S.printColor = { mode: 'orig', color: '#1a1a1a' };
+
+// Raster dùng cho mọi đầu ra (đã áp dụng tùy chọn màu). Xử lý ảnh
+// (vector/upscale/crop/khử nền) luôn chạy trên bản gốc, không qua đây.
+// Kết quả được cache theo (màu + canvas gốc) để không tính lại mỗi render.
+function printRaster(pl) {
+  const art = pl && pl.art;
+  if (!art) return null;
+  if (S.printColor.mode !== 'single') return art.raster;
+  const key = S.printColor.color + '|' + art.raster.width + 'x' + art.raster.height;
+  if (pl._tint && pl._tint.key === key && pl._tint.src === art.raster) return pl._tint.cv;
+  const cv = document.createElement('canvas');
+  cv.width = art.raster.width; cv.height = art.raster.height;
+  const ctx = cv.getContext('2d');
+  ctx.drawImage(art.raster, 0, 0);
+  ctx.globalCompositeOperation = 'source-in'; // giữ alpha gốc, tô 1 màu
+  ctx.fillStyle = S.printColor.color;
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  pl._tint = { key, src: art.raster, cv };
+  return cv;
+}
+
+// SVG dùng cho mọi đầu ra: thay mọi fill="..." thành 1 màu đã chọn,
+// giữ nguyên fill-rule evenodd và các thuộc tính khác.
+function svgForPrint(svgText) {
+  if (S.printColor.mode !== 'single' || !svgText) return svgText;
+  const c = S.printColor.color;
+  return String(svgText)
+    .replace(/(\sfill\s*=\s*["'])[^"']*(["'])/gi, '$1' + c + '$2')
+    .replace(/(<style[^>]*>[\s\S]*?)(<\/style>)/gi, (m, a, b) =>
+      a.replace(/fill\s*:\s*[^;}]+/gi, 'fill:' + c) + b);
+}
+
+// Đồng bộ UI (radio + ô chọn màu + swatch) theo S.printColor
+function syncSwatches() {
+  document.querySelectorAll('#swatches .sw').forEach((b) => {
+    b.classList.toggle('on', String(b.dataset.c).toLowerCase() === String(S.printColor.color).toLowerCase());
+  });
+}
+function syncColorUI() {
+  document.querySelectorAll('input[name="colorMode"]').forEach((r) => {
+    r.checked = r.value === S.printColor.mode;
+  });
+  $('inpPrintColor').value = S.printColor.color;
+  $('colorRow').hidden = S.printColor.mode !== 'single';
+  syncSwatches();
+}
+
 const MOCKUPS = [
   { id: 'tshirt', file: 'mockups/tshirt.json', ten: 'Áo cổ tròn trắng' },
   { id: 'polo',   file: 'mockups/polo.json',   ten: 'Áo polo trắng' },
@@ -142,6 +193,31 @@ function resetDesign() {
   syncSizeInputs();
 }
 
+// Vùng in an toàn theo cm: zone thu vào 6% mỗi bên (mọi hướng)
+function safeZoneCm() {
+  const p = curPos(), z = p.zone;
+  const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h, ppc = pxPerCm();
+  const mx = (z.x1 - z.x0) * 0.06, my = (z.y1 - z.y0) * 0.06;
+  const x0 = z.x0 + mx, x1 = z.x1 - mx, y0 = z.y0 + my, y1 = z.y1 - my;
+  return {
+    x0, y0, x1, y1,
+    wCm: ((x1 - x0) * W) / ppc,
+    hCm: ((y1 - y0) * H) / ppc,
+  };
+}
+
+// Tự fit design vừa khít trong vùng in an toàn (theo chiều bị chặn,
+// LUÔN giữ đúng tỉ lệ gốc), căn giữa vùng an toàn.
+function fitToSafeZone() {
+  const sz = safeZoneCm();
+  const aspect = S.art ? S.art.aspect : 1;
+  let wCm, hCm;
+  if (aspect >= sz.wCm / sz.hCm) { wCm = sz.wCm; hCm = wCm / aspect; }
+  else { hCm = sz.hCm; wCm = hCm * aspect; }
+  S.design = { cx: (sz.x0 + sz.x1) / 2, cy: (sz.y0 + sz.y1) / 2, wCm, hCm };
+  syncSizeInputs();
+}
+
 // Hộp hình in theo px ảnh gốc (của một placement cụ thể)
 function designPxOf(pl) {
   const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
@@ -172,10 +248,11 @@ function composite(ctx, W, H) {
   ctx.restore();
 }
 
-// Vẽ một hình in (đã có ảnh nền) — dùng cho cả preview mockup và xuất mockup
+// Vẽ một hình in (đã có ảnh nền) — dùng cho cả preview mockup và xuất mockup.
+// Dùng printRaster() để tôn trọng tùy chọn màu file in (giữ nguyên / 1 màu).
 function drawOneDesign(ctx, W, H, pl) {
   const r = designPxOf(pl);
-  const art = pl.art.raster;
+  const art = printRaster(pl);
   const fullScale = W / S.cfg.kichThuocAnh.w;
   const pad = Math.ceil(6 * fullScale);
 
@@ -261,7 +338,7 @@ function toCss(px, py) {
   ];
 }
 
-// Khung chọn + 4 tay cầm góc
+// Khung chọn + 4 tay cầm góc + nút xóa × ở góc trên-phải
 function drawSelection() {
   if (!S.art || !S.design) return;
   const r = designPx();
@@ -278,7 +355,29 @@ function drawSelection() {
   [[x1, y1], [x2, y1], [x1, y2], [x2, y2]].forEach(([x, y]) => {
     sctx.fillRect(x - HS, y - HS, HS * 2, HS * 2);
   });
+  // Nút tròn đỏ dấu × ở góc trên-phải của khung chọn
+  const db = deleteBtnCss();
+  sctx.beginPath();
+  sctx.arc(db.x, db.y, db.r, 0, Math.PI * 2);
+  sctx.fillStyle = '#b91c1c';
+  sctx.fill();
+  sctx.lineWidth = 2;
+  sctx.strokeStyle = '#ffffff';
+  sctx.stroke();
+  sctx.lineWidth = 2.5;
+  sctx.beginPath();
+  const k = 5;
+  sctx.moveTo(db.x - k, db.y - k); sctx.lineTo(db.x + k, db.y + k);
+  sctx.moveTo(db.x + k, db.y - k); sctx.lineTo(db.x - k, db.y + k);
+  sctx.stroke();
   sctx.restore();
+}
+
+// Vị trí nút xóa × (tọa độ css px) — dùng chung cho vẽ và hit-test
+function deleteBtnCss() {
+  const r = designPx();
+  const [x, y] = toCss(r.x + r.w, r.y);
+  return { x, y, r: 13 };
 }
 
 // ---------- Lớp phủ số đo (toggle "Hiện số đo", mặc định bật) ----------
@@ -293,63 +392,71 @@ function drawMeasureOverlays() {
   const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
   const ppc = pxPerCm();
   const a = S.cfg.ao;
+  const labels = []; // gom nhãn, vẽ SAU khi vẽ xong line để không bị line đè
 
   // 1) Số đo áo — neo theo thân trước (vị trí "nguc-truoc")
   const front = S.cfg.positions.find((p) => p.id === 'nguc-truoc') || S.cfg.positions[0];
   const cxF = front.center.x * W;
   const chestPx = a.ngangNgucCm * ppc;
   const chestY = front.zone.y0 * H;
-  let l1 = toCss(cxF - chestPx / 2, chestY);
-  let l2 = toCss(cxF + chestPx / 2, chestY);
-  drawDimLine(l1[0], l1[1], l2[0], l2[1], fmt(a.ngangNgucCm) + 'cm', '#b45309');
+  const c1 = toCss(cxF - chestPx / 2, chestY), c2 = toCss(cxF + chestPx / 2, chestY);
+  dimLine(c1[0], c1[1], c2[0], c2[1], '#b45309');
+  // Nhãn 52cm ở đầu PHẢI line ngang, ngoài áo
+  labels.push({ x: c2[0] + 44, y: c2[1], text: fmt(a.ngangNgucCm) + 'cm', color: '#b45309' });
 
   const collar = (S.cfg.warnZones || []).find((w) => /cổ trước/i.test(w.ten || ''));
   const yTop = ((collar ? collar.y - (collar.r || 0) : 0.2)) * H;
   const xSide = cxF - chestPx / 2 - 60;
   const yBot = yTop + a.daiAoCm * ppc;
-  l1 = toCss(xSide, yTop);
-  l2 = toCss(xSide, yBot);
-  drawDimLine(l1[0], l1[1], l2[0], l2[1], fmt(a.daiAoCm) + 'cm', '#b45309');
+  const v1 = toCss(xSide, yTop), v2 = toCss(xSide, yBot);
+  dimLine(v1[0], v1[1], v2[0], v2[1], '#b45309');
+  // Nhãn 72cm ở đầu DƯỚI line dọc
+  labels.push({ x: v1[0], y: v2[1] + 20, text: fmt(a.daiAoCm) + 'cm', color: '#b45309' });
 
-  // 4) Phạm vi vùng có thể in: chữ nhật nét liền quanh zone của vị trí đang chọn
+  // 2) Phạm vi vùng có thể in: chữ nhật nét liền xám + nhãn ở góc trên-phải, bên ngoài
   const p = curPos(), z = p.zone;
-  let z1 = toCss(z.x0 * W, z.y0 * H);
-  let z2 = toCss(z.x1 * W, z.y1 * H);
+  const z1 = toCss(z.x0 * W, z.y0 * H), z2 = toCss(z.x1 * W, z.y1 * H);
   sctx.save();
   sctx.strokeStyle = '#6b7280'; sctx.lineWidth = 1.5;
   sctx.strokeRect(z1[0], z1[1], z2[0] - z1[0], z2[1] - z1[1]);
   sctx.restore();
-  drawTag(z1[0], z1[1] - 6, 'vùng in', '#6b7280');
+  labels.push({ x: z2[0], y: z1[1] - 18, text: 'vùng in', color: '#6b7280', align: 'right' });
 
-  // 3) Vùng in an toàn: zone thu vào 5% mỗi bên, nét đứt
+  // 3) Vùng in an toàn: zone thu vào 5% mỗi bên, nét đứt xanh lá + nhãn góc trên-trái, bên ngoài
   const mx = (z.x1 - z.x0) * 0.05, my = (z.y1 - z.y0) * 0.05;
-  let s1 = toCss((z.x0 + mx) * W, (z.y0 + my) * H);
-  let s2 = toCss((z.x1 - mx) * W, (z.y1 - my) * H);
+  const s1 = toCss((z.x0 + mx) * W, (z.y0 + my) * H);
+  const s2 = toCss((z.x1 - mx) * W, (z.y1 - my) * H);
   sctx.save();
   sctx.strokeStyle = '#0e7c5b'; sctx.lineWidth = 1.5;
   sctx.setLineDash([7, 5]);
   sctx.strokeRect(s1[0], s1[1], s2[0] - s1[0], s2[1] - s1[1]);
   sctx.setLineDash([]);
   sctx.restore();
-  drawTag(s1[0], s1[1] - 6, 'vùng an toàn', '#0e7c5b');
+  labels.push({ x: s1[0] - 8, y: s1[1] - 18, text: 'vùng an toàn', color: '#0e7c5b', align: 'right' });
 
-  // 2) Số đo hình in quanh bbox design
+  // 4) Số đo hình in: khung xanh dương + line kích thước DƯỚI bbox, nhãn căn giữa
   if (S.art && S.design) {
     const r = designPx();
-    const d1 = toCss(r.x, r.y);
-    const d2 = toCss(r.x + r.w, r.y + r.h);
+    const d1 = toCss(r.x, r.y), d2 = toCss(r.x + r.w, r.y + r.h);
     sctx.save();
     sctx.strokeStyle = '#1d4ed8'; sctx.lineWidth = 1.5;
     sctx.strokeRect(d1[0], d1[1], d2[0] - d1[0], d2[1] - d1[1]);
     sctx.restore();
-    const label = `${fmt(S.design.wCm)} × ${fmt(S.design.hCm)} cm`;
-    drawDimLine(d1[0], d2[1] + 22, d2[0], d2[1] + 22, label, '#1d4ed8');
-    drawDimLine(d2[0] + 22, d1[1], d2[0] + 22, d2[1], '', '#1d4ed8');
+    dimLine(d1[0], d2[1] + 30, d2[0], d2[1] + 30, '#1d4ed8');
+    dimLine(d2[0] + 22, d1[1], d2[0] + 22, d2[1], '#1d4ed8'); // line dọc phụ, không nhãn
+    labels.push({
+      x: (d1[0] + d2[0]) / 2, y: d2[1] + 30,
+      text: `${fmt(S.design.wCm)} × ${fmt(S.design.hCm)} cm`, color: '#1d4ed8',
+    });
   }
+
+  // Vẽ nhãn sau cùng — pill trắng 11px, tự kẹp trong canvas, vị trí tách xa nhau
+  labels.forEach((L) => pillLabel(L.x, L.y, L.text, L.color, L.align || 'center'));
 }
 
-// Line đo kích thước: đường thẳng + mũi tên 2 đầu + nhãn giữa (nền trắng dễ đọc)
-function drawDimLine(x1, y1, x2, y2, label, color) {
+// Line đo kích thước: đường thẳng + mũi tên 2 đầu (KHÔNG vẽ nhãn ở đây —
+// nhãn được gom lại vẽ sau cùng để không chèn lên nhau / bị line đè)
+function dimLine(x1, y1, x2, y2, color) {
   sctx.save();
   sctx.strokeStyle = color; sctx.fillStyle = color; sctx.lineWidth = 1.5;
   sctx.beginPath(); sctx.moveTo(x1, y1); sctx.lineTo(x2, y2); sctx.stroke();
@@ -361,35 +468,32 @@ function drawDimLine(x1, y1, x2, y2, label, color) {
     sctx.lineTo(x + AH * Math.cos(a2 - 0.42), y + AH * Math.sin(a2 - 0.42));
     sctx.stroke();
   });
-  if (label) {
-    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-    sctx.font = '12px system-ui, sans-serif';
-    const tw = sctx.measureText(label).width, pad = 5;
-    sctx.fillStyle = 'rgba(255,255,255,0.94)';
-    sctx.fillRect(mx - tw / 2 - pad, my - 10, tw + pad * 2, 20);
-    sctx.strokeStyle = color; sctx.lineWidth = 1;
-    sctx.strokeRect(mx - tw / 2 - pad, my - 10, tw + pad * 2, 20);
-    sctx.fillStyle = color;
-    sctx.textAlign = 'center'; sctx.textBaseline = 'middle';
-    sctx.fillText(label, mx, my + 1);
-  }
   sctx.restore();
 }
 
-// Nhãn tag nhỏ (nền trắng, viền màu) tại tọa độ css px
-function drawTag(x, y, text, color) {
+// Nhãn pill: nền trắng, viền + chữ màu, chữ 11px.
+// align 'center': pill căn giữa tại (x,y) | 'right': mép phải pill tại x.
+function pillLabel(x, y, text, color, align) {
+  const fs = 11;
   sctx.save();
-  sctx.font = '12px system-ui, sans-serif';
-  const tw = sctx.measureText(text).width, pad = 6;
-  const bx = clamp(x, 2, S.view.dw - tw - pad * 2 - 2);
-  const by = Math.max(2, y - 22);
-  sctx.fillStyle = 'rgba(255,255,255,0.94)';
-  sctx.fillRect(bx, by, tw + pad * 2, 20);
+  sctx.font = fs + 'px system-ui, sans-serif';
+  const tw = sctx.measureText(text).width, pad = 6, h = 18;
+  let bx = align === 'right' ? x - tw - pad * 2 : x - tw / 2 - pad;
+  bx = clamp(bx, 2, Math.max(2, S.view.dw - tw - pad * 2 - 2));
+  const by = clamp(y - h / 2, 2, Math.max(2, S.view.dh - h - 2));
+  sctx.fillStyle = 'rgba(255,255,255,0.95)';
   sctx.strokeStyle = color; sctx.lineWidth = 1;
-  sctx.strokeRect(bx, by, tw + pad * 2, 20);
+  if (sctx.roundRect) {
+    sctx.beginPath();
+    sctx.roundRect(bx, by, tw + pad * 2, h, 9);
+    sctx.fill(); sctx.stroke();
+  } else {
+    sctx.fillRect(bx, by, tw + pad * 2, h);
+    sctx.strokeRect(bx, by, tw + pad * 2, h);
+  }
   sctx.fillStyle = color;
-  sctx.textAlign = 'left'; sctx.textBaseline = 'middle';
-  sctx.fillText(text, bx + pad, by + 11);
+  sctx.textAlign = 'center'; sctx.textBaseline = 'middle';
+  sctx.fillText(text, bx + tw / 2 + pad, by + h / 2 + 0.5);
   sctx.restore();
 }
 
@@ -418,6 +522,15 @@ function hitHandle(p) {
 stage.addEventListener('pointerdown', (e) => {
   if (!S.art || !S.design) return;
   const p = evtImg(e);
+  // Ưu tiên nút xóa × ở góc trên-phải khung chọn (trước mọi thao tác kéo)
+  const cssX = (p.x / S.cfg.kichThuocAnh.w) * S.view.dw;
+  const cssY = (p.y / S.cfg.kichThuocAnh.h) * S.view.dh;
+  const db = deleteBtnCss();
+  if (Math.hypot(cssX - db.x, cssY - db.y) <= db.r + 6) {
+    clearArt();
+    e.preventDefault();
+    return;
+  }
   const r = designPx();
   if (hitHandle(p) >= 0) {
     S.drag = {
@@ -592,7 +705,9 @@ async function rasterFromPDF(file) {
   }
 }
 
-// Nhận artwork mới: lưu raster + tỉ lệ gốc, đặt lại vị trí/cỡ in, đánh giá chất lượng
+// Nhận artwork mới: lưu raster + tỉ lệ gốc, đặt lại vị trí/cỡ in, đánh giá chất lượng.
+// Nếu bật "Tự động fit theo vị trí in": thu design vừa khít trong vùng in an toàn
+// rồi mới chạy assess() để nội suy/đánh giá chất lượng ở đúng khổ đã fit.
 async function setArtwork(rasterCanvas, name, kind, svgText) {
   const w = rasterCanvas.width, h = rasterCanvas.height;
   if (!w || !h) throw new Error('EMPTY');
@@ -600,7 +715,8 @@ async function setArtwork(rasterCanvas, name, kind, svgText) {
   const an = analyzeArtwork(rasterCanvas);
   S.art.colorCount = an.colors;
   S.art.typeLabel = an.kind === 'flat' ? 'Hình phẳng, ít màu' : 'Ảnh phức tạp';
-  resetDesign();
+  if ($('chkAutoFit') && $('chkAutoFit').checked) fitToSafeZone();
+  else resetDesign();
   assess();
   render(); updatePrintPanel(); checkWarnings();
   $('fileInfo').innerHTML = `<b>${esc(name)}</b><br>${w} × ${h} px · ${S.art.typeLabel}`;
@@ -1110,10 +1226,14 @@ function updatePrintPanel() {
   }
   const pxW = Math.round((S.design.wCm / 2.54) * 300);
   const pxH = Math.round((S.design.hCm / 2.54) * 300);
+  const colInfo = S.printColor.mode === 'single'
+    ? `<br>Màu file in: <b>${esc(S.printColor.color)}</b> (in 1 màu)`
+    : '<br>Màu file in: <b>giữ nguyên màu gốc</b>';
   el.innerHTML =
     `Hình in: <b>${fmt(S.design.wCm)} × ${fmt(S.design.hCm)} cm</b> — ` +
     `${pxW} × ${pxH} px @300dpi` +
     `<br>DPI thực tế: <b>${Math.round(artworkDPI())}</b> · Vị trí: ${esc(curPos().ten)}` +
+    colInfo +
     (S.art.svgText ? '<br><span class="muted small">Đã vector hóa — xuất được file SVG.</span>' : '');
 }
 
@@ -1148,7 +1268,7 @@ function exportPrintPNG() {
   const ctx = cv.getContext('2d');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(S.art.raster, 0, 0, pw, ph);
+  ctx.drawImage(printRaster(curPlace()), 0, 0, pw, ph);
   cv.toBlob((b) => {
     if (!b) { toast('Xuất file in thất bại.'); return; }
     download(b, `file-in-${S.posId}-${fmt(S.design.wCm)}x${fmt(S.design.hCm)}cm-300dpi.png`);
@@ -1163,7 +1283,7 @@ function exportPrintSVG() {
     toast('Chưa có vector. Hãy bấm “Chuyển vector” hoặc tải file SVG lên trước.');
     return;
   }
-  download(new Blob([S.art.svgText], { type: 'image/svg+xml' }),
+  download(new Blob([svgForPrint(S.art.svgText)], { type: 'image/svg+xml' }),
     `file-in-${S.posId}.svg`);
   toast('Đã xuất file in SVG.');
 }
@@ -1183,6 +1303,7 @@ function exportSpec() {
     `DPI thuc te: ${Math.round(artworkDPI())}`,
     `So mau artwork: ${S.art.colorCount}`,
     `File thiet ke: ${S.art.name}${S.art.svgText ? ' (da vector hoa)' : ''}`,
+    `Mau file in: ${S.printColor.mode === 'single' ? S.printColor.color + ' (in 1 mau)' : 'Giu nguyen mau goc'}`,
     `Phuong phap in: ${$('selMethod').value}`,
     `Ngay chot: ${$('inpDate').value || '—'}`,
     `Ti le px/cm hieu chuan: ${fmt(pxPerCm(), 2)}`,
@@ -1251,7 +1372,7 @@ function exportZonePNG(posId) {
   const ctx = cv.getContext('2d');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(g.pl.art.raster, g.ox, g.oy, g.dwPx, g.dhPx); // vẽ phẳng, nền trong suốt
+  ctx.drawImage(printRaster(g.pl), g.ox, g.oy, g.dwPx, g.dhPx); // vẽ phẳng, nền trong suốt
   const fname = zoneFileName('png', g.zwCm, g.zhCm, g.p, '300dpi');
   cv.toBlob((b) => {
     if (!b) { toast('Xuất file in thất bại.'); return; }
@@ -1291,7 +1412,7 @@ function exportZoneSVG(posId) {
     `width="${fmt(g.zwCm)}cm" height="${fmt(g.zhCm)}cm">` +
     `<svg x="${g.ox.toFixed(1)}" y="${g.oy.toFixed(1)}" ` +
     `width="${g.dwPx.toFixed(1)}" height="${g.dhPx.toFixed(1)}" viewBox="${vb}">` +
-    `${svgInner(g.pl.art.svgText)}</svg></svg>`;
+    `${svgInner(svgForPrint(g.pl.art.svgText))}</svg></svg>`;
   const fname = zoneFileName('svg', g.zwCm, g.zhCm, g.p, '');
   download(new Blob([svg], { type: 'image/svg+xml' }), fname);
   if (posId === S.posId) toast(`Đã xuất file in theo vị trí “${g.p.ten}” (SVG).`);
@@ -1368,6 +1489,7 @@ function saveProject() {
     ngay: $('inpDate').value || '', mockupId: S.mockupId,
     phuongPhapIn: $('selMethod').value, chestCm: S.cfg.ao.ngangNgucCm,
     curPosId: S.posId, placements,
+    printColor: { ...S.printColor },
     savedAt: new Date().toISOString(),
   };
   const name = projectFileName();
@@ -1415,6 +1537,10 @@ async function openProject(name) {
     if (proj.chestCm > 0) {
       S.cfg.ao.ngangNgucCm = proj.chestCm;
       $('inpChest').value = proj.chestCm;
+    }
+    if (proj.printColor && proj.printColor.mode) {
+      S.printColor = { mode: proj.printColor.mode, color: proj.printColor.color || '#1a1a1a' };
+      syncColorUI();
     }
     const pl = curPlace();
     if (pl.art) {
@@ -1555,6 +1681,32 @@ async function init() {
 
   // Xóa hình in ở vị trí đang chọn
   $('btnClearArt').onclick = clearArt;
+
+  // Tùy chọn màu file in: áp dụng cho mockup + mọi file xuất
+  document.querySelectorAll('input[name="colorMode"]').forEach((r) => {
+    r.addEventListener('change', () => {
+      S.printColor.mode = document.querySelector('input[name="colorMode"]:checked').value;
+      $('colorRow').hidden = S.printColor.mode !== 'single';
+      render(); updatePrintPanel();
+      toast(S.printColor.mode === 'single'
+        ? 'Đã bật in 1 màu — mockup và mọi file xuất sẽ dùng màu đã chọn.'
+        : 'Đã về chế độ giữ nguyên màu gốc.');
+    });
+  });
+  $('inpPrintColor').addEventListener('input', (e) => {
+    S.printColor.color = e.target.value;
+    syncSwatches();
+    render();
+  });
+  $('swatches').addEventListener('click', (e) => {
+    const b = e.target.closest('.sw');
+    if (!b) return;
+    S.printColor.color = b.dataset.c;
+    $('inpPrintColor').value = b.dataset.c;
+    syncSwatches();
+    render();
+  });
+  syncColorUI();
 
   // Toggle hiện/ẩn lớp số đo
   $('chkMeasure').onchange = () => render();
