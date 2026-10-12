@@ -5,6 +5,10 @@
    mockups/. Thêm mockup mới chỉ cần thêm ảnh + JSON, không sửa code.
    ===================================================================== */
 
+// Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
+// Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
+const APP_V = '20261012e';
+
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -130,24 +134,37 @@ function syncColorUI() {
   syncSwatches();
 }
 
-// Đồng bộ UI màu áo (vòng chọn + tên màu) theo S.shirtColor
+// Đồng bộ UI màu áo (vòng chọn + tên màu + màu chip chú thích) theo S.shirtColor
 function syncShirtColorUI() {
   document.querySelectorAll('#shirtSwatches .sw').forEach((b) => {
     b.classList.toggle('on', b.dataset.c === S.shirtColor);
   });
   $('shirtColorName').textContent = S.shirtColorName;
+  // Legend ngoài canvas phải dùng đúng bảng màu đang vẽ trên canvas
+  const P = pal();
+  const chips = { lgChest: P.chest, lgFrame: P.frame, lgSafe: P.safe, lgZone: P.zone };
+  Object.keys(chips).forEach((id) => { const el = $(id); if (el) el.style.borderColor = chips[id]; });
 }
 
 const MOCKUPS = [
-  { id: 'tshirt', file: 'mockups/tshirt.json', ten: 'Áo cổ tròn trắng' },
-  { id: 'polo',   file: 'mockups/polo.json',   ten: 'Áo polo trắng' },
+  { id: 'tshirt', file: 'mockups/tshirt.json', ten: 'Áo cổ tròn' },
+  { id: 'polo',   file: 'mockups/polo.json',   ten: 'Áo polo' },
 ];
 
 // Config dự phòng khi mở file:// trực tiếp (fetch JSON bị chặn CORS)
 const FALLBACK_CFG = {
-  tshirt: {"ao": {"daiAoCm": 72, "kieu": "Áo cổ tròn", "ngangNgucCm": 52, "ngangNgucPx": 1260, "size": "L"}, "fileAnh": "Tshirt.jpg", "kichThuocAnh": {"h": 3242, "w": 4864}, "positions": [{"center": {"x": 0.294, "y": 0.44}, "exportZone": {"x0": 0.17, "x1": 0.42, "y0": 0.3, "y1": 0.72}, "id": "nguc-truoc", "khoInMacDinhCm": 28, "ten": "Ngực trước", "zone": {"x0": 0.17, "x1": 0.42, "y0": 0.33, "y1": 0.58}}, {"center": {"x": 0.215, "y": 0.36}, "exportZone": {"x0": 0.17, "x1": 0.42, "y0": 0.3, "y1": 0.72}, "id": "logo-nguc-trai", "khoInMacDinhCm": 10, "ten": "Logo ngực trái", "zone": {"x0": 0.16, "x1": 0.27, "y0": 0.3, "y1": 0.42}}, {"center": {"x": 0.72, "y": 0.43}, "exportZone": {"x0": 0.6, "x1": 0.84, "y0": 0.3, "y1": 0.72}, "id": "lung", "khoInMacDinhCm": 30, "ten": "Lưng", "zone": {"x0": 0.6, "x1": 0.84, "y0": 0.31, "y1": 0.58}}], "ten": "Áo cổ tròn trắng", "warnZones": [{"loai": "tron", "r": 0.05, "ten": "Cổ trước", "x": 0.294, "y": 0.215}, {"loai": "tron", "r": 0.045, "ten": "Cổ sau", "x": 0.72, "y": 0.2}]},
-  polo: {"ao": {"daiAoCm": 72, "kieu": "Áo polo", "ngangNgucCm": 52, "ngangNgucPx": 1040, "size": "L"}, "fileAnh": "Polo.jpg", "kichThuocAnh": {"h": 3000, "w": 4000}, "positions": [{"center": {"x": 0.285, "y": 0.47}, "exportZone": {"x0": 0.16, "x1": 0.41, "y0": 0.3, "y1": 0.7}, "id": "nguc-truoc", "khoInMacDinhCm": 26, "ten": "Ngực trước", "zone": {"x0": 0.16, "x1": 0.41, "y0": 0.37, "y1": 0.6}}, {"center": {"x": 0.205, "y": 0.375}, "exportZone": {"x0": 0.16, "x1": 0.41, "y0": 0.3, "y1": 0.7}, "id": "logo-nguc-trai", "khoInMacDinhCm": 9, "ten": "Logo ngực trái", "zone": {"x0": 0.15, "x1": 0.26, "y0": 0.32, "y1": 0.43}}, {"center": {"x": 0.715, "y": 0.42}, "exportZone": {"x0": 0.59, "x1": 0.84, "y0": 0.3, "y1": 0.68}, "id": "lung", "khoInMacDinhCm": 28, "ten": "Lưng", "zone": {"x0": 0.59, "x1": 0.84, "y0": 0.3, "y1": 0.56}}], "ten": "Áo polo trắng", "warnZones": [{"loai": "chunhat", "ten": "Nẹp nút", "x0": 0.262, "x1": 0.308, "y0": 0.2, "y1": 0.345}, {"loai": "tron", "r": 0.045, "ten": "Cổ trước", "x": 0.285, "y": 0.2}, {"loai": "tron", "r": 0.04, "ten": "Cổ sau", "x": 0.715, "y": 0.19}]}
+  tshirt: {"ao": {"daiAoCm": 72, "kieu": "Áo cổ tròn", "ngangNgucCm": 52, "ngangNgucPx": 1260, "size": "L"}, "fileAnh": "Tshirt.jpg", "kichThuocAnh": {"h": 3242, "w": 4864}, "positions": [{"center": {"x": 0.294, "y": 0.44}, "exportZone": {"x0": 0.17, "x1": 0.42, "y0": 0.3, "y1": 0.72}, "id": "nguc-truoc", "khoInMacDinhCm": 28, "ten": "Ngực trước", "zone": {"x0": 0.17, "x1": 0.42, "y0": 0.33, "y1": 0.58}}, {"center": {"x": 0.215, "y": 0.36}, "exportZone": {"x0": 0.17, "x1": 0.42, "y0": 0.3, "y1": 0.72}, "id": "logo-nguc-trai", "khoInMacDinhCm": 10, "ten": "Logo ngực trái", "zone": {"x0": 0.16, "x1": 0.27, "y0": 0.3, "y1": 0.42}}, {"center": {"x": 0.72, "y": 0.43}, "exportZone": {"x0": 0.6, "x1": 0.84, "y0": 0.3, "y1": 0.72}, "id": "lung", "khoInMacDinhCm": 30, "ten": "Lưng", "zone": {"x0": 0.6, "x1": 0.84, "y0": 0.31, "y1": 0.58}}], "ten": "Áo cổ tròn", "warnZones": [{"loai": "tron", "r": 0.05, "ten": "Cổ trước", "x": 0.294, "y": 0.215}, {"loai": "tron", "r": 0.045, "ten": "Cổ sau", "x": 0.72, "y": 0.2}]},
+  polo: {"ao": {"daiAoCm": 72, "kieu": "Áo polo", "ngangNgucCm": 52, "ngangNgucPx": 1040, "size": "L"}, "fileAnh": "Polo.jpg", "kichThuocAnh": {"h": 3000, "w": 4000}, "positions": [{"center": {"x": 0.285, "y": 0.47}, "exportZone": {"x0": 0.16, "x1": 0.41, "y0": 0.3, "y1": 0.7}, "id": "nguc-truoc", "khoInMacDinhCm": 26, "ten": "Ngực trước", "zone": {"x0": 0.16, "x1": 0.41, "y0": 0.37, "y1": 0.6}}, {"center": {"x": 0.205, "y": 0.375}, "exportZone": {"x0": 0.16, "x1": 0.41, "y0": 0.3, "y1": 0.7}, "id": "logo-nguc-trai", "khoInMacDinhCm": 9, "ten": "Logo ngực trái", "zone": {"x0": 0.15, "x1": 0.26, "y0": 0.32, "y1": 0.43}}, {"center": {"x": 0.715, "y": 0.42}, "exportZone": {"x0": 0.59, "x1": 0.84, "y0": 0.3, "y1": 0.68}, "id": "lung", "khoInMacDinhCm": 28, "ten": "Lưng", "zone": {"x0": 0.59, "x1": 0.84, "y0": 0.3, "y1": 0.56}}], "ten": "Áo polo", "warnZones": [{"loai": "chunhat", "ten": "Nẹp nút", "x0": 0.262, "x1": 0.308, "y0": 0.2, "y1": 0.345}, {"loai": "tron", "r": 0.045, "ten": "Cổ trước", "x": 0.285, "y": 0.2}, {"loai": "tron", "r": 0.04, "ten": "Cổ sau", "x": 0.715, "y": 0.19}]}
 };
+
+// ---------- Bảng màu chú thích (line số đo, khung, vùng in) ----------
+// Áo sáng dùng bảng SÁNG; áo tối (lum < 0.45) dùng bảng TỐI cho tương phản,
+// vì các màu đậm bị chìm trên nền áo đen/navy. Nhãn pill giữ nền trắng nên
+// vẫn đọc được — chỉ đổi màu chữ/viền theo bảng đang dùng.
+const PALETTE_SANG = { chest: '#b45309', frame: '#1d4ed8', safe: '#0e7c5b', zone: '#6b7280' };
+const PALETTE_TOI  = { chest: '#fbbf24', frame: '#60a5fa', safe: '#34d399', zone: '#d1d5db' };
+// Bảng màu chú thích đang dùng — tính lại mỗi lần vẽ theo màu áo hiện tại.
+function pal() { return shirtLum(S.shirtColor) < 0.45 ? PALETTE_TOI : PALETTE_SANG; }
 
 // ---------- Tải mockup ----------
 // Tải config JSON + ảnh áo thật. Lỗi fetch (mở file://) thì dùng config dự phòng.
@@ -156,7 +173,7 @@ async function loadMockup(id) {
   const meta = MOCKUPS.find((m) => m.id === id);
   let cfg = null;
   try {
-    cfg = await (await fetch(meta.file)).json();
+    cfg = await (await fetch(meta.file + '?v=' + APP_V)).json();
   } catch (e) {
     cfg = FALLBACK_CFG[id]; // mở trực tiếp file:// 
   }
@@ -410,13 +427,13 @@ function drawSelection() {
   const [x1, y1] = toCss(r.x, r.y);
   const [x2, y2] = toCss(r.x + r.w, r.y + r.h);
   sctx.save();
-  sctx.strokeStyle = '#0e7c5b';
+  sctx.strokeStyle = pal().safe;
   sctx.lineWidth = 1.5;
   sctx.setLineDash([6, 4]);
   sctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
   sctx.setLineDash([]);
   const HS = 9;
-  sctx.fillStyle = '#0e7c5b';
+  sctx.fillStyle = pal().safe;
   [[x1, y1], [x2, y1], [x1, y2], [x2, y2]].forEach(([x, y]) => {
     sctx.fillRect(x - HS, y - HS, HS * 2, HS * 2);
   });
@@ -454,6 +471,7 @@ function deleteBtnCss() {
 // Tất cả vẽ bằng toCss() nên luôn đúng tọa độ; nhãn có nền trắng cho dễ đọc.
 function drawMeasureOverlays() {
   if (!S.cfg || !$('chkMeasure') || !$('chkMeasure').checked) return;
+  const P = pal(); // bảng màu chú thích tương phản với màu áo hiện tại
   const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
   const ppc = pxPerCm();
   const a = S.cfg.ao;
@@ -465,53 +483,53 @@ function drawMeasureOverlays() {
   const chestPx = a.ngangNgucCm * ppc;
   const chestY = front.zone.y0 * H;
   const c1 = toCss(cxF - chestPx / 2, chestY), c2 = toCss(cxF + chestPx / 2, chestY);
-  dimLine(c1[0], c1[1], c2[0], c2[1], '#b45309');
+  dimLine(c1[0], c1[1], c2[0], c2[1], P.chest);
   // Nhãn 52cm ở đầu PHẢI line ngang, ngoài áo
-  labels.push({ x: c2[0] + 44, y: c2[1], text: fmt(a.ngangNgucCm) + 'cm', color: '#b45309' });
+  labels.push({ x: c2[0] + 44, y: c2[1], text: fmt(a.ngangNgucCm) + 'cm', color: P.chest });
 
   const collar = (S.cfg.warnZones || []).find((w) => /cổ trước/i.test(w.ten || ''));
   const yTop = ((collar ? collar.y - (collar.r || 0) : 0.2)) * H;
   const xSide = cxF - chestPx / 2 - 60;
   const yBot = yTop + a.daiAoCm * ppc;
   const v1 = toCss(xSide, yTop), v2 = toCss(xSide, yBot);
-  dimLine(v1[0], v1[1], v2[0], v2[1], '#b45309');
+  dimLine(v1[0], v1[1], v2[0], v2[1], P.chest);
   // Nhãn 72cm ở đầu DƯỚI line dọc
-  labels.push({ x: v1[0], y: v2[1] + 20, text: fmt(a.daiAoCm) + 'cm', color: '#b45309' });
+  labels.push({ x: v1[0], y: v2[1] + 20, text: fmt(a.daiAoCm) + 'cm', color: P.chest });
 
   // 2) Phạm vi vùng có thể in: chữ nhật nét liền xám + nhãn ở góc trên-phải, bên ngoài
   const p = curPos(), z = p.zone;
   const z1 = toCss(z.x0 * W, z.y0 * H), z2 = toCss(z.x1 * W, z.y1 * H);
   sctx.save();
-  sctx.strokeStyle = '#6b7280'; sctx.lineWidth = 1.5;
+  sctx.strokeStyle = P.zone; sctx.lineWidth = 1.5;
   sctx.strokeRect(z1[0], z1[1], z2[0] - z1[0], z2[1] - z1[1]);
   sctx.restore();
-  labels.push({ x: z2[0], y: z1[1] - 18, text: 'vùng in', color: '#6b7280', align: 'right' });
+  labels.push({ x: z2[0], y: z1[1] - 18, text: 'vùng in', color: P.zone, align: 'right' });
 
   // 3) Vùng in an toàn: zone thu vào 5% mỗi bên, nét đứt xanh lá + nhãn góc trên-trái, bên ngoài
   const mx = (z.x1 - z.x0) * 0.05, my = (z.y1 - z.y0) * 0.05;
   const s1 = toCss((z.x0 + mx) * W, (z.y0 + my) * H);
   const s2 = toCss((z.x1 - mx) * W, (z.y1 - my) * H);
   sctx.save();
-  sctx.strokeStyle = '#0e7c5b'; sctx.lineWidth = 1.5;
+  sctx.strokeStyle = P.safe; sctx.lineWidth = 1.5;
   sctx.setLineDash([7, 5]);
   sctx.strokeRect(s1[0], s1[1], s2[0] - s1[0], s2[1] - s1[1]);
   sctx.setLineDash([]);
   sctx.restore();
-  labels.push({ x: s1[0] - 8, y: s1[1] - 18, text: 'vùng an toàn', color: '#0e7c5b', align: 'right' });
+  labels.push({ x: s1[0] - 8, y: s1[1] - 18, text: 'vùng an toàn', color: P.safe, align: 'right' });
 
   // 4) Số đo hình in: khung xanh dương + line kích thước DƯỚI bbox, nhãn căn giữa
   if (S.art && S.design) {
     const r = designPx();
     const d1 = toCss(r.x, r.y), d2 = toCss(r.x + r.w, r.y + r.h);
     sctx.save();
-    sctx.strokeStyle = '#1d4ed8'; sctx.lineWidth = 1.5;
+    sctx.strokeStyle = P.frame; sctx.lineWidth = 1.5;
     sctx.strokeRect(d1[0], d1[1], d2[0] - d1[0], d2[1] - d1[1]);
     sctx.restore();
-    dimLine(d1[0], d2[1] + 30, d2[0], d2[1] + 30, '#1d4ed8');
-    dimLine(d2[0] + 22, d1[1], d2[0] + 22, d2[1], '#1d4ed8'); // line dọc phụ, không nhãn
+    dimLine(d1[0], d2[1] + 30, d2[0], d2[1] + 30, P.frame);
+    dimLine(d2[0] + 22, d1[1], d2[0] + 22, d2[1], P.frame); // line dọc phụ, không nhãn
     labels.push({
       x: (d1[0] + d2[0]) / 2, y: d2[1] + 30,
-      text: `${fmt(S.design.wCm)} × ${fmt(S.design.hCm)} cm`, color: '#1d4ed8',
+      text: `${fmt(S.design.wCm)} × ${fmt(S.design.hCm)} cm`, color: P.frame,
     });
   }
 
