@@ -83,10 +83,12 @@ S.printColor = { mode: 'orig', color: '#1a1a1a' };
 // Màu áo mockup: nhuộm ảnh áo thật qua mask (multiply), giữ nếp vải/bóng đổ.
 // S.maskImg = ảnh mask RGBA (alpha = vùng áo), tải trong loadMockup (URL hoặc data URL).
 // S._tintBase = cache nền đã nhuộm theo key (mockupId + màu áo).
+// S._detail = cache chi tiết vải high-pass theo key (mockupId).
 S.shirtColor = '#ffffff';
 S.shirtColorName = 'Trắng';
 S.maskImg = null;
 S._tintBase = null;
+S._detail = null;
 
 // Raster dùng cho mọi đầu ra (đã áp dụng tùy chọn màu). Xử lý ảnh
 // (vector/upscale/crop/khử nền) luôn chạy trên bản gốc, không qua đây.
@@ -181,6 +183,8 @@ async function loadMockup(id) {
   S.places = {}; // mockup mới -> placements mới
   S.baseImg = await loadImage(cfg.fileAnh);
   S.maskImg = null; // mask tách áo khỏi nền (nếu có) — dùng để nhuộm màu áo
+  S._tintBase = null; // đổi mockup -> tính lại nền nhuộm
+  S._detail = null; // đổi mockup -> tính lại chi tiết vải
   if (cfg.maskSrc) {
     try { S.maskImg = await loadImage(cfg.maskSrc); }
     catch (e) { S.maskImg = null; } // lỗi thì bỏ qua tint, dùng ảnh gốc
@@ -285,6 +289,51 @@ function shirtLum(hex) {
   return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 }
 
+// Canvas chi tiết vải (high-pass luminance) ở 1/8 độ phân giải — cache theo mockupId.
+// Dùng với blend 'overlay' sau bước nhuộm multiply để nếp vải hiện lại trên áo tối
+// (multiply nhân màu tối nghiền nát chi tiết vải: vùng sáng 240-255 thành 25-27).
+function getDetailCanvas(W, H) {
+  const key = S.mockupId;
+  if (S._detail && S._detail.key === key) return S._detail.cv;
+  if (!S.maskImg) return null;
+  const lw = Math.max(64, W >> 3), lh = Math.max(64, H >> 3);
+  const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+  try {
+  // ảnh xám (khử bão hòa bằng blend 'saturation')
+  const gc = mk(lw, lh), g = gc.getContext('2d');
+  g.drawImage(S.baseImg, 0, 0, lw, lh);
+  g.globalCompositeOperation = 'saturation';
+  g.fillStyle = '#808080'; g.fillRect(0, 0, lw, lh);
+  g.globalCompositeOperation = 'source-over';
+  const gray = g.getImageData(0, 0, lw, lh).data;
+  // bản mờ (vẽ thu nhỏ rồi phóng lên = blur nhanh)
+  const bc = mk(lw >> 1, lh >> 1), b = bc.getContext('2d');
+  b.drawImage(gc, 0, 0, lw >> 1, lh >> 1);
+  const b2 = mk(lw, lh), b2x = b2.getContext('2d');
+  b2x.drawImage(bc, 0, 0, lw, lh);
+  const blur = b2x.getImageData(0, 0, lw, lh).data;
+  // alpha mask ở độ phân giải thấp
+  const mc = mk(lw, lh), m = mc.getContext('2d');
+  m.drawImage(S.maskImg, 0, 0, lw, lh);
+  const ma = m.getImageData(0, 0, lw, lh).data;
+  // detail = 128 + (gray - blur) * STRENGTH, alpha = mask
+  const out = b2x.createImageData(lw, lh), od = out.data;
+  const STRENGTH = 6.0; // đã tune bằng mô phỏng: đủ hiện nếp vải trên áo tối mà không gắt
+  for (let i = 0; i < od.length; i += 4) {
+    let v = 128 + (gray[i] - blur[i]) * STRENGTH;
+    v = v > 255 ? 255 : v < 0 ? 0 : v;
+    od[i] = od[i+1] = od[i+2] = v;
+    od[i+3] = ma[i+3];
+  }
+  b2x.putImageData(out, 0, 0);
+  S._detail = { key, cv: b2 };
+  return b2;
+  } catch (e) {
+    // canvas bị taint (VD mở file:// trực tiếp) -> bỏ qua khôi phục vân vải, vẫn nhuộm được
+    return null;
+  }
+}
+
 // Nền áo đã nhuộm màu (full-res), CACHE theo key = mockupId + màu áo.
 // Màu trắng hoặc thiếu mask -> trả thẳng canvas ảnh gốc (không tính toán).
 // Toàn bộ bằng lệnh canvas (multiply qua mask), KHÔNG lặp pixel JS.
@@ -307,6 +356,13 @@ function getTintedBase() {
     l.globalCompositeOperation = 'destination-in'; // cắt đúng vùng áo theo mask
     l.drawImage(S.maskImg, 0, 0, W, H);
     ctx.drawImage(lay, 0, 0);
+    // Khôi phục vân vải: vẽ chi tiết high-pass bằng overlay để nếp vải hiện lại trên áo tối
+    const det = getDetailCanvas(W, H);
+    if (det) {
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.drawImage(det, 0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
+    }
   }
   S._tintBase = { key, cv };
   return cv;
