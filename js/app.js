@@ -76,6 +76,14 @@ Object.defineProperty(S, 'design', {
 // preview, mockup PNG, file in PNG (thường + theo vị trí), SVG.
 S.printColor = { mode: 'orig', color: '#1a1a1a' };
 
+// Màu áo mockup: nhuộm ảnh áo thật qua mask (multiply), giữ nếp vải/bóng đổ.
+// S.maskImg = ảnh mask RGBA (alpha = vùng áo), tải trong loadMockup.
+// S._tintBase = cache nền đã nhuộm theo key (mockupId + màu áo).
+S.shirtColor = '#ffffff';
+S.shirtColorName = 'Trắng';
+S.maskImg = null;
+S._tintBase = null;
+
 // Raster dùng cho mọi đầu ra (đã áp dụng tùy chọn màu). Xử lý ảnh
 // (vector/upscale/crop/khử nền) luôn chạy trên bản gốc, không qua đây.
 // Kết quả được cache theo (màu + canvas gốc) để không tính lại mỗi render.
@@ -122,6 +130,14 @@ function syncColorUI() {
   syncSwatches();
 }
 
+// Đồng bộ UI màu áo (vòng chọn + tên màu) theo S.shirtColor
+function syncShirtColorUI() {
+  document.querySelectorAll('#shirtSwatches .sw').forEach((b) => {
+    b.classList.toggle('on', b.dataset.c === S.shirtColor);
+  });
+  $('shirtColorName').textContent = S.shirtColorName;
+}
+
 const MOCKUPS = [
   { id: 'tshirt', file: 'mockups/tshirt.json', ten: 'Áo cổ tròn trắng' },
   { id: 'polo',   file: 'mockups/polo.json',   ten: 'Áo polo trắng' },
@@ -129,8 +145,8 @@ const MOCKUPS = [
 
 // Config dự phòng khi mở file:// trực tiếp (fetch JSON bị chặn CORS)
 const FALLBACK_CFG = {
-  tshirt: {"ao":{"daiAoCm":72,"kieu":"Áo cổ tròn","ngangNgucCm":52,"ngangNgucPx":1260,"size":"L"},"fileAnh":"Tshirt.jpg","kichThuocAnh":{"h":3242,"w":4864},"positions":[{"center":{"x":0.294,"y":0.44},"exportZone":{"x0":0.17,"x1":0.42,"y0":0.3,"y1":0.72},"id":"nguc-truoc","khoInMacDinhCm":28,"ten":"Ngực trước","zone":{"x0":0.17,"x1":0.42,"y0":0.33,"y1":0.58}},{"center":{"x":0.215,"y":0.36},"exportZone":{"x0":0.17,"x1":0.42,"y0":0.3,"y1":0.72},"id":"logo-nguc-trai","khoInMacDinhCm":10,"ten":"Logo ngực trái","zone":{"x0":0.16,"x1":0.27,"y0":0.3,"y1":0.42}},{"center":{"x":0.72,"y":0.43},"exportZone":{"x0":0.6,"x1":0.84,"y0":0.3,"y1":0.72},"id":"lung","khoInMacDinhCm":30,"ten":"Lưng","zone":{"x0":0.6,"x1":0.84,"y0":0.31,"y1":0.58}}],"ten":"Áo cổ tròn trắng","warnZones":[{"loai":"tron","r":0.05,"ten":"Cổ trước","x":0.294,"y":0.215},{"loai":"tron","r":0.045,"ten":"Cổ sau","x":0.72,"y":0.2}]},
-  polo: {"ao":{"daiAoCm":72,"kieu":"Áo polo","ngangNgucCm":52,"ngangNgucPx":1040,"size":"L"},"fileAnh":"Polo.jpg","kichThuocAnh":{"h":3000,"w":4000},"positions":[{"center":{"x":0.285,"y":0.47},"exportZone":{"x0":0.16,"x1":0.41,"y0":0.3,"y1":0.7},"id":"nguc-truoc","khoInMacDinhCm":26,"ten":"Ngực trước","zone":{"x0":0.16,"x1":0.41,"y0":0.37,"y1":0.6}},{"center":{"x":0.205,"y":0.375},"exportZone":{"x0":0.16,"x1":0.41,"y0":0.3,"y1":0.7},"id":"logo-nguc-trai","khoInMacDinhCm":9,"ten":"Logo ngực trái","zone":{"x0":0.15,"x1":0.26,"y0":0.32,"y1":0.43}},{"center":{"x":0.715,"y":0.42},"exportZone":{"x0":0.59,"x1":0.84,"y0":0.3,"y1":0.68},"id":"lung","khoInMacDinhCm":28,"ten":"Lưng","zone":{"x0":0.59,"x1":0.84,"y0":0.3,"y1":0.56}}],"ten":"Áo polo trắng","warnZones":[{"loai":"chunhat","ten":"Nẹp nút","x0":0.262,"x1":0.308,"y0":0.2,"y1":0.345},{"loai":"tron","r":0.045,"ten":"Cổ trước","x":0.285,"y":0.2},{"loai":"tron","r":0.04,"ten":"Cổ sau","x":0.715,"y":0.19}]}
+  tshirt: {"ao":{"daiAoCm":72,"kieu":"Áo cổ tròn","ngangNgucCm":52,"ngangNgucPx":1260,"size":"L"},"fileAnh":"Tshirt.jpg","maskFile":"mockups/tshirt-mask.png","kichThuocAnh":{"h":3242,"w":4864},"positions":[{"center":{"x":0.294,"y":0.44},"exportZone":{"x0":0.17,"x1":0.42,"y0":0.3,"y1":0.72},"id":"nguc-truoc","khoInMacDinhCm":28,"ten":"Ngực trước","zone":{"x0":0.17,"x1":0.42,"y0":0.33,"y1":0.58}},{"center":{"x":0.215,"y":0.36},"exportZone":{"x0":0.17,"x1":0.42,"y0":0.3,"y1":0.72},"id":"logo-nguc-trai","khoInMacDinhCm":10,"ten":"Logo ngực trái","zone":{"x0":0.16,"x1":0.27,"y0":0.3,"y1":0.42}},{"center":{"x":0.72,"y":0.43},"exportZone":{"x0":0.6,"x1":0.84,"y0":0.3,"y1":0.72},"id":"lung","khoInMacDinhCm":30,"ten":"Lưng","zone":{"x0":0.6,"x1":0.84,"y0":0.31,"y1":0.58}}],"ten":"Áo cổ tròn trắng","warnZones":[{"loai":"tron","r":0.05,"ten":"Cổ trước","x":0.294,"y":0.215},{"loai":"tron","r":0.045,"ten":"Cổ sau","x":0.72,"y":0.2}]},
+  polo: {"ao":{"daiAoCm":72,"kieu":"Áo polo","ngangNgucCm":52,"ngangNgucPx":1040,"size":"L"},"fileAnh":"Polo.jpg","maskFile":"mockups/polo-mask.png","kichThuocAnh":{"h":3000,"w":4000},"positions":[{"center":{"x":0.285,"y":0.47},"exportZone":{"x0":0.16,"x1":0.41,"y0":0.3,"y1":0.7},"id":"nguc-truoc","khoInMacDinhCm":26,"ten":"Ngực trước","zone":{"x0":0.16,"x1":0.41,"y0":0.37,"y1":0.6}},{"center":{"x":0.205,"y":0.375},"exportZone":{"x0":0.16,"x1":0.41,"y0":0.3,"y1":0.7},"id":"logo-nguc-trai","khoInMacDinhCm":9,"ten":"Logo ngực trái","zone":{"x0":0.15,"x1":0.26,"y0":0.32,"y1":0.43}},{"center":{"x":0.715,"y":0.42},"exportZone":{"x0":0.59,"x1":0.84,"y0":0.3,"y1":0.68},"id":"lung","khoInMacDinhCm":28,"ten":"Lưng","zone":{"x0":0.59,"x1":0.84,"y0":0.3,"y1":0.56}}],"ten":"Áo polo trắng","warnZones":[{"loai":"chunhat","ten":"Nẹp nút","x0":0.262,"x1":0.308,"y0":0.2,"y1":0.345},{"loai":"tron","r":0.045,"ten":"Cổ trước","x":0.285,"y":0.2},{"loai":"tron","r":0.04,"ten":"Cổ sau","x":0.715,"y":0.19}]}
 };
 
 // ---------- Tải mockup ----------
@@ -147,6 +163,11 @@ async function loadMockup(id) {
   S.cfg = cfg;
   S.places = {}; // mockup mới -> placements mới
   S.baseImg = await loadImage(cfg.fileAnh);
+  S.maskImg = null; // mask tách áo khỏi nền (nếu có) — dùng để nhuộm màu áo
+  if (cfg.maskFile) {
+    try { S.maskImg = await loadImage(cfg.maskFile); }
+    catch (e) { S.maskImg = null; } // lỗi thì bỏ qua tint, dùng ảnh gốc
+  }
   S.off.width = cfg.kichThuocAnh.w;
   S.off.height = cfg.kichThuocAnh.h;
 
@@ -237,11 +258,48 @@ function designPx() {
 //    (trên áo trắng, nền trắng artwork tự biến mất, màu hòa vào vải).
 // 4) Khôi phục chất vải: clip đúng bbox design, vẽ lại ảnh gốc bằng
 //    overlay alpha 0.35 để nếp vải/bóng đổ hiện xuyên qua hình in.
+// Độ sáng tương đối của màu hex (0-1) — quyết định cách hòa hình in vào áo:
+// áo tối (lum < 0.45) thì multiply làm hình mất hút, phải vẽ đè trực tiếp.
+function shirtLum(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+  if (!m) return 1;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
+// Nền áo đã nhuộm màu (full-res), CACHE theo key = mockupId + màu áo.
+// Màu trắng hoặc thiếu mask -> trả thẳng canvas ảnh gốc (không tính toán).
+// Toàn bộ bằng lệnh canvas (multiply qua mask), KHÔNG lặp pixel JS.
+function getTintedBase() {
+  const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
+  const key = S.mockupId + '|' + S.shirtColor;
+  if (S._tintBase && S._tintBase.key === key) return S._tintBase.cv;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.drawImage(S.baseImg, 0, 0, W, H);
+  if (S.shirtColor.toLowerCase() !== '#ffffff' && S.maskImg) {
+    const lay = document.createElement('canvas');
+    lay.width = W; lay.height = H;
+    const l = lay.getContext('2d');
+    l.drawImage(S.baseImg, 0, 0, W, H);
+    l.globalCompositeOperation = 'multiply'; // nhuộm màu, giữ nếp vải/bóng đổ
+    l.fillStyle = S.shirtColor;
+    l.fillRect(0, 0, W, H);
+    l.globalCompositeOperation = 'destination-in'; // cắt đúng vùng áo theo mask
+    l.drawImage(S.maskImg, 0, 0, W, H);
+    ctx.drawImage(lay, 0, 0);
+  }
+  S._tintBase = { key, cv };
+  return cv;
+}
+
 function composite(ctx, W, H) {
   ctx.save();
   ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = 1;
-  ctx.drawImage(S.baseImg, 0, 0, W, H);
+  ctx.drawImage(getTintedBase(), 0, 0, W, H);
   Object.values(S.places).forEach((pl) => {
     if (pl.art && pl.design) drawOneDesign(ctx, W, H, pl);
   });
@@ -273,8 +331,15 @@ function drawOneDesign(ctx, W, H, pl) {
   }
 
   ctx.save();
-  ctx.globalCompositeOperation = 'multiply';
-  ctx.globalAlpha = 0.93;
+  // Áo tối: vẽ đè trực tiếp (source-over) vì multiply làm hình mất hút.
+  // Áo sáng: multiply để hình hòa vào chất vải như ảnh chụp thật.
+  if (shirtLum(S.shirtColor) < 0.45) {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 0.96;
+  } else {
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalAlpha = 0.93;
+  }
   ctx.drawImage(tmp, r.x - pad, r.y - pad, tmp.width, tmp.height);
 
   ctx.beginPath();
@@ -282,7 +347,7 @@ function drawOneDesign(ctx, W, H, pl) {
   ctx.clip();
   ctx.globalCompositeOperation = 'overlay';
   ctx.globalAlpha = 0.35;
-  ctx.drawImage(S.baseImg, 0, 0, W, H);
+  ctx.drawImage(getTintedBase(), 0, 0, W, H); // vân vải trên nền áo đã nhuộm
   ctx.restore();
 }
 
@@ -1214,6 +1279,7 @@ function updateShirtPanel() {
   $('shirtInfo').innerHTML =
     `Áo: <b>${esc(a.kieu)}</b>, size ${esc(a.size)} — ` +
     `Ngang ngực <b>${fmt(a.ngangNgucCm)}</b> cm, Dài <b>${fmt(a.daiAoCm)}</b> cm` +
+    `<br>Màu áo: <b>${esc(S.shirtColorName)}</b> <span class="muted small">(${esc(S.shirtColor)})</span>` +
     `<br><span class="muted small">Tỉ lệ ảnh: ${fmt(pxPerCm(), 2)} px/cm</span>`;
 }
 
@@ -1298,6 +1364,7 @@ function exportSpec() {
     `Khach hang: ${$('inpCust').value || '—'}`,
     `Ma don: ${$('inpCode').value || '—'}`,
     `Mockup: ${S.cfg.ten} (${a.kieu}, size ${a.size})`,
+    `Mau ao: ${S.shirtColorName} (${S.shirtColor})`,
     `Vi tri in: ${curPos().ten}`,
     `Kich thuoc hinh in: ${fmt(S.design.wCm)} x ${fmt(S.design.hCm)} cm`,
     `DPI thuc te: ${Math.round(artworkDPI())}`,
@@ -1490,6 +1557,7 @@ function saveProject() {
     phuongPhapIn: $('selMethod').value, chestCm: S.cfg.ao.ngangNgucCm,
     curPosId: S.posId, placements,
     printColor: { ...S.printColor },
+    shirtColor: S.shirtColor, shirtColorName: S.shirtColorName,
     savedAt: new Date().toISOString(),
   };
   const name = projectFileName();
@@ -1541,6 +1609,11 @@ async function openProject(name) {
     if (proj.printColor && proj.printColor.mode) {
       S.printColor = { mode: proj.printColor.mode, color: proj.printColor.color || '#1a1a1a' };
       syncColorUI();
+    }
+    if (proj.shirtColor) {
+      S.shirtColor = proj.shirtColor;
+      S.shirtColorName = proj.shirtColorName || proj.shirtColor;
+      syncShirtColorUI();
     }
     const pl = curPlace();
     if (pl.art) {
@@ -1715,6 +1788,20 @@ async function init() {
     render();
   });
   syncColorUI();
+
+  // Chọn màu áo: đổi swatch -> nhuộm lại mockup (có toast vì tính toán 1-2 giây)
+  $('shirtSwatches').addEventListener('click', (e) => {
+    const b = e.target.closest('.sw');
+    if (!b || b.dataset.c === S.shirtColor) return;
+    toast('Đang đổi màu áo...');
+    setTimeout(() => {
+      S.shirtColor = b.dataset.c;
+      S.shirtColorName = b.dataset.n || b.dataset.c;
+      syncShirtColorUI();
+      render(); updateShirtPanel();
+    }, 30);
+  });
+  syncShirtColorUI();
 
   // Toggle hiện/ẩn lớp số đo
   $('chkMeasure').onchange = () => render();
