@@ -130,6 +130,21 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
   hình hòa vào chất vải.
 - Màu áo được **lưu vào file làm việc** (mở lại là giữ nguyên) và in ra
   **phiếu kỹ thuật** gửi nhà in.
+- **Chú thích tương phản:** line số đo, khung hình in, vùng an toàn, phạm vi
+  vùng in tự đổi sang bảng màu sáng khi áo tối (độ sáng < 0.45): số đo
+  `#fbbf24`, khung `#60a5fa`, vùng an toàn `#34d399`, phạm vi `#d1d5db` — thay
+  vì bảng màu đậm dùng cho áo sáng (`#b45309`, `#1d4ed8`, `#0e7c5b`,
+  `#6b7280`). Nhãn pill giữ nền trắng nên luôn đọc được. Hàng chú thích
+  (legend) ngoài canvas đổi màu chip theo cùng bảng màu.
+
+## Chống cache (quan trọng với Safari)
+
+- CSS/JS trong `index.html` dùng mã `?v=` (VD `app.js?v=20261012e`): mỗi lần
+  sửa code là **phải tăng mã** rồi push, nếu không Safari giữ bản cũ.
+- JSON config (`mockups/*.json`) được `fetch` kèm `?v=` + hằng `APP_V` trong
+  `js/app.js` — **mỗi lần sửa JSON cũng phải tăng `APP_V`** rồi push, nếu
+  không Safari giữ JSON cũ (VD thiếu `maskSrc` mới thêm → đổi màu áo không
+  có tác dụng dù JS đã mới). Ảnh áo (`.jpg`) không cần chống cache.
 
 ## Hiệu chuẩn exportZone
 
