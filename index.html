@@ -29,6 +29,13 @@
       <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.pdf" hidden>
     </div>
 
+    <div class="legend" id="legend">
+      <span class="lg"><i style="border-color:#b45309"></i>Số đo áo (ngang ngực, dài áo)</span>
+      <span class="lg"><i class="sw-box" style="border-color:#1d4ed8"></i>Khung + kích thước hình in</span>
+      <span class="lg"><i class="sw-dash" style="border-color:#0e7c5b"></i>Vùng in an toàn</span>
+      <span class="lg"><i class="sw-box thin" style="border-color:#6b7280"></i>Phạm vi vùng in của vị trí</span>
+    </div>
+
     <div id="warnBar" class="warnbar" hidden></div>
 
     <div class="canvas-wrap" id="canvasWrap">
@@ -50,6 +57,8 @@
     <div class="panel" id="panelFile">
       <h2>File thiết kế</h2>
       <div id="fileInfo" class="muted">Chưa có file. Hãy tải file thiết kế lên.</div>
+      <label class="chk" style="margin-top:8px"><input type="checkbox" id="chkAutoFit" checked> Tự động fit theo vị trí in</label>
+      <p class="muted small" style="margin:4px 0 0">Khi tải ảnh lên, tự thu vừa khít trong vùng in an toàn rồi mới đánh giá chất lượng.</p>
       <div id="dpiBox" class="dpi" hidden>
         <span id="dpiBadge" class="badge">—</span>
         <span id="dpiText">—</span>
@@ -105,6 +114,22 @@
           </select>
         </label>
         <label class="fld">Ngày chốt <input type="date" id="inpDate"></label>
+      </div>
+      <div class="colorpick">
+        <div class="fld">Màu file in</div>
+        <label class="chk"><input type="radio" name="colorMode" value="orig" checked> Giữ nguyên màu gốc (in ảnh)</label>
+        <label class="chk"><input type="radio" name="colorMode" value="single"> In 1 màu (in logo)</label>
+        <div class="colorrow" id="colorRow" hidden>
+          <input type="color" id="inpPrintColor" value="#1a1a1a" title="Chọn màu">
+          <div class="swatches" id="swatches">
+            <button type="button" class="sw" data-c="#1a1a1a" style="background:#1a1a1a" title="Đen"></button>
+            <button type="button" class="sw" data-c="#ffffff" style="background:#ffffff" title="Trắng"></button>
+            <button type="button" class="sw" data-c="#c81e1e" style="background:#c81e1e" title="Đỏ"></button>
+            <button type="button" class="sw" data-c="#1f3a5f" style="background:#1f3a5f" title="Xanh navy"></button>
+            <button type="button" class="sw" data-c="#f5c518" style="background:#f5c518" title="Vàng"></button>
+            <button type="button" class="sw" data-c="#1e7a34" style="background:#1e7a34" title="Xanh lá"></button>
+          </div>
+        </div>
       </div>
       <div class="btn-grid">
         <button class="btn primary" id="btnExpMockup">Xuất mockup PNG</button>
