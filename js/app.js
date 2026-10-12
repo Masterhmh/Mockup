@@ -77,7 +77,7 @@ Object.defineProperty(S, 'design', {
 S.printColor = { mode: 'orig', color: '#1a1a1a' };
 
 // Màu áo mockup: nhuộm ảnh áo thật qua mask (multiply), giữ nếp vải/bóng đổ.
-// S.maskImg = ảnh mask RGBA (alpha = vùng áo), tải trong loadMockup.
+// S.maskImg = ảnh mask RGBA (alpha = vùng áo), tải trong loadMockup (URL hoặc data URL).
 // S._tintBase = cache nền đã nhuộm theo key (mockupId + màu áo).
 S.shirtColor = '#ffffff';
 S.shirtColorName = 'Trắng';
@@ -145,8 +145,8 @@ const MOCKUPS = [
 
 // Config dự phòng khi mở file:// trực tiếp (fetch JSON bị chặn CORS)
 const FALLBACK_CFG = {
-  tshirt: {"ao":{"daiAoCm":72,"kieu":"Áo cổ tròn","ngangNgucCm":52,"ngangNgucPx":1260,"size":"L"},"fileAnh":"Tshirt.jpg","maskFile":"mockups/tshirt-mask.png","kichThuocAnh":{"h":3242,"w":4864},"positions":[{"center":{"x":0.294,"y":0.44},"exportZone":{"x0":0.17,"x1":0.42,"y0":0.3,"y1":0.72},"id":"nguc-truoc","khoInMacDinhCm":28,"ten":"Ngực trước","zone":{"x0":0.17,"x1":0.42,"y0":0.33,"y1":0.58}},{"center":{"x":0.215,"y":0.36},"exportZone":{"x0":0.17,"x1":0.42,"y0":0.3,"y1":0.72},"id":"logo-nguc-trai","khoInMacDinhCm":10,"ten":"Logo ngực trái","zone":{"x0":0.16,"x1":0.27,"y0":0.3,"y1":0.42}},{"center":{"x":0.72,"y":0.43},"exportZone":{"x0":0.6,"x1":0.84,"y0":0.3,"y1":0.72},"id":"lung","khoInMacDinhCm":30,"ten":"Lưng","zone":{"x0":0.6,"x1":0.84,"y0":0.31,"y1":0.58}}],"ten":"Áo cổ tròn trắng","warnZones":[{"loai":"tron","r":0.05,"ten":"Cổ trước","x":0.294,"y":0.215},{"loai":"tron","r":0.045,"ten":"Cổ sau","x":0.72,"y":0.2}]},
-  polo: {"ao":{"daiAoCm":72,"kieu":"Áo polo","ngangNgucCm":52,"ngangNgucPx":1040,"size":"L"},"fileAnh":"Polo.jpg","maskFile":"mockups/polo-mask.png","kichThuocAnh":{"h":3000,"w":4000},"positions":[{"center":{"x":0.285,"y":0.47},"exportZone":{"x0":0.16,"x1":0.41,"y0":0.3,"y1":0.7},"id":"nguc-truoc","khoInMacDinhCm":26,"ten":"Ngực trước","zone":{"x0":0.16,"x1":0.41,"y0":0.37,"y1":0.6}},{"center":{"x":0.205,"y":0.375},"exportZone":{"x0":0.16,"x1":0.41,"y0":0.3,"y1":0.7},"id":"logo-nguc-trai","khoInMacDinhCm":9,"ten":"Logo ngực trái","zone":{"x0":0.15,"x1":0.26,"y0":0.32,"y1":0.43}},{"center":{"x":0.715,"y":0.42},"exportZone":{"x0":0.59,"x1":0.84,"y0":0.3,"y1":0.68},"id":"lung","khoInMacDinhCm":28,"ten":"Lưng","zone":{"x0":0.59,"x1":0.84,"y0":0.3,"y1":0.56}}],"ten":"Áo polo trắng","warnZones":[{"loai":"chunhat","ten":"Nẹp nút","x0":0.262,"x1":0.308,"y0":0.2,"y1":0.345},{"loai":"tron","r":0.045,"ten":"Cổ trước","x":0.285,"y":0.2},{"loai":"tron","r":0.04,"ten":"Cổ sau","x":0.715,"y":0.19}]}
+  tshirt: {"ao": {"daiAoCm": 72, "kieu": "Áo cổ tròn", "ngangNgucCm": 52, "ngangNgucPx": 1260, "size": "L"}, "fileAnh": "Tshirt.jpg", "kichThuocAnh": {"h": 3242, "w": 4864}, "positions": [{"center": {"x": 0.294, "y": 0.44}, "exportZone": {"x0": 0.17, "x1": 0.42, "y0": 0.3, "y1": 0.72}, "id": "nguc-truoc", "khoInMacDinhCm": 28, "ten": "Ngực trước", "zone": {"x0": 0.17, "x1": 0.42, "y0": 0.33, "y1": 0.58}}, {"center": {"x": 0.215, "y": 0.36}, "exportZone": {"x0": 0.17, "x1": 0.42, "y0": 0.3, "y1": 0.72}, "id": "logo-nguc-trai", "khoInMacDinhCm": 10, "ten": "Logo ngực trái", "zone": {"x0": 0.16, "x1": 0.27, "y0": 0.3, "y1": 0.42}}, {"center": {"x": 0.72, "y": 0.43}, "exportZone": {"x0": 0.6, "x1": 0.84, "y0": 0.3, "y1": 0.72}, "id": "lung", "khoInMacDinhCm": 30, "ten": "Lưng", "zone": {"x0": 0.6, "x1": 0.84, "y0": 0.31, "y1": 0.58}}], "ten": "Áo cổ tròn trắng", "warnZones": [{"loai": "tron", "r": 0.05, "ten": "Cổ trước", "x": 0.294, "y": 0.215}, {"loai": "tron", "r": 0.045, "ten": "Cổ sau", "x": 0.72, "y": 0.2}]},
+  polo: {"ao": {"daiAoCm": 72, "kieu": "Áo polo", "ngangNgucCm": 52, "ngangNgucPx": 1040, "size": "L"}, "fileAnh": "Polo.jpg", "kichThuocAnh": {"h": 3000, "w": 4000}, "positions": [{"center": {"x": 0.285, "y": 0.47}, "exportZone": {"x0": 0.16, "x1": 0.41, "y0": 0.3, "y1": 0.7}, "id": "nguc-truoc", "khoInMacDinhCm": 26, "ten": "Ngực trước", "zone": {"x0": 0.16, "x1": 0.41, "y0": 0.37, "y1": 0.6}}, {"center": {"x": 0.205, "y": 0.375}, "exportZone": {"x0": 0.16, "x1": 0.41, "y0": 0.3, "y1": 0.7}, "id": "logo-nguc-trai", "khoInMacDinhCm": 9, "ten": "Logo ngực trái", "zone": {"x0": 0.15, "x1": 0.26, "y0": 0.32, "y1": 0.43}}, {"center": {"x": 0.715, "y": 0.42}, "exportZone": {"x0": 0.59, "x1": 0.84, "y0": 0.3, "y1": 0.68}, "id": "lung", "khoInMacDinhCm": 28, "ten": "Lưng", "zone": {"x0": 0.59, "x1": 0.84, "y0": 0.3, "y1": 0.56}}], "ten": "Áo polo trắng", "warnZones": [{"loai": "chunhat", "ten": "Nẹp nút", "x0": 0.262, "x1": 0.308, "y0": 0.2, "y1": 0.345}, {"loai": "tron", "r": 0.045, "ten": "Cổ trước", "x": 0.285, "y": 0.2}, {"loai": "tron", "r": 0.04, "ten": "Cổ sau", "x": 0.715, "y": 0.19}]}
 };
 
 // ---------- Tải mockup ----------
@@ -164,8 +164,8 @@ async function loadMockup(id) {
   S.places = {}; // mockup mới -> placements mới
   S.baseImg = await loadImage(cfg.fileAnh);
   S.maskImg = null; // mask tách áo khỏi nền (nếu có) — dùng để nhuộm màu áo
-  if (cfg.maskFile) {
-    try { S.maskImg = await loadImage(cfg.maskFile); }
+  if (cfg.maskSrc) {
+    try { S.maskImg = await loadImage(cfg.maskSrc); }
     catch (e) { S.maskImg = null; } // lỗi thì bỏ qua tint, dùng ảnh gốc
   }
   S.off.width = cfg.kichThuocAnh.w;
