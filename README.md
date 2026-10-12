@@ -39,6 +39,9 @@ mockups/polo.json    config áo polo   (ảnh Polo.jpg  4000x3000)
 2. Copy file JSON mẫu trong `mockups/`, đặt tên ví dụ `mockups/hoodie.json`.
 3. Điền các trường:
    - `ten`, `fileAnh` (đường dẫn tương đối từ root, VD `"Hoodie.jpg"`),
+     `maskFile` (VD `"mockups/hoodie-mask.png"` — ảnh RGBA tách áo khỏi nền,
+     alpha = vùng áo; dùng để nhuộm màu áo. Không có thì app vẫn chạy nhưng
+     không đổi được màu áo),
      `kichThuocAnh` {w,h} đúng pixel ảnh.
    - `ao`: `kieu` (tên hiển thị), `size`, `ngangNgucCm` (số đo thật của áo),
      `daiAoCm`, `ngangNgucPx` (đo bằng pixel trên ảnh).
@@ -109,6 +112,23 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
 - Raster: ép 1 màu bằng `source-in` (giữ nguyên độ trong suốt alpha gốc).
   SVG: thay mọi `fill="..."` thành màu đã chọn, giữ `fill-rule="evenodd"`.
 - Tùy chọn màu được lưu vào file làm việc và in ra phiếu kỹ thuật.
+
+## Màu áo (ngay dưới toolbar)
+
+- Hàng swatch tròn ngay dưới dropdown chọn Mockup: Trắng (mặc định), Đen,
+  Navy, Đỏ đô, Xanh dương, Xanh rêu, Xám, Hồng, Vàng, Cam. Bấm là đổi màu áo
+  ngay trên mockup (kèm tên màu).
+- Cách nhuộm: ảnh áo gốc `multiply` với màu đã chọn, rồi cắt đúng vùng áo
+  bằng **mask** (`destination-in`) — nền xung quanh không bị lem. Nếp vải và
+  bóng đổ được giữ nguyên vì multiply giữ lại độ sáng tương đối của vải.
+- Nền đã nhuộm được **cache theo (mẫu áo + màu)** nên đổi qua lại không phải
+  tính lại. Màu trắng = dùng thẳng ảnh gốc, không tính toán gì thêm.
+- **Hình in trên áo tối** (độ sáng màu áo < 0.45, VD đen/navy): app tự chuyển
+  sang vẽ đè trực tiếp (`source-over`, alpha 0.96) thay vì multiply — vì
+  multiply trên nền tối làm hình in mất hút. Áo sáng vẫn dùng multiply để
+  hình hòa vào chất vải.
+- Màu áo được **lưu vào file làm việc** (mở lại là giữ nguyên) và in ra
+  **phiếu kỹ thuật** gửi nhà in.
 
 ## Hiệu chuẩn exportZone
 
