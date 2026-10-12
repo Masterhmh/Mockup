@@ -152,6 +152,12 @@ body {
 .swatches .sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
 .swatches .sw.on { border-color: var(--ink); box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--ink); }
 
+/* ---- chọn màu áo (ngay dưới toolbar) ---- */
+.shirtcolor { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+.shirtcolor .lbl { font-weight: 600; color: var(--ink); }
+.shirtcolor .swatches .sw { width: 30px; height: 30px; }
+.shirtcolor-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+
 .saved-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
 .saved-item { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
 .saved-item .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
