@@ -3,7 +3,9 @@
 Web app tĩnh (không backend, không lưu server): đặt hình in lên **ảnh áo thật**,
 tự động đánh giá chất lượng in (DPI), đề xuất chuyển vector / phóng nét,
 xuất mockup PNG gửi khách và xuất file in (PNG 300dpi / SVG) + phiếu kỹ thuật
-cho nhà in. Giao diện tiếng Việt.
+cho nhà in. Mỗi vị trí in (ngực trước, logo ngực trái, lưng) giữ artwork
+riêng — lưu/mở lại file làm việc theo tên khách + mã đơn (localStorage),
+xuất hàng loạt file in khi khách chốt. Giao diện tiếng Việt.
 
 ## Cách mở
 
@@ -41,7 +43,10 @@ mockups/polo.json    config áo polo   (ảnh Polo.jpg  4000x3000)
    - `ao`: `kieu` (tên hiển thị), `size`, `ngangNgucCm` (số đo thật của áo),
      `daiAoCm`, `ngangNgucPx` (đo bằng pixel trên ảnh).
    - `positions[]`: mỗi vị trí in có `id`, `ten`, `center` {x,y} **tỉ lệ 0–1**
-     so với ảnh, `khoInMacDinhCm`, `zone` {x0,y0,x1,y1} tỉ lệ 0–1 (vùng an toàn).
+     so với ảnh, `khoInMacDinhCm`, `zone` {x0,y0,x1,y1} tỉ lệ 0–1 (vùng an toàn),
+     `exportZone` {x0,y0,x1,y1} tỉ lệ 0–1 (**khung vùng thân áo** dùng khi xuất
+     file in theo vị trí — file xuất ra đúng bằng khung này ở 300dpi, hình in
+     nằm đúng vị trí tương đối để nhà in in luôn không cần bình file lại).
    - `warnZones[]`: `{"loai":"tron","ten":"...","x","y","r"}` hoặc
      `{"loai":"chunhat","ten":"...","x0","y0","x1","y1"}` — app cảnh báo đỏ
      khi hình in đè lên (cổ áo, nẹp nút, đường may...).
@@ -64,6 +69,34 @@ nếu in thử thấy lệch, nhập lại số đo thật — mọi kích thư�
 Mọi xử lý (giữ nguyên / vector / phóng nét / khử nền / crop / đặt lên áo /
 xuất file) đều giữ đúng tỉ lệ gốc của artwork. Hai ô rộng/cao (cm) tự đồng bộ
 theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
+
+## Luồng làm việc với khách hàng
+
+1. Chọn mockup (áo cổ tròn / polo), chọn **vị trí in** (ngực trước, logo ngực
+   trái, lưng). Mỗi vị trí giữ artwork + hình in **riêng** — chuyển dropdown
+   vị trí là chuyển sang placement đang làm dở, không mất gì.
+2. Tải file thiết kế lên (kéo-thả hoặc nút "Tải file thiết kế"). App tự tính
+   DPI theo khổ in, đề xuất giữ nguyên / chuyển vector / phóng nét — bạn chốt
+   tay sau khi so sánh trước/sau ở 100%.
+3. Kéo thả / nhập tay kích thước (cm) / crop / khử nền trắng. Bật **"Hiện số
+   đo"** để xem: số đo áo (ngang ngực, dài áo), số đo hình in, **vùng an
+   toàn** (nét đứt xanh lá), **phạm vi vùng in** (nét liền xám).
+4. **Xuất mockup PNG** gửi khách duyệt.
+5. Khách chốt từng vị trí thì **lưu file làm việc** (panel "File làm việc",
+   tên file = tên khách + mã đơn, lưu trong trình duyệt). Làm nhiều đơn thì
+   mỗi đơn một file, mở lại bất cứ lúc nào.
+6. Khi khách chốt hết: mở lại file → **"Xuất hàng loạt file in"** — mỗi vị trí
+   in ra một file PNG 300dpi đúng bằng khung vùng thân áo (`exportZone`),
+   hình in nằm đúng vị trí tương đối, nền trong suốt. Tên file:
+   `in-<tenkhach>-<madon>-<tenvitri>-<w>x<h>cm-300dpi.png`.
+   Nếu đã vector hóa thì có thêm "Xuất file in theo vị trí (SVG)".
+
+## Hiệu chuẩn exportZone
+
+`exportZone` quyết định khung file in gửi nhà in. Kích thước cm của khung suy
+từ `pxPerCm` (đã hiệu chuẩn ở panel "Thông số áo"), nên sau khi hiệu chuẩn
+ngang ngực đúng, khung in sẽ đúng kích thước thật. Nếu đổi ảnh mockup, đo lại
+`exportZone` theo tỉ lệ 0–1 bao quanh vùng thân áo cần in.
 
 ## Giới hạn đã biết
 
