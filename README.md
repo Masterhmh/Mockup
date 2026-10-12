@@ -75,21 +75,40 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
 1. Chọn mockup (áo cổ tròn / polo), chọn **vị trí in** (ngực trước, logo ngực
    trái, lưng). Mỗi vị trí giữ artwork + hình in **riêng** — chuyển dropdown
    vị trí là chuyển sang placement đang làm dở, không mất gì.
-2. Tải file thiết kế lên (kéo-thả hoặc nút "Tải file thiết kế"). App tự tính
-   DPI theo khổ in, đề xuất giữ nguyên / chuyển vector / phóng nét — bạn chốt
-   tay sau khi so sánh trước/sau ở 100%.
+2. Tải file thiết kế lên (kéo-thả hoặc nút "Tải file thiết kế"). Nếu bật
+   **"Tự động fit theo vị trí in"** (mặc định bật, trong panel "File thiết
+   kế"), ảnh sẽ **tự thu vừa khít trong vùng in an toàn** (giữ đúng tỉ lệ gốc,
+   căn giữa) rồi app mới tính DPI theo đúng khổ đã fit và đề xuất giữ nguyên /
+   chuyển vector / phóng nét — bạn chốt tay sau khi so sánh trước/sau ở 100%.
+   Tắt toggle thì app dùng cỡ mặc định `khoInMacDinhCm` như trước.
 3. Kéo thả / nhập tay kích thước (cm) / crop / khử nền trắng. Bật **"Hiện số
    đo"** để xem: số đo áo (ngang ngực, dài áo), số đo hình in, **vùng an
-   toàn** (nét đứt xanh lá), **phạm vi vùng in** (nét liền xám).
+   toàn** (nét đứt xanh lá), **phạm vi vùng in** (nét liền xám). Chú thích màu
+   các đường kẻ nằm ngay dưới toolbar. Khi kéo hình in, cảnh báo **tràn vùng
+   an toàn / đè lên vùng cấm** (cổ, nẹp, đường may) hiện **ngay trong lúc kéo**,
+   không chờ thả tay. Bấm nút tròn đỏ **×** ở góc trên-phải khung chọn để xóa
+   hình in nhanh (ngoài nút "Xóa hình in" trên panel).
 4. **Xuất mockup PNG** gửi khách duyệt.
 5. Khách chốt từng vị trí thì **lưu file làm việc** (panel "File làm việc",
    tên file = tên khách + mã đơn, lưu trong trình duyệt). Làm nhiều đơn thì
-   mỗi đơn một file, mở lại bất cứ lúc nào.
+   mỗi đơn một file, mở lại bất cứ lúc nào. Lựa chọn màu file in (giữ nguyên /
+   1 màu) cũng được lưu theo.
 6. Khi khách chốt hết: mở lại file → **"Xuất hàng loạt file in"** — mỗi vị trí
    in ra một file PNG 300dpi đúng bằng khung vùng thân áo (`exportZone`),
    hình in nằm đúng vị trí tương đối, nền trong suốt. Tên file:
    `in-<tenkhach>-<madon>-<tenvitri>-<w>x<h>cm-300dpi.png`.
    Nếu đã vector hóa thì có thêm "Xuất file in theo vị trí (SVG)".
+
+## Màu file in (panel "Xuất file")
+
+- **Giữ nguyên màu gốc** (mặc định): dùng cho in ảnh — mọi đầu ra giữ màu thật.
+- **In 1 màu** (dùng cho in logo): chọn màu bằng ô màu hoặc swatch có sẵn
+  (đen, trắng, đỏ, xanh navy, vàng, xanh lá). Khi bật, **mọi chỗ dùng design
+  đều đổi màu**: mockup preview, mockup PNG, file in PNG (thường + theo vị trí),
+  file in SVG (thường + theo vị trí), xuất hàng loạt.
+- Raster: ép 1 màu bằng `source-in` (giữ nguyên độ trong suốt alpha gốc).
+  SVG: thay mọi `fill="..."` thành màu đã chọn, giữ `fill-rule="evenodd"`.
+- Tùy chọn màu được lưu vào file làm việc và in ra phiếu kỹ thuật.
 
 ## Hiệu chuẩn exportZone
 
