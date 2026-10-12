@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Mockup In Áo</title>
-<link rel="stylesheet" href="css/style.css?v=20261012d">
+<link rel="stylesheet" href="css/style.css?v=20261012e">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -47,10 +47,10 @@
     </div>
 
     <div class="legend" id="legend">
-      <span class="lg"><i style="border-color:#b45309"></i>Số đo áo (ngang ngực, dài áo)</span>
-      <span class="lg"><i class="sw-box" style="border-color:#1d4ed8"></i>Khung + kích thước hình in</span>
-      <span class="lg"><i class="sw-dash" style="border-color:#0e7c5b"></i>Vùng in an toàn</span>
-      <span class="lg"><i class="sw-box thin" style="border-color:#6b7280"></i>Phạm vi vùng in của vị trí</span>
+      <span class="lg"><i id="lgChest" style="border-color:#b45309"></i>Số đo áo (ngang ngực, dài áo)</span>
+      <span class="lg"><i class="sw-box" id="lgFrame" style="border-color:#1d4ed8"></i>Khung + kích thước hình in</span>
+      <span class="lg"><i class="sw-dash" id="lgSafe" style="border-color:#0e7c5b"></i>Vùng in an toàn</span>
+      <span class="lg"><i class="sw-box thin" id="lgZone" style="border-color:#6b7280"></i>Phạm vi vùng in của vị trí</span>
     </div>
 
     <div id="warnBar" class="warnbar" hidden></div>
@@ -219,6 +219,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261012d"></script>
+<script src="js/app.js?v=20261012e"></script>
 </body>
 </html>
