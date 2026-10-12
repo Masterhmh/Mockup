@@ -25,6 +25,7 @@
         <select id="selPos"></select>
       </label>
       <button id="btnUpload" class="btn primary">Tải file thiết kế</button>
+      <label class="chk"><input type="checkbox" id="chkMeasure" checked> Hiện số đo</label>
       <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.pdf" hidden>
     </div>
 
@@ -74,6 +75,7 @@
         <button class="btn" id="btnWhite">Khử nền trắng</button>
         <button class="btn" id="btnCrop">Cắt bớt (crop)</button>
         <button class="btn" id="btnKeep">Giữ nguyên gốc</button>
+        <button class="btn" id="btnClearArt">Xóa hình in</button>
       </div>
       <p class="muted small">Phóng nét = nội suy nâng độ phân giải trong trình duyệt, <b>chưa phải AI upscale</b>. Mọi xử lý đều giữ đúng tỉ lệ ảnh gốc.</p>
     </div>
@@ -109,7 +111,18 @@
         <button class="btn" id="btnExpPrint">Xuất file in PNG 300dpi</button>
         <button class="btn" id="btnExpSVG">Xuất file in SVG</button>
         <button class="btn" id="btnExpSpec">Xuất phiếu kỹ thuật</button>
+        <button class="btn" id="btnExpZonePNG">Xuất file in theo vị trí (PNG)</button>
+        <button class="btn" id="btnExpZoneSVG">Xuất file in theo vị trí (SVG)</button>
+        <button class="btn primary" id="btnExpBatch">Xuất hàng loạt file in</button>
       </div>
+    </div>
+    <div class="panel" id="panelProject">
+      <h2>File làm việc</h2>
+      <p class="muted small">Lưu theo tên khách + mã đơn để mở lại sau này. Khi khách chốt, mở lại file rồi xuất hàng loạt.</p>
+      <div class="btn-grid">
+        <button class="btn primary" id="btnSave">Lưu file làm việc</button>
+      </div>
+      <div id="savedList" class="saved-list"></div>
     </div>
   </aside>
 </main>
