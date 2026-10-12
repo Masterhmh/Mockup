@@ -39,9 +39,10 @@ mockups/polo.json    config áo polo   (ảnh Polo.jpg  4000x3000)
 2. Copy file JSON mẫu trong `mockups/`, đặt tên ví dụ `mockups/hoodie.json`.
 3. Điền các trường:
    - `ten`, `fileAnh` (đường dẫn tương đối từ root, VD `"Hoodie.jpg"`),
-     `maskFile` (VD `"mockups/hoodie-mask.png"` — ảnh RGBA tách áo khỏi nền,
-     alpha = vùng áo; dùng để nhuộm màu áo. Không có thì app vẫn chạy nhưng
-     không đổi được màu áo),
+     `maskSrc` (URL ảnh RGBA tách áo khỏi nền, alpha = vùng áo — dùng để nhuộm
+     màu áo; hoặc data URL `data:image/png;base64,...` nhúng trực tiếp để khỏi
+     lo lỗi upload file nhị phân. Không có thì app vẫn chạy nhưng không đổi
+     được màu áo),
      `kichThuocAnh` {w,h} đúng pixel ảnh.
    - `ao`: `kieu` (tên hiển thị), `size`, `ngangNgucCm` (số đo thật của áo),
      `daiAoCm`, `ngangNgucPx` (đo bằng pixel trên ảnh).
