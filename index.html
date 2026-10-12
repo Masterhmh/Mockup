@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Mockup In Áo</title>
-<link rel="stylesheet" href="css/style.css?v=20261012c">
+<link rel="stylesheet" href="css/style.css?v=20261012d">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -27,6 +27,23 @@
       <button id="btnUpload" class="btn primary">Tải file thiết kế</button>
       <label class="chk"><input type="checkbox" id="chkMeasure" checked> Hiện số đo</label>
       <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.pdf" hidden>
+    </div>
+
+    <div class="shirtcolor" id="shirtColorRow">
+      <span class="lbl">Màu áo:</span>
+      <div class="swatches" id="shirtSwatches">
+        <button type="button" class="sw on" data-c="#ffffff" data-n="Trắng" style="background:#ffffff" title="Trắng"></button>
+        <button type="button" class="sw" data-c="#1b1b1f" data-n="Đen" style="background:#1b1b1f" title="Đen"></button>
+        <button type="button" class="sw" data-c="#1f3a5f" data-n="Navy" style="background:#1f3a5f" title="Navy"></button>
+        <button type="button" class="sw" data-c="#8b1a1a" data-n="Đỏ đô" style="background:#8b1a1a" title="Đỏ đô"></button>
+        <button type="button" class="sw" data-c="#2b6cb0" data-n="Xanh dương" style="background:#2b6cb0" title="Xanh dương"></button>
+        <button type="button" class="sw" data-c="#4a5d43" data-n="Xanh rêu" style="background:#4a5d43" title="Xanh rêu"></button>
+        <button type="button" class="sw" data-c="#8a8f98" data-n="Xám" style="background:#8a8f98" title="Xám"></button>
+        <button type="button" class="sw" data-c="#e8a0b4" data-n="Hồng" style="background:#e8a0b4" title="Hồng"></button>
+        <button type="button" class="sw" data-c="#f2c230" data-n="Vàng" style="background:#f2c230" title="Vàng"></button>
+        <button type="button" class="sw" data-c="#d96c2b" data-n="Cam" style="background:#d96c2b" title="Cam"></button>
+      </div>
+      <span class="shirtcolor-name" id="shirtColorName">Trắng</span>
     </div>
 
     <div class="legend" id="legend">
@@ -202,6 +219,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261012c"></script>
+<script src="js/app.js?v=20261012d"></script>
 </body>
 </html>
