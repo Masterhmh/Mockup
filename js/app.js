@@ -1682,6 +1682,14 @@ async function init() {
   // Xóa hình in ở vị trí đang chọn
   $('btnClearArt').onclick = clearArt;
 
+  // Nút Auto: fit lại đúng tỉ lệ ảnh, vừa khít vùng an toàn, đúng vị trí
+  $('btnAutoFitNow').onclick = () => {
+    if (!S.art || !S.design) { toast('Chưa có hình in để căn.'); return; }
+    fitToSafeZone();
+    render(); updatePrintPanel(); checkWarnings(); assess();
+    toast('Đã căn lại: đúng tỉ lệ, vừa vùng an toàn.');
+  };
+
   // Tùy chọn màu file in: áp dụng cho mockup + mọi file xuất
   document.querySelectorAll('input[name="colorMode"]').forEach((r) => {
     r.addEventListener('change', () => {
