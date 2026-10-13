@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013i';
+const APP_V = '20261013j';
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -53,8 +53,11 @@ const S = {
   //   wCm: rộng (cm) — LUÔN khóa tỉ lệ gốc (hCm = wCm / aspect)
   //   art: {raster, svgText, w, h, aspect, name, kind, colorCount, typeLabel}
   layers: [],
-  activeLayerId: null,  // id layer đang chọn
+  activeLayerId: null,  // id layer đang chọn (chính)
+  selectedIds: [],      // tập layer đang chọn (1 = đơn, >1 = nhiều, Ctrl/Shift+click)
   clipboard: null,      // layer đã copy (Ctrl+C) để paste (Ctrl+V)
+  canvasActive: false,  // true sau khi click vào canvas (phím tắt chỉ chạy khi này)
+  guides: [],           // đường gióng thông minh khi kéo [{type:'v'|'h', imgPos}]
   ratioLocked: true,    // QUY TẮC CỨNG: luôn khóa tỉ lệ gốc
   drag: null,
   view: { dw: 0, dh: 0, dpr: 1 }, // ánh xạ ảnh gốc -> css px
@@ -63,6 +66,72 @@ const S = {
 // Layer đang được chọn (null nếu chưa có layer nào)
 function activeLayer() {
   return S.layers.find((l) => l.id === S.activeLayerId) || null;
+}
+// Tất cả layer đang chọn (theo S.selectedIds, lọc bỏ id không còn tồn tại)
+function selectedLayers() {
+  return S.selectedIds
+    .map((id) => S.layers.find((l) => l.id === id))
+    .filter(Boolean);
+}
+// Có đang chọn nhiều layer không
+function isMultiSelect() {
+  return S.selectedIds.length > 1;
+}
+// Đồng bộ selectedIds theo activeLayerId (dùng khi chọn đơn)
+function syncSingleSelect() {
+  S.selectedIds = S.activeLayerId ? [S.activeLayerId] : [];
+}
+// ---------- Căn chỉnh nhiều layer kiểu Photoshop ----------
+// Tính bbox chung của các layer đang chọn (px ảnh gốc), rồi căn từng layer theo đó.
+// mode: left/hcenter/right/top/vcenter/bottom/distH/distV
+function alignLayers(mode) {
+  const layers = selectedLayers().filter((l) => l.art);
+  if (layers.length < 2) { toast('Hãy chọn ít nhất 2 layer (giữ Ctrl + click).'); return; }
+  const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
+  const items = layers.map((l) => ({ l, r: layerPxOf(l) }));
+  const minX = Math.min(...items.map((o) => o.r.x));
+  const maxX = Math.max(...items.map((o) => o.r.x + o.r.w));
+  const minY = Math.min(...items.map((o) => o.r.y));
+  const maxY = Math.max(...items.map((o) => o.r.y + o.r.h));
+  const setX = (l, r, targetLeft) => { l.x = clamp((targetLeft + r.w / 2) / W, 0, 1); };
+  const setY = (l, r, targetTop) => { l.y = clamp((targetTop + r.h / 2) / H, 0, 1); };
+  if (mode === 'distH' || mode === 'distV') {
+    // Giãn đều: giữ 2 đầu cố định, chia đều khoảng cách tâm
+    if (layers.length < 3) { toast('Giãn đều cần ít nhất 3 layer.'); return; }
+    const key = mode === 'distH' ? 'cx' : 'cy';
+    const sorted = items
+      .map((o) => ({ ...o, c: mode === 'distH' ? o.r.x + o.r.w / 2 : o.r.y + o.r.h / 2 }))
+      .sort((a, b) => a.c - b.c);
+    const first = sorted[0].c, last = sorted[sorted.length - 1].c;
+    const step = (last - first) / (sorted.length - 1);
+    sorted.forEach((o, i) => {
+      const targetC = first + step * i;
+      if (mode === 'distH') o.l.x = clamp(targetC / W, 0, 1);
+      else o.l.y = clamp(targetC / H, 0, 1);
+    });
+  } else {
+    items.forEach(({ l, r }) => {
+      if (mode === 'left') setX(l, r, minX);
+      else if (mode === 'right') setX(l, r, maxX - r.w);
+      else if (mode === 'hcenter') setX(l, r, (minX + maxX) / 2 - r.w / 2);
+      else if (mode === 'top') setY(l, r, minY);
+      else if (mode === 'bottom') setY(l, r, maxY - r.h);
+      else if (mode === 'vcenter') setY(l, r, (minY + maxY) / 2 - r.h / 2);
+    });
+  }
+  render(); updateSelPanel(); checkWarnings();
+  const names = { left: 'trái', hcenter: 'giữa ngang', right: 'phải', top: 'trên', vcenter: 'giữa dọc', bottom: 'dưới', distH: 'đều ngang', distV: 'đều dọc' };
+  toast(`Đã căn ${names[mode] || mode} ${layers.length} layer.`);
+}
+
+// Thêm/bớt layer vào tập chọn (Ctrl/Cmd/Shift+click)
+function toggleSelect(id) {
+  const i = S.selectedIds.indexOf(id);
+  if (i >= 0) S.selectedIds.splice(i, 1);
+  else S.selectedIds.push(id);
+  S.activeLayerId = S.selectedIds.length ? S.selectedIds[S.selectedIds.length - 1] : null;
+  syncSizeInputs(); syncProcVisibility();
+  assess(); render(); renderLayerList(); updateSelPanel(); checkWarnings();
 }
 // Artwork của layer đang chọn (null nếu chưa có)
 function activeArt() {
@@ -185,6 +254,7 @@ async function loadMockup(id) {
   // Đổi kiểu áo: GIỮ NGUYÊN layers (vị trí tương đối 0-1 + cỡ cm giữ nguyên)
   // để so sánh cùng hình in trên các kiểu áo khác nhau. Chỉ reset khi mở file .cm.
   if (!S.layers) { S.layers = []; S.activeLayerId = null; }
+  if (!S.selectedIds) S.selectedIds = [];
   syncProcVisibility();
   S.baseImg = await loadImage(cfg.fileAnh);
   S._tintBase = null; // đổi mockup -> tính lại nền nhuộm
@@ -196,7 +266,7 @@ async function loadMockup(id) {
 
   fitStage();
   renderLayerList();
-  updateShirtPanel(); updateSelPanel(); checkWarnings(); assess();
+  updateShirtPanel(); updateSelPanel(); checkWarnings(); assess(); checkColorClash();
 }
 
 function loadImage(src) {
@@ -380,6 +450,7 @@ function render() {
   sctx.imageSmoothingQuality = 'high';
   sctx.drawImage(S.off, 0, 0, dw, dh);
   drawSelection();
+  drawGuides();
   drawMeasureOverlays();
   $('dropHint').style.display = S.layers.length ? 'none' : 'flex';
 }
@@ -392,49 +463,60 @@ function toCss(px, py) {
   ];
 }
 
-// Khung chọn + 4 tay cầm góc + nút xóa × ở góc trên-phải + tên layer
+// Khung chọn + 4 tay cầm góc + nút xóa × ở góc trên-phải + tên layer.
+// Khi chọn nhiều: vẽ khung cho TẤT CẢ layer chọn (layer chính có tay cầm đầy đủ,
+// các layer còn lại chỉ khung nét đứt mảnh).
 function drawSelection() {
-  const L = activeLayer();
-  if (!L || !L.art) return;
-  const r = layerPxOf(L);
-  const [x1, y1] = toCss(r.x, r.y);
-  const [x2, y2] = toCss(r.x + r.w, r.y + r.h);
-  sctx.save();
-  sctx.strokeStyle = pal().safe;
-  sctx.lineWidth = 1.5;
-  sctx.setLineDash([6, 4]);
-  sctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
-  sctx.setLineDash([]);
-  const HS = 9;
-  sctx.fillStyle = pal().safe;
-  [[x1, y1], [x2, y1], [x1, y2], [x2, y2]].forEach(([x, y]) => {
-    sctx.fillRect(x - HS, y - HS, HS * 2, HS * 2);
+  const sels = selectedLayers().filter((l) => l.art);
+  if (!sels.length) return;
+  const primary = activeLayer();
+  // Vẽ các layer phụ trước (khung mảnh), layer chính sau (đầy đủ tay cầm)
+  const ordered = [...sels].sort((a, b) =>
+    (a.id === (primary && primary.id) ? 1 : 0) - (b.id === (primary && primary.id) ? 1 : 0));
+  ordered.forEach((L) => {
+    const isPrim = primary && L.id === primary.id;
+    const r = layerPxOf(L);
+    const [x1, y1] = toCss(r.x, r.y);
+    const [x2, y2] = toCss(r.x + r.w, r.y + r.h);
+    sctx.save();
+    sctx.strokeStyle = isPrim ? pal().safe : '#ec4899';
+    sctx.lineWidth = isPrim ? 1.5 : 1;
+    sctx.setLineDash([6, 4]);
+    sctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+    sctx.setLineDash([]);
+    if (!isPrim) { sctx.restore(); return; } // layer phụ: chỉ khung
+    if (isMultiSelect()) { sctx.restore(); return; } // chọn nhiều: ẩn tay cầm
+    const HS = 9;
+    sctx.fillStyle = pal().safe;
+    [[x1, y1], [x2, y1], [x1, y2], [x2, y2]].forEach(([x, y]) => {
+      sctx.fillRect(x - HS, y - HS, HS * 2, HS * 2);
+    });
+    // Tên layer phía trên khung chọn
+    sctx.font = '11px system-ui, sans-serif';
+    const tw = sctx.measureText(L.name).width;
+    sctx.fillStyle = 'rgba(14,124,91,0.92)';
+    const bx = clamp(x1, 2, S.view.dw - tw - 14), by = Math.max(2, y1 - 22);
+    sctx.fillRect(bx, by, tw + 12, 18);
+    sctx.fillStyle = '#ffffff';
+    sctx.textAlign = 'left'; sctx.textBaseline = 'middle';
+    sctx.fillText(L.name, bx + 6, by + 9.5);
+    // Nút tròn đỏ dấu × ở góc trên-phải của khung chọn
+    const db = deleteBtnCss();
+    sctx.beginPath();
+    sctx.arc(db.x, db.y, db.r, 0, Math.PI * 2);
+    sctx.fillStyle = '#b91c1c';
+    sctx.fill();
+    sctx.lineWidth = 2;
+    sctx.strokeStyle = '#ffffff';
+    sctx.stroke();
+    sctx.lineWidth = 2.5;
+    sctx.beginPath();
+    const k = 5;
+    sctx.moveTo(db.x - k, db.y - k); sctx.lineTo(db.x + k, db.y + k);
+    sctx.moveTo(db.x + k, db.y - k); sctx.lineTo(db.x - k, db.y + k);
+    sctx.stroke();
+    sctx.restore();
   });
-  // Tên layer phía trên khung chọn
-  sctx.font = '11px system-ui, sans-serif';
-  const tw = sctx.measureText(L.name).width;
-  sctx.fillStyle = 'rgba(14,124,91,0.92)';
-  const bx = clamp(x1, 2, S.view.dw - tw - 14), by = Math.max(2, y1 - 22);
-  sctx.fillRect(bx, by, tw + 12, 18);
-  sctx.fillStyle = '#ffffff';
-  sctx.textAlign = 'left'; sctx.textBaseline = 'middle';
-  sctx.fillText(L.name, bx + 6, by + 9.5);
-  // Nút tròn đỏ dấu × ở góc trên-phải của khung chọn
-  const db = deleteBtnCss();
-  sctx.beginPath();
-  sctx.arc(db.x, db.y, db.r, 0, Math.PI * 2);
-  sctx.fillStyle = '#b91c1c';
-  sctx.fill();
-  sctx.lineWidth = 2;
-  sctx.strokeStyle = '#ffffff';
-  sctx.stroke();
-  sctx.lineWidth = 2.5;
-  sctx.beginPath();
-  const k = 5;
-  sctx.moveTo(db.x - k, db.y - k); sctx.lineTo(db.x + k, db.y + k);
-  sctx.moveTo(db.x + k, db.y - k); sctx.lineTo(db.x - k, db.y + k);
-  sctx.stroke();
-  sctx.restore();
 }
 
 // Vị trí nút xóa × (tọa độ css px) — dùng chung cho vẽ và hit-test
@@ -562,10 +644,12 @@ function hitHandle(p) {
 // layer đó và kéo di chuyển tự do). Bấm ra ngoài mọi layer thì bỏ chọn.
 stage.addEventListener('pointerdown', (e) => {
   if (!S.cfg || !S.baseImg) return;
+  S.canvasActive = true; // click vào canvas -> phím tắt layer được kích hoạt
+  $('canvasWrap').classList.add('canvas-on');
   const p = evtImg(e);
   const L = activeLayer();
-  // Ưu tiên nút xóa × ở góc trên-phải khung chọn (trước mọi thao tác kéo)
-  if (L && L.art) {
+  // Ưu tiên nút xóa × ở góc trên-phải khung chọn (chỉ khi chọn đơn)
+  if (L && L.art && !isMultiSelect()) {
     const cssX = (p.x / S.cfg.kichThuocAnh.w) * S.view.dw;
     const cssY = (p.y / S.cfg.kichThuocAnh.h) * S.view.dh;
     const db = deleteBtnCss();
@@ -595,16 +679,40 @@ stage.addEventListener('pointerdown', (e) => {
     if (!lay.visible || !lay.art) continue;
     const r = layerPxOf(lay);
     if (p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h) {
-      if (lay.id !== S.activeLayerId) setActiveLayer(lay.id, true);
-      S.drag = { mode: 'move', layerId: lay.id, ox: p.x - r.x, oy: p.y - r.y };
+      const multiKey = e.ctrlKey || e.metaKey || e.shiftKey;
+      if (multiKey) {
+        // Ctrl/Cmd/Shift+click: thêm/bớt layer vào tập chọn (không kéo)
+        toggleSelect(lay.id);
+        const n = S.selectedIds.length;
+        if (n > 1) toast(`Đã chọn ${n} layer — dùng nút căn chỉnh trong panel Layers.`);
+        else if (n === 1) toast(`Đang chọn 1 layer. Giữ Ctrl/Cmd/Shift + click để chọn thêm.`);
+        e.preventDefault();
+        return;
+      }
+      if (S.selectedIds.includes(lay.id) && S.selectedIds.length > 1) {
+        // Bấm vào layer đã chọn (khi đang chọn nhiều): kéo CẢ TẬP cùng lúc
+        S.drag = {
+          mode: 'move-multi', startPX: p.x, startPY: p.y,
+          items: selectedLayers().map((sl) => ({ id: sl.id, x0: sl.x, y0: sl.y })),
+        };
+      } else {
+        // Bấm thường: chọn đơn + kéo 1 layer
+        if (lay.id !== S.activeLayerId) setActiveLayer(lay.id, true);
+        S.drag = { mode: 'move', layerId: lay.id, ox: p.x - r.x, oy: p.y - r.y };
+      }
       stage.setPointerCapture(e.pointerId);
       stage.style.cursor = 'grabbing';
       e.preventDefault();
       return;
     }
   }
-  // Bấm ra ngoài: bỏ chọn layer
-  if (S.activeLayerId) setActiveLayer(null);
+  // Bấm ra ngoài: bỏ chọn hết
+  if (S.selectedIds.length) {
+    S.selectedIds = [];
+    S.activeLayerId = null;
+    syncSizeInputs(); syncProcVisibility();
+    assess(); render(); renderLayerList(); updateSelPanel(); checkWarnings();
+  }
 });
 
 function dragLayer() {
@@ -613,24 +721,106 @@ function dragLayer() {
 
 stage.addEventListener('pointermove', (e) => {
   if (!S.drag) return;
-  const lay = dragLayer();
-  if (!lay || !lay.art) { S.drag = null; return; }
   const p = evtImg(e);
   const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
-  if (S.drag.mode === 'move') {
+  if (S.drag.mode === 'move-multi') {
+    // Kéo cả tập layer cùng lúc (giữ nguyên vị trí tương đối)
+    const dx = (p.x - S.drag.startPX) / W, dy = (p.y - S.drag.startPY) / H;
+    S.drag.items.forEach((it) => {
+      const l = S.layers.find((x) => x.id === it.id);
+      if (l && l.art) {
+        l.x = clamp(it.x0 + dx, 0, 1);
+        l.y = clamp(it.y0 + dy, 0, 1);
+      }
+    });
+    S.guides = [];
+  } else if (S.drag.mode === 'move') {
+    const lay = dragLayer();
+    if (!lay || !lay.art) { S.drag = null; return; }
     const r = layerPxOf(lay);
     lay.x = clamp((p.x - S.drag.ox + r.w / 2) / W, 0, 1);
     lay.y = clamp((p.y - S.drag.oy + r.h / 2) / H, 0, 1);
+    // Đường gióng thông minh: hút vào cạnh/giữa layer khác hoặc tâm canvas
+    S.guides = snapGuides(lay);
   } else {
+    const lay = dragLayer();
+    if (!lay || !lay.art) { S.drag = null; return; }
     const d = Math.hypot(p.x - S.drag.cx, p.y - S.drag.cy);
     if (d > 4 && S.drag.d0 > 4) setLayerWidth(lay, (S.drag.w0 * d) / S.drag.d0);
+    S.guides = [];
   }
   render(); updateSelPanel(); checkWarnings();
 });
 
-const endDrag = () => { S.drag = null; stage.style.cursor = 'grab'; };
+// Tính đường gióng + hút (snap) khi kéo 1 layer.
+// So cạnh trái/giữa/phải và trên/giữa/dưới với mọi layer khác + tâm canvas.
+// Ngưỡng ~6px màn hình. Trả về mảng guides để vẽ, đồng thời chỉnh lay.x/lay.y.
+function snapGuides(lay) {
+  const guides = [];
+  const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
+  const thresh = 6 * (W / S.view.dw); // 6px màn hình -> px ảnh gốc
+  const r = layerPxOf(lay);
+  const candX = [W / 2], candY = [H / 2]; // tâm canvas
+  S.layers.forEach((o) => {
+    if (o.id === lay.id || !o.visible || !o.art) return;
+    const or = layerPxOf(o);
+    candX.push(or.x, or.x + or.w / 2, or.x + or.w);
+    candY.push(or.y, or.y + or.h / 2, or.y + or.h);
+  });
+  const myX = [r.x, r.x + r.w / 2, r.x + r.w];
+  const myY = [r.y, r.y + r.h / 2, r.y + r.h];
+  let bestDX = 0, bestDY = 0, bx = thresh, by = thresh, gx = null, gy = null;
+  myX.forEach((mx) => candX.forEach((cx) => {
+    const d = Math.abs(mx - cx);
+    if (d < bx) { bx = d; bestDX = cx - mx; gx = cx; }
+  }));
+  myY.forEach((my) => candY.forEach((cy) => {
+    const d = Math.abs(my - cy);
+    if (d < by) { by = d; bestDY = cy - my; gy = cy; }
+  }));
+  if (gx !== null) {
+    lay.x = clamp(lay.x + bestDX / W, 0, 1);
+    guides.push({ type: 'v', imgPos: gx });
+  }
+  if (gy !== null) {
+    lay.y = clamp(lay.y + bestDY / H, 0, 1);
+    guides.push({ type: 'h', imgPos: gy });
+  }
+  return guides;
+}
+
+// Vẽ đường gióng màu magenta khi kéo
+function drawGuides() {
+  if (!S.guides || !S.guides.length || !S.cfg) return;
+  sctx.save();
+  sctx.strokeStyle = '#ec4899';
+  sctx.lineWidth = 1.5;
+  S.guides.forEach((g) => {
+    sctx.beginPath();
+    if (g.type === 'v') {
+      const [x] = toCss(g.imgPos, 0);
+      sctx.moveTo(x, 0); sctx.lineTo(x, S.view.dh);
+    } else {
+      const [, y] = toCss(0, g.imgPos);
+      sctx.moveTo(0, y); sctx.lineTo(S.view.dw, y);
+    }
+    sctx.stroke();
+  });
+  sctx.restore();
+}
+
+const endDrag = () => { S.drag = null; S.guides = []; stage.style.cursor = 'grab'; render(); };
 stage.addEventListener('pointerup', endDrag);
 stage.addEventListener('pointercancel', endDrag);
+
+// Click ra ngoài canvas -> tắt trạng thái canvas-active (phím tắt ngưng)
+document.addEventListener('pointerdown', (e) => {
+  if (!e.target.closest || !e.target.closest('#canvasWrap')) {
+    S.canvasActive = false;
+    const w = $('canvasWrap');
+    if (w) w.classList.remove('canvas-on');
+  }
+});
 
 // ---------- Kích thước in (cm): 2 ô tự đồng bộ, LUÔN giữ tỉ lệ gốc ----------
 // Áp dụng cho layer đang chọn (wCm là nguồn chân lý, hCm suy từ aspect).
@@ -810,6 +1000,7 @@ async function setArtwork(rasterCanvas, name, kind, svgText, quiet) {
   };
   S.layers.push(layer);
   S.activeLayerId = layer.id;
+  syncSingleSelect();
   syncProcVisibility();
   assess();
   render(); renderLayerList(); updateSelPanel(); checkWarnings(); checkColorClash();
@@ -1320,46 +1511,63 @@ function safeZones() {
 // Gọi sau mỗi lần di chuyển/thu phóng/đổi cỡ.
 function checkWarnings() {
   const bar = $('warnBar');
-  const L = activeLayer();
-  if (!L || !L.art) { bar.hidden = true; return; }
-  const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
-  const r = layerPxOf(L);
-  const bx0 = r.x / W, by0 = r.y / H;
-  const bx1 = (r.x + r.w) / W, by1 = (r.y + r.h) / H;
   const msgs = [];
-  // 1) Vùng in an toàn: bbox phải nằm gọn trong ít nhất 1 vùng (trước/sau)
-  const TOL = 0.005;
-  const inside = safeZones().some((z) =>
-    bx0 >= z.x0 - TOL && by0 >= z.y0 - TOL &&
-    bx1 <= z.x1 + TOL && by1 <= z.y1 + TOL);
-  if (!inside) msgs.push(`Layer “${L.name}” đang tràn ra ngoài vùng in an toàn — nhà in có thể cắt mất hình.`);
-  // 2) Vùng cấm: cổ áo / nẹp nút
-  (S.cfg.warnZones || []).forEach((wz) => {
-    let hit = false;
-    if (wz.loai === 'tron') {
-      const cx = wz.x * W, cy = wz.y * H, rr = wz.r * Math.min(W, H);
-      const nx = clamp(cx, r.x, r.x + r.w), ny = clamp(cy, r.y, r.y + r.h);
-      hit = Math.hypot(cx - nx, cy - ny) < rr;
-    } else { // chunhat
-      hit = !(bx1 < wz.x0 || bx0 > wz.x1 || by1 < wz.y0 || by0 > wz.y1);
-    }
-    if (hit) msgs.push(`Hình in đè lên vùng “${wz.ten}” — nên dời ra.`);
-  });
+  const L = activeLayer();
+  if (L && L.art) {
+    const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
+    const r = layerPxOf(L);
+    const bx0 = r.x / W, by0 = r.y / H;
+    const bx1 = (r.x + r.w) / W, by1 = (r.y + r.h) / H;
+    // 1) Vùng in an toàn: bbox phải nằm gọn trong ít nhất 1 vùng (trước/sau)
+    const TOL = 0.005;
+    const inside = safeZones().some((z) =>
+      bx0 >= z.x0 - TOL && by0 >= z.y0 - TOL &&
+      bx1 <= z.x1 + TOL && by1 <= z.y1 + TOL);
+    if (!inside) msgs.push(`Layer “${L.name}” đang tràn ra ngoài vùng in an toàn — nhà in có thể cắt mất hình.`);
+    // 2) Vùng cấm: cổ áo / nẹp nút
+    (S.cfg.warnZones || []).forEach((wz) => {
+      let hit = false;
+      if (wz.loai === 'tron') {
+        const cx = wz.x * W, cy = wz.y * H, rr = wz.r * Math.min(W, H);
+        const nx = clamp(cx, r.x, r.x + r.w), ny = clamp(cy, r.y, r.y + r.h);
+        hit = Math.hypot(cx - nx, cy - ny) < rr;
+      } else { // chunhat
+        hit = !(bx1 < wz.x0 || bx0 > wz.x1 || by1 < wz.y0 || by0 > wz.y1);
+      }
+      if (hit) msgs.push(`Hình in đè lên vùng “${wz.ten}” — nên dời ra.`);
+    });
+  }
+  // 3) Trùng màu áo: kiểm tra mọi layer (kể cả khi không chọn layer nào)
+  msgs.push(...colorClashMsgs());
   bar.hidden = !msgs.length;
   bar.className = 'warnbar' + (msgs.length ? ' danger' : '');
   bar.innerHTML = msgs.map((m) => '• ' + esc(m)).join('<br>');
 }
 
-// Cảnh báo khi màu hình in gần giống màu áo (chênh lệch độ sáng < 0.25)
-// → lên áo có thể không nổi. Chỉ cảnh báo, không chặn.
+// Thông điệp cảnh báo trùng màu: hình có độ sáng gần giống màu áo
+// (sáng-trên-sáng HOẶC tối-trên-tối, chênh < 0.3) -> lên áo khó nổi.
+// Kiểm tra TẤT CẢ layer visible, không chỉ layer đang chọn.
+function colorClashMsgs() {
+  const msgs = [];
+  if (!S.layers.length) return msgs;
+  const lum = shirtLum(S.shirtColor);
+  S.layers.forEach((L) => {
+    if (!L.visible || !L.art) return;
+    const b = (typeof L.art.brightness === 'number') ? L.art.brightness : 0.5;
+    if (Math.abs(b - lum) < 0.3) {
+      msgs.push(
+        `Hình “${L.name}” có độ sáng gần giống màu áo ${S.shirtColorName} — ` +
+        `lên áo có thể không nổi. Hãy thử đổi màu áo.`);
+    }
+  });
+  return msgs;
+}
+
+// Cảnh báo trùng màu (toast nhanh khi vừa thêm/đổi, warnBar giữ lâu)
 function checkColorClash() {
-  const L = activeLayer();
-  if (!L || !L.art) return;
-  const artBright = (typeof L.art.brightness === 'number') ? L.art.brightness : 0.5;
-  const diff = Math.abs(artBright - shirtLum(S.shirtColor));
-  if (diff < 0.25) {
-    toast(`Hình “${L.name}” có màu gần giống màu áo (${S.shirtColorName}), lên áo có thể không nổi. Hãy thử đổi màu áo hoặc xử lý lại hình.`, 5000);
-  }
+  const msgs = colorClashMsgs();
+  if (msgs.length) toast(msgs[0], 5000);
+  checkWarnings(); // refresh warnBar (đã gồm cảnh báo trùng màu)
 }
 
 // Panel thông số áo + tỉ lệ px/cm hiện tại
@@ -1407,10 +1615,65 @@ function exportMockup() {
   }, 'image/png');
 }
 
-// (b1) Xuất file in: mỗi layer visible -> 1 file PNG nền trong suốt,
-// 300dpi, đúng khổ cm (giữ tỉ lệ gốc). Vẽ phẳng (không warp).
-function exportPrintPNG() {
+// (b1) Xuất file in: GÓI ZIP gồm mockup.png + từng file in 300dpi + thong-tin.txt.
+// Nhà in nhìn mockup là biết đặt file in vào đúng vị trí.
+// Nếu thiếu thư viện JSZip (mất mạng lần đầu): fallback xuất từng PNG riêng.
+async function exportPrintPNG() {
   const layers = S.layers.filter((l) => l.visible && l.art);
+  if (!layers.length) { toast('Chưa có layer nào để xuất.'); return; }
+  if (typeof JSZip === 'undefined') {
+    toast('Không tải được thư viện ZIP (cần mạng ở lần đầu). Đang xuất từng file PNG riêng...', 4500);
+    exportPrintPNG_legacy(layers);
+    return;
+  }
+  toast('Đang tạo gói file in ZIP...');
+  try {
+    const zip = new JSZip();
+    // 1) mockup.png — ảnh mockup hiện tại (có hình in, đúng màu áo)
+    const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
+    const mcv = document.createElement('canvas');
+    mcv.width = W; mcv.height = H;
+    composite(mcv.getContext('2d'), W, H);
+    const mockBlob = await new Promise((res) => mcv.toBlob(res, 'image/png'));
+    if (mockBlob) zip.file('mockup.png', mockBlob);
+    // 2) từng file in: PNG nền trong suốt, 300dpi, đúng khổ cm (giữ tỉ lệ gốc)
+    const jobs = layers.map((layer, i) => new Promise((res) => {
+      try {
+        const wCm = layer.wCm, hCm = wCm / layer.art.aspect;
+        const pw = Math.round((wCm / 2.54) * 300);
+        const ph = Math.round((hCm / 2.54) * 300);
+        const cv = document.createElement('canvas');
+        cv.width = pw; cv.height = ph;
+        const ctx = cv.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(printRaster(layer), 0, 0, pw, ph);
+        const fname = `print-${cleanName(layer.name, 'layer' + (i + 1))}-${fmt(wCm)}x${fmt(hCm)}cm-300dpi.png`;
+        cv.toBlob((b) => { if (b) zip.file(fname, b); res(); }, 'image/png');
+      } catch (e) { res(); }
+    }));
+    await Promise.all(jobs);
+    // 3) thong-tin.txt — vị trí + kích thước từng hình để nhà in đặt đúng chỗ
+    zip.file('thong-tin.txt', buildSpecText());
+    // 4) Tải ZIP về, tên theo mã đơn
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const code = cleanName($('inpCode').value, '');
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-` +
+      `${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
+    const zipName = (code ? code + '-' : `mockup-${stamp}-`) + 'file-in.zip';
+    download(zipBlob, zipName);
+    toast(`Đã xuất gói ZIP: mockup + ${layers.length} file in 300dpi + thông tin.`);
+  } catch (e) {
+    console.error(e);
+    toast('Tạo ZIP thất bại, đang xuất từng file riêng...', 4000);
+    exportPrintPNG_legacy(layers);
+  }
+}
+
+// Fallback khi không có JSZip: xuất từng PNG riêng như bản cũ
+function exportPrintPNG_legacy(layers) {
+  layers = layers || S.layers.filter((l) => l.visible && l.art);
   if (!layers.length) { toast('Chưa có layer nào để xuất.'); return; }
   layers.forEach((layer, i) => {
     const wCm = layer.wCm, hCm = wCm / layer.art.aspect;
@@ -1450,6 +1713,42 @@ function exportPrintSVG() {
     }, i * 800);
   });
   toast(`Đang xuất ${layers.length} file in SVG...`);
+}
+
+// Dựng nội dung phiếu kỹ thuật dạng text (dùng chung cho xuất lẻ và gói ZIP).
+// Ghi rõ vị trí từng hình (mặt trước/lưng theo tọa độ) để nhà in đặt đúng chỗ.
+function buildSpecText() {
+  const layers = S.layers.filter((l) => l.art);
+  const a = S.cfg.ao;
+  const W = S.cfg.kichThuocAnh.w;
+  const lines = [
+    'PHIEU KY THUAT IN AO',
+    '=====================',
+    `Khach hang: ${$('inpCust').value || '—'}`,
+    `Ma don: ${$('inpCode').value || '—'}`,
+    `Mockup: ${S.cfg.ten} (${a.kieu}, size ${a.size})`,
+    `Mau ao: ${S.shirtColorName} (${S.shirtColor})`,
+    `Phuong phap in: ${$('selMethod').value}`,
+    `So layer: ${layers.length}`,
+  ];
+  layers.forEach((l, i) => {
+    const wCm = l.wCm, hCm = wCm / l.art.aspect;
+    const dpiW = l.art.w / (wCm / 2.54), dpiH = l.art.h / (hCm / 2.54);
+    const side = l.x < 0.5 ? 'mat truoc' : 'mat sau (lung)';
+    lines.push(
+      `--- Layer ${i + 1}: ${l.name}${l.visible ? '' : ' (dang an)'}`,
+      `  Vi tri: ${side} (tam x=${l.x.toFixed(3)}, y=${l.y.toFixed(3)} theo ti le anh)`,
+      `  Kich thuoc: ${fmt(wCm)} x ${fmt(hCm)} cm`,
+      `  DPI thuc te: ${Math.round(Math.min(dpiW, dpiH))}`,
+      `  So mau: ${l.art.colorCount}${l.art.svgText ? ' (da vector hoa)' : ''}`,
+    );
+  });
+  lines.push(
+    `Mau file in: ${S.printColor.mode === 'single' ? S.printColor.color + ' (in 1 mau)' : 'Giu nguyen mau goc'}`,
+    `Ngay chot: ${$('inpDate').value || '—'}`,
+    `Ti le px/cm hieu chuan: ${fmt(pxPerCm(), 2)}`,
+  );
+  return lines.join('\n');
 }
 
 // (c) Xuất phiếu kỹ thuật .txt gửi nhà in (liệt kê từng layer)
@@ -1494,12 +1793,32 @@ function deleteLayer(id) {
   const idx = S.layers.findIndex((l) => l.id === id);
   if (idx < 0) return;
   const [rm] = S.layers.splice(idx, 1);
+  S.selectedIds = S.selectedIds.filter((x) => x !== id);
   if (S.activeLayerId === id) {
-    S.activeLayerId = S.layers.length ? S.layers[S.layers.length - 1].id : null;
+    S.activeLayerId = S.selectedIds.length
+      ? S.selectedIds[S.selectedIds.length - 1]
+      : (S.layers.length ? S.layers[S.layers.length - 1].id : null);
+    syncSingleSelect();
   }
   syncSizeInputs(); syncProcVisibility();
   assess(); render(); renderLayerList(); updateSelPanel(); checkWarnings();
   toast(`Đã xóa layer “${rm.name}”.`);
+}
+// Xóa TẤT CẢ layer đang chọn (phím Delete khi multi-select)
+function deleteSelected() {
+  const ids = [...S.selectedIds];
+  if (!ids.length) return;
+  const names = ids.map((id) => {
+    const l = S.layers.find((x) => x.id === id);
+    return l ? l.name : '';
+  }).filter(Boolean);
+  S.layers = S.layers.filter((l) => !ids.includes(l.id));
+  S.selectedIds = [];
+  S.activeLayerId = S.layers.length ? S.layers[S.layers.length - 1].id : null;
+  syncSingleSelect();
+  syncSizeInputs(); syncProcVisibility();
+  assess(); render(); renderLayerList(); updateSelPanel(); checkWarnings();
+  toast(`Đã xóa ${names.length} layer.`);
 }
 
 // Copy layer đang chọn vào clipboard nội bộ (Ctrl+C)
@@ -1531,15 +1850,18 @@ function pasteLayer() {
   };
   S.layers.push(layer);
   S.activeLayerId = layer.id;
+  syncSingleSelect();
   syncProcVisibility(); assess();
   render(); renderLayerList(); updateSelPanel(); checkWarnings(); checkColorClash();
   toast(`Đã paste layer “${layer.name}”.`);
 }
 
-// Phím tắt toàn cục cho layer: Ctrl+C / Ctrl+V / Delete.
-// Bỏ qua khi đang gõ trong ô nhập liệu.
+// Phím tắt cho layer: Ctrl+C / Ctrl+V / Delete.
+// CHỈ kích hoạt khi đã click vào canvas làm việc (S.canvasActive),
+// để còn copy/paste văn bản ở các ô nhập liệu bên ngoài.
 function initLayerHotkeys() {
   document.addEventListener('keydown', (e) => {
+    if (!S.canvasActive) return;
     const ae = document.activeElement;
     const tag = (ae && ae.tagName) || '';
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag) || (ae && ae.isContentEditable)) return;
@@ -1547,16 +1869,25 @@ function initLayerHotkeys() {
     const k = (e.key || '').toLowerCase();
     if (mod && k === 'c') { copyLayer(); e.preventDefault(); }
     else if (mod && k === 'v') { pasteLayer(); e.preventDefault(); }
-    else if ((e.key === 'Delete' || e.key === 'Backspace') && activeLayer()) {
-      deleteLayer(S.activeLayerId);
+    else if ((e.key === 'Delete' || e.key === 'Backspace') && S.selectedIds.length) {
+      if (S.selectedIds.length > 1) deleteSelected();
+      else deleteLayer(S.selectedIds[0]);
       e.preventDefault();
     }
   });
 }
 // Cập nhật panel "Layer đang chọn": tên + kích thước in + thông số file.
+// Khi chọn nhiều: hiện số lượng + ẩn ô nhập cỡ (căn chỉnh bằng nút trong panel Layers).
 function updateSelPanel() {
   const el = $('selInfo');
   if (!el) return;
+  if (isMultiSelect()) {
+    const names = selectedLayers().map((l) => esc(l.name)).join(', ');
+    el.innerHTML =
+      `<b>Đã chọn ${S.selectedIds.length} layer</b><br>` +
+      `<span class="muted small">${names}<br>Dùng nút căn chỉnh trong panel Layers. Bấm vào 1 layer để chỉnh riêng.</span>`;
+    return;
+  }
   const L = activeLayer();
   if (!L || !L.art) {
     el.innerHTML = '<span class="muted">Chưa chọn layer nào. Tải file hoặc bấm vào hình trên canvas.</span>';
@@ -1593,7 +1924,8 @@ function renderLayerList() {
   for (let i = S.layers.length - 1; i >= 0; i--) {
     const layer = S.layers[i];
     const row = document.createElement('div');
-    row.className = 'layer-row' + (layer.id === S.activeLayerId ? ' active' : '');
+    const sel = S.selectedIds.includes(layer.id);
+    row.className = 'layer-row' + (sel ? ' active' : '') + (isMultiSelect() && sel ? ' multisel' : '');
     row.dataset.id = layer.id;
     const thumb = document.createElement('canvas');
     thumb.className = 'layer-thumb'; thumb.width = 44; thumb.height = 44;
@@ -1619,12 +1951,25 @@ function renderLayerList() {
       const dw = layer.art.raster.width * sc, dh = layer.art.raster.height * sc;
       t.drawImage(layer.art.raster, (44 - dw) / 2, (44 - dh) / 2, dw, dh);
     } catch (e) { /* bỏ qua */ }
-    // Bấm vào dòng (trừ các nút) -> chọn layer
+    // Bấm vào dòng (trừ các nút) -> chọn layer (giữ Ctrl/Cmd/Shift để chọn nhiều)
     row.addEventListener('click', (e) => {
       if (e.target.closest('.icon-btn')) return;
-      setActiveLayer(layer.id);
+      if (e.ctrlKey || e.metaKey || e.shiftKey) toggleSelect(layer.id);
+      else setActiveLayer(layer.id);
     });
     el.appendChild(row);
+  }
+  // Thanh căn chỉnh: hiện khi chọn >= 2 layer
+  const ab = $('alignBar');
+  if (ab) {
+    const n = S.selectedIds.length;
+    ab.hidden = n < 2;
+    const ac = $('alignCount');
+    if (ac) ac.textContent = n;
+    ab.querySelectorAll('[data-align]').forEach((b) => {
+      const m = b.dataset.align;
+      b.disabled = (m === 'distH' || m === 'distV') ? n < 3 : n < 2;
+    });
   }
 }
 
@@ -1655,6 +2000,7 @@ function initLayerList() {
 // Chọn layer đang thao tác + refresh UI liên quan
 function setActiveLayer(id, silent) {
   S.activeLayerId = id;
+  syncSingleSelect(); // chọn đơn -> selectedIds = [id]
   syncSizeInputs(); syncProcVisibility();
   assess(); render(); renderLayerList(); updateSelPanel(); checkWarnings();
   updateSelPanel();
@@ -1749,6 +2095,7 @@ async function openProjectObj(proj) {
   // Mở file .cm: thay thế toàn bộ workspace -> xóa layers trước
   S.layers = [];
   S.activeLayerId = null;
+  S.selectedIds = [];
   if (proj.mockupId !== S.mockupId) {
     await loadMockup(proj.mockupId);
     $('selMockup').value = proj.mockupId;
@@ -1789,6 +2136,7 @@ async function openProjectObj(proj) {
   S.activeLayerId = (proj.activeLayerId && S.layers.some((l) => l.id === proj.activeLayerId))
     ? proj.activeLayerId
     : (S.layers.length ? S.layers[S.layers.length - 1].id : null);
+  syncSingleSelect();
   $('inpCust').value = proj.tenKhach || '';
   $('inpCode').value = proj.maDon || '';
   if (proj.ngay) $('inpDate').value = proj.ngay;
@@ -1951,8 +2299,15 @@ async function init() {
 
   // Panel Layers kiểu Photoshop
   initLayerList();
+  // Nút căn chỉnh nhiều layer
+  const ab = $('alignBar');
+  if (ab) ab.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-align]');
+    if (!b || b.disabled) return;
+    alignLayers(b.dataset.align);
+  });
   renderLayerList();
-  initLayerHotkeys(); // Ctrl+C / Ctrl+V / Delete cho layer
+  initLayerHotkeys(); // Ctrl+C / Ctrl+V / Delete cho layer (khi canvas active)
 
   // Lưu / mở file làm việc
   $('btnSaveCm').onclick = saveProjectFile;
