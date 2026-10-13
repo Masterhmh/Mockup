@@ -8,6 +8,9 @@
   --accent: #2F5ACF;
   --accent-d: #23479f;
   --accent-soft: #e9eefb;
+  --btn-bg: #000000;
+  --btn-ink: #F8F8F8;
+  --btn-h: #2b2b2b;
   --warn: #b45309;
   --warn-bg: #fef3c7;
   --danger: #b91c1c;
@@ -31,6 +34,9 @@
   --accent: #5B7FE8;
   --accent-d: #7d97ec;
   --accent-soft: #141f3a;
+  --btn-bg: #F8F8F8;
+  --btn-ink: #000000;
+  --btn-h: #d9d9d9;
   --warn: #e8a33d;
   --warn-bg: #3a2f1a;
   --danger: #e86a6a;
@@ -59,7 +65,6 @@ body {
   margin: 0; font-size: 24px; font-weight: 800; letter-spacing: .02em;
   text-transform: uppercase;
 }
-.brand-text .sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
 
 .layout {
   display: grid; grid-template-columns: minmax(0, 1fr) 340px;
@@ -95,8 +100,8 @@ body {
   border: 1px solid var(--line); background: var(--card); color: var(--ink);
 }
 .btn:hover { background: var(--hover); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn.primary:hover { background: var(--accent-d); }
+.btn.primary { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-ink); }
+.btn.primary:hover { background: var(--btn-h); border-color: var(--btn-h); }
 .btn.small { font-size: 13px; padding: 6px 10px; }
 .btn.lock.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
