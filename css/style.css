@@ -235,10 +235,12 @@ details.panel.adv .colorrow { margin-left: 0; }
 }
 .align-bar[hidden] { display: none; }
 .align-row {
-  display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap;
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px;
 }
-.align-label { min-width: 62px; font-weight: 600; }
-.align-btn { padding: 5px 6px; line-height: 0; }
-.align-btn svg { width: 22px; height: 22px; fill: var(--ink); }
-.align-btn svg line { stroke: #e11d48; stroke-width: 1.4; }
+.align-label { grid-column: 1 / -1; font-weight: 600; margin-bottom: 2px; }
+.align-btn { padding: 4px; line-height: 0; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+.align-btn svg { width: 28px; height: 28px; }
+.align-btn svg rect { fill: #111; }
+.align-btn svg line { stroke: #111; stroke-width: 1; }
+.align-btn:hover { border-color: var(--accent); }
 .align-btn:disabled { opacity: 0.35; }
