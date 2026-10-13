@@ -157,7 +157,7 @@ body {
 /* ---- panel ---- */
 .panels { display: flex; flex-direction: column; gap: 12px; }
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 0; overflow: hidden; }
-/* Dải tiêu đề đen kiểu header (luôn đen ở cả 2 theme) */
+/* Dải tiêu đề kiểu header: sáng = đen chữ trắng, tối = trắng #F8F8F8 chữ đen */
 .panel > h2, .panel > .hist-head {
   background: #000; color: #fff;
   font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
@@ -167,19 +167,31 @@ body {
 .panel > h2 { border: none; }
 .hist-head { display: flex; align-items: center; justify-content: space-between; }
 .hist-head h2 { margin: 0; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #fff; }
-/* Nút ghost trên dải đen */
+/* Nút ghost trên dải đen (theme sáng); theme tối dải thành trắng — xem rule đảo ở dưới */
 .hist-head .btn { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.55); }
 .hist-head .btn:hover { background: #fff; color: #000; border-color: #fff; }
-/* Theme tối: dải đen (#000) vốn chìm vào thân panel/modal (#161616), nên phải
-   có đường phân cách sáng như header — viền dưới inset không làm lệch layout */
+/* Theme tối: dải tiêu đề chuyển hẳn sang TRẮNG Coolmate #F8F8F8 chữ đen
+   (quy tắc 20261014t — đảo ngược dải đen ở theme sáng, cùng quy tắc đảo màu
+   như nút bấm, để nổi rõ trên thân panel/modal #161616) */
 [data-theme="dark"] .panel > h2,
-[data-theme="dark"] .panel > .hist-head {
-  box-shadow: inset 0 -1px 0 rgba(255,255,255,.32);
-}
+[data-theme="dark"] .panel > .hist-head,
 [data-theme="dark"] .modal-box > h3,
 [data-theme="dark"] .guide-head {
-  box-shadow: inset 0 -1px 0 rgba(255,255,255,.32);
+  background: #F8F8F8; color: #000;
+  box-shadow: none;
 }
+[data-theme="dark"] .hist-head h2 { color: #000; }
+[data-theme="dark"] .guide-head h3 { color: #000; }
+/* Nút ghost "Xóa tất cả" trên dải trắng: viền/chữ đen, hover đảo đen */
+[data-theme="dark"] .hist-head .btn {
+  background: transparent; color: #000; border-color: rgba(0,0,0,.55);
+}
+[data-theme="dark"] .hist-head .btn:hover { background: #000; color: #fff; border-color: #000; }
+/* Nút ✕ đóng hướng dẫn trên dải trắng */
+[data-theme="dark"] .guide-close {
+  background: transparent; color: #000; border-color: rgba(0,0,0,.5);
+}
+[data-theme="dark"] .guide-close:hover { background: #000; color: #fff; border-color: #000; }
 /* Theme tối: hộp modal cần viền nhẹ để không chìm vào nền đen của trang */
 [data-theme="dark"] .modal-box { border: 1px solid rgba(255,255,255,.16); }
 /* Thân panel: thụt lề đều dưới dải */
@@ -210,7 +222,7 @@ body {
   max-height: 92vh; overflow: auto;
 }
 .modal-box.wide { max-width: 980px; }
-/* Dải tiêu đề đen cho modal (luôn đen ở cả 2 theme, giống header) */
+/* Dải tiêu đề modal kiểu header (sáng = đen chữ trắng; tối = trắng chữ đen) */
 .modal-box > h3 {
   background: #000; color: #fff;
   font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
