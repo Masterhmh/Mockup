@@ -220,3 +220,5 @@ ngang ngực đúng, khung in sẽ đúng kích thước thật. Nếu đổi �
   nối đường bao → SVG path), hợp nhất với **hình phẳng ít màu** (logo, chữ,
   graphic). Ảnh chụp/phức tạp tracing sẽ xấu — app tự đề xuất phóng nét thay.
 - Mockup hiện tại chỉ có áo trắng/sáng màu (dùng multiply để hòa hình in).
+
+<!-- test -->
