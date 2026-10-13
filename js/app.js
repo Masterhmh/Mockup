@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013p';
+const APP_V = '20261013q';
 
 // ---------- Chế độ sáng/tối ----------
 const THEME_KEY = 'mockupTheme';
@@ -15,6 +15,19 @@ function applyTheme(t) {
   const theme = (t === 'dark') ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', theme);
   try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* bỏ qua */ }
+  updateLogoForTheme(theme);
+}
+// Logo theo theme: sáng dùng assets/Logo.png, tối dùng assets/Logo-dark.png (nếu có, fallback về Logo.png)
+function updateLogoForTheme(theme) {
+  const img = document.getElementById('brandLogo');
+  if (!img) return;
+  if (theme === 'dark') {
+    img.onerror = () => { img.onerror = null; img.src = 'assets/Logo.png'; };
+    img.src = 'assets/Logo-dark.png';
+  } else {
+    img.onerror = () => { img.style.display = 'none'; };
+    img.src = 'assets/Logo.png';
+  }
 }
 function initTheme() {
   let saved = 'light';
