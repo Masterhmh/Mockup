@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013j';
+const APP_V = '20261013k';
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -61,7 +61,23 @@ const S = {
   ratioLocked: true,    // QUY TẮC CỨNG: luôn khóa tỉ lệ gốc
   drag: null,
   view: { dw: 0, dh: 0, dpr: 1 }, // ánh xạ ảnh gốc -> css px
+  orderCode: '',        // mã đơn tự sinh CM_POD_xxxxxxx (sinh khi lưu/xuất)
 };
+
+// Sinh mã đơn hàng: CM_POD_ + 7 chữ số ngẫu nhiên
+function genOrderCode() {
+  let s = '';
+  for (let i = 0; i < 7; i++) s += Math.floor(Math.random() * 10);
+  S.orderCode = 'CM_POD_' + s;
+  const ro = $('inpCodeRo');
+  if (ro) ro.value = S.orderCode;
+  return S.orderCode;
+}
+// Lấy mã đơn (sinh mới nếu chưa có)
+function getOrderCode() {
+  if (!S.orderCode) genOrderCode();
+  return S.orderCode;
+}
 
 // Layer đang được chọn (null nếu chưa có layer nào)
 function activeLayer() {
@@ -95,20 +111,33 @@ function alignLayers(mode) {
   const maxY = Math.max(...items.map((o) => o.r.y + o.r.h));
   const setX = (l, r, targetLeft) => { l.x = clamp((targetLeft + r.w / 2) / W, 0, 1); };
   const setY = (l, r, targetTop) => { l.y = clamp((targetTop + r.h / 2) / H, 0, 1); };
-  if (mode === 'distH' || mode === 'distV') {
-    // Giãn đều: giữ 2 đầu cố định, chia đều khoảng cách tâm
+  if (mode === 'distH' || mode === 'distV' || mode.indexOf('dist') === 0) {
+    // Giãn đều: giữ 2 đầu cố định, chia đều khoảng cách (theo tâm hoặc cạnh)
     if (layers.length < 3) { toast('Giãn đều cần ít nhất 3 layer.'); return; }
-    const key = mode === 'distH' ? 'cx' : 'cy';
+    // Lấy giá trị cạnh/tâm cần giãn đều (px ảnh gốc)
+    const getV = (o) => {
+      if (mode === 'distL') return o.r.x;
+      if (mode === 'distR') return o.r.x + o.r.w;
+      if (mode === 'distT') return o.r.y;
+      if (mode === 'distB') return o.r.y + o.r.h;
+      if (mode === 'distV' || mode === 'distVC') return o.r.y + o.r.h / 2;
+      return o.r.x + o.r.w / 2; // distH, distHC: tâm ngang
+    };
+    // Đặt layer sao cho cạnh/tâm trùng target (px ảnh gốc)
+    const setV = (o, target) => {
+      if (mode === 'distL') o.l.x = clamp((target + o.r.w / 2) / W, 0, 1);
+      else if (mode === 'distR') o.l.x = clamp((target - o.r.w / 2) / W, 0, 1);
+      else if (mode === 'distT') o.l.y = clamp((target + o.r.h / 2) / H, 0, 1);
+      else if (mode === 'distB') o.l.y = clamp((target - o.r.h / 2) / H, 0, 1);
+      else if (mode === 'distV' || mode === 'distVC') o.l.y = clamp(target / H, 0, 1);
+      else o.l.x = clamp(target / W, 0, 1);
+    };
     const sorted = items
-      .map((o) => ({ ...o, c: mode === 'distH' ? o.r.x + o.r.w / 2 : o.r.y + o.r.h / 2 }))
-      .sort((a, b) => a.c - b.c);
-    const first = sorted[0].c, last = sorted[sorted.length - 1].c;
+      .map((o) => ({ ...o, v: getV(o) }))
+      .sort((a, b) => a.v - b.v);
+    const first = sorted[0].v, last = sorted[sorted.length - 1].v;
     const step = (last - first) / (sorted.length - 1);
-    sorted.forEach((o, i) => {
-      const targetC = first + step * i;
-      if (mode === 'distH') o.l.x = clamp(targetC / W, 0, 1);
-      else o.l.y = clamp(targetC / H, 0, 1);
-    });
+    sorted.forEach((o, i) => { setV(o, first + step * i); });
   } else {
     items.forEach(({ l, r }) => {
       if (mode === 'left') setX(l, r, minX);
@@ -120,7 +149,9 @@ function alignLayers(mode) {
     });
   }
   render(); updateSelPanel(); checkWarnings();
-  const names = { left: 'trái', hcenter: 'giữa ngang', right: 'phải', top: 'trên', vcenter: 'giữa dọc', bottom: 'dưới', distH: 'đều ngang', distV: 'đều dọc' };
+  const names = { left: 'trái', hcenter: 'giữa ngang', right: 'phải', top: 'trên', vcenter: 'giữa dọc', bottom: 'dưới',
+    distH: 'đều ngang (tâm)', distHC: 'đều tâm ngang', distV: 'đều dọc (tâm)', distVC: 'đều tâm dọc',
+    distL: 'đều cạnh trái', distR: 'đều cạnh phải', distT: 'đều cạnh trên', distB: 'đều cạnh dưới' };
   toast(`Đã căn ${names[mode] || mode} ${layers.length} layer.`);
 }
 
@@ -695,6 +726,16 @@ stage.addEventListener('pointerdown', (e) => {
           mode: 'move-multi', startPX: p.x, startPY: p.y,
           items: selectedLayers().map((sl) => ({ id: sl.id, x0: sl.x, y0: sl.y })),
         };
+      } else if (lay.groupId) {
+        // Layer thuộc group: chọn cả group và kéo CẢ GROUP cùng lúc
+        const members = groupMembers(lay);
+        S.selectedIds = members.map((m) => m.id);
+        S.activeLayerId = lay.id;
+        S.drag = {
+          mode: 'move-multi', startPX: p.x, startPY: p.y,
+          items: members.map((m) => ({ id: m.id, x0: m.x, y0: m.y })),
+        };
+        renderLayerList(); updateSelPanel();
       } else {
         // Bấm thường: chọn đơn + kéo 1 layer
         if (lay.id !== S.activeLayerId) setActiveLayer(lay.id, true);
@@ -1655,15 +1696,13 @@ async function exportPrintPNG() {
     await Promise.all(jobs);
     // 3) thong-tin.txt — vị trí + kích thước từng hình để nhà in đặt đúng chỗ
     zip.file('thong-tin.txt', buildSpecText());
-    // 4) Tải ZIP về, tên theo mã đơn
+    // 4) Tải ZIP về, tên = {Tên KH}-{Mã đơn}.zip (trống tên KH thì chỉ {Mã đơn}.zip)
     const zipBlob = await zip.generateAsync({ type: 'blob' });
-    const code = cleanName($('inpCode').value, '');
-    const d = new Date();
-    const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-` +
-      `${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
-    const zipName = (code ? code + '-' : `mockup-${stamp}-`) + 'file-in.zip';
+    const code = getOrderCode();
+    const cust = cleanName($('inpCust').value, '');
+    const zipName = (cust ? cust + '-' : '') + code + '.zip';
     download(zipBlob, zipName);
-    toast(`Đã xuất gói ZIP: mockup + ${layers.length} file in 300dpi + thông tin.`);
+    toast(`Đã xuất ${zipName}: mockup + ${layers.length} file in 300dpi + thông tin. Mã đơn: ${code}`, 5000);
   } catch (e) {
     console.error(e);
     toast('Tạo ZIP thất bại, đang xuất từng file riêng...', 4000);
@@ -1693,26 +1732,51 @@ function exportPrintPNG_legacy(layers) {
   toast(`Đang xuất ${layers.length} file in PNG 300dpi...`);
 }
 
-// (b2) Xuất file in SVG — mỗi layer visible có vector -> 1 file SVG đúng khổ cm
-function exportPrintSVG() {
+// (b2) Xuất file in SVG — gói ZIP gồm mockup.png + từng file SVG đúng khổ cm
+async function exportPrintSVG() {
   const layers = S.layers.filter((l) => l.visible && l.art && l.art.svgText);
   if (!layers.length) {
     toast('Chưa có layer vector nào. Hãy bấm “Chuyển vector” hoặc tải file SVG lên trước.');
     return;
   }
-  layers.forEach((layer, i) => {
-    const wCm = layer.wCm, hCm = wCm / layer.art.aspect;
-    const vb = svgViewBox(layer.art.svgText, layer.art.w, layer.art.h);
-    const svg =
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" ` +
-      `width="${fmt(wCm)}cm" height="${fmt(hCm)}cm">` +
-      `${svgInner(svgForPrint(layer.art.svgText))}</svg>`;
-    const fname = `file-in-${cleanName(layer.name, 'layer' + (i + 1))}.svg`;
-    setTimeout(() => {
-      download(new Blob([svg], { type: 'image/svg+xml' }), fname);
-    }, i * 800);
-  });
-  toast(`Đang xuất ${layers.length} file in SVG...`);
+  if (typeof JSZip === 'undefined') {
+    toast('Không tải được thư viện ZIP (cần mạng ở lần đầu).', 4000);
+    return;
+  }
+  toast('Đang tạo gói SVG ZIP...');
+  try {
+    const zip = new JSZip();
+    // 1) mockup.png — ảnh mockup hiện tại
+    const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
+    const mcv = document.createElement('canvas');
+    mcv.width = W; mcv.height = H;
+    composite(mcv.getContext('2d'), W, H);
+    const mockBlob = await new Promise((res) => mcv.toBlob(res, 'image/png'));
+    if (mockBlob) zip.file('mockup.png', mockBlob);
+    // 2) từng file SVG đúng khổ cm
+    layers.forEach((layer, i) => {
+      const wCm = layer.wCm, hCm = wCm / layer.art.aspect;
+      const vb = svgViewBox(layer.art.svgText, layer.art.w, layer.art.h);
+      const svg =
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" ` +
+        `width="${fmt(wCm)}cm" height="${fmt(hCm)}cm">` +
+        `${svgInner(svgForPrint(layer.art.svgText))}</svg>`;
+      const fname = `print-${cleanName(layer.name, 'layer' + (i + 1))}-${fmt(wCm)}x${fmt(hCm)}cm.svg`;
+      zip.file(fname, svg);
+    });
+    // 3) thong-tin.txt
+    zip.file('thong-tin.txt', buildSpecText());
+    // 4) Tải ZIP về, tên = {Tên KH}-{Mã đơn}.zip
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const code = getOrderCode();
+    const cust = cleanName($('inpCust').value, '');
+    const zipName = (cust ? cust + '-' : '') + code + '-svg.zip';
+    download(zipBlob, zipName);
+    toast(`Đã xuất ${zipName}: mockup + ${layers.length} file SVG + thông tin. Mã đơn: ${code}`, 5000);
+  } catch (e) {
+    console.error(e);
+    toast('Tạo ZIP thất bại.', 4000);
+  }
 }
 
 // Dựng nội dung phiếu kỹ thuật dạng text (dùng chung cho xuất lẻ và gói ZIP).
@@ -1725,7 +1789,7 @@ function buildSpecText() {
     'PHIEU KY THUAT IN AO',
     '=====================',
     `Khach hang: ${$('inpCust').value || '—'}`,
-    `Ma don: ${$('inpCode').value || '—'}`,
+    `Ma don: ${S.orderCode || '—'}`,
     `Mockup: ${S.cfg.ten} (${a.kieu}, size ${a.size})`,
     `Mau ao: ${S.shirtColorName} (${S.shirtColor})`,
     `Phuong phap in: ${$('selMethod').value}`,
@@ -1760,7 +1824,7 @@ function exportSpec() {
     'PHIEU KY THUAT IN AO',
     '=====================',
     `Khach hang: ${$('inpCust').value || '—'}`,
-    `Ma don: ${$('inpCode').value || '—'}`,
+    `Ma don: ${S.orderCode || '—'}`,
     `Mockup: ${S.cfg.ten} (${a.kieu}, size ${a.size})`,
     `Mau ao: ${S.shirtColorName} (${S.shirtColor})`,
     `So layer: ${layers.length}`,
@@ -1781,15 +1845,23 @@ function exportSpec() {
     `Ngay chot: ${$('inpDate').value || '—'}`,
     `Ti le px/cm hieu chuan: ${fmt(pxPerCm(), 2)}`,
   );
-  const code = ($('inpCode').value || 'don').replace(/[^\w-]+/g, '-');
+  const code = getOrderCode();
+  const cust = cleanName($('inpCust').value, '');
   download(new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' }),
-    `phieu-ky-thuat-${code}.txt`);
-  toast('Đã xuất phiếu kỹ thuật.');
+    `phieu-ky-thuat-${(cust ? cust + '-' : '') + code}.txt`);
+  toast(`Đã xuất phiếu kỹ thuật. Mã đơn: ${code}`, 4000);
 }
 
 // ---------- Xóa layer ----------
 // Xóa layer theo id; nếu là layer đang chọn thì chọn layer trên cùng còn lại.
 function deleteLayer(id) {
+  const l0 = S.layers.find((x) => x.id === id);
+  // Nếu thuộc group -> xóa cả group
+  if (l0 && l0.groupId) {
+    S.selectedIds = [id];
+    deleteSelected();
+    return;
+  }
   const idx = S.layers.findIndex((l) => l.id === id);
   if (idx < 0) return;
   const [rm] = S.layers.splice(idx, 1);
@@ -1806,8 +1878,18 @@ function deleteLayer(id) {
 }
 // Xóa TẤT CẢ layer đang chọn (phím Delete khi multi-select)
 function deleteSelected() {
-  const ids = [...S.selectedIds];
+  let ids = [...S.selectedIds];
   if (!ids.length) return;
+  // Nếu layer thuộc group -> xóa CẢ GROUP
+  const gids = new Set();
+  ids.forEach((id) => {
+    const l = S.layers.find((x) => x.id === id);
+    if (l && l.groupId) gids.add(l.groupId);
+  });
+  if (gids.size) {
+    S.layers.forEach((l) => { if (gids.has(l.groupId)) ids.push(l.id); });
+    ids = [...new Set(ids)];
+  }
   const names = ids.map((id) => {
     const l = S.layers.find((x) => x.id === id);
     return l ? l.name : '';
@@ -1869,12 +1951,38 @@ function initLayerHotkeys() {
     const k = (e.key || '').toLowerCase();
     if (mod && k === 'c') { copyLayer(); e.preventDefault(); }
     else if (mod && k === 'v') { pasteLayer(); e.preventDefault(); }
+    else if (mod && k === 'g' && !e.shiftKey) { groupSelected(); e.preventDefault(); }
+    else if (mod && k === 'g' && e.shiftKey) { ungroupSelected(); e.preventDefault(); }
     else if ((e.key === 'Delete' || e.key === 'Backspace') && S.selectedIds.length) {
       if (S.selectedIds.length > 1) deleteSelected();
       else deleteLayer(S.selectedIds[0]);
       e.preventDefault();
     }
   });
+}
+// ---------- Group / Ungroup ----------
+// Gán cùng groupId cho các layer đang chọn (Ctrl+G). Kéo/xóa 1 layer trong group
+// sẽ áp dụng cho cả group.
+function groupSelected() {
+  const layers = selectedLayers().filter((l) => l.art);
+  if (layers.length < 2) { toast('Hãy chọn ít nhất 2 layer (giữ Ctrl + click) để group.'); return; }
+  const gid = 'G' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
+  layers.forEach((l) => { l.groupId = gid; });
+  render(); renderLayerList(); updateSelPanel();
+  toast(`Đã group ${layers.length} layer (Ctrl+Shift+G để bỏ group).`);
+}
+function ungroupSelected() {
+  const layers = selectedLayers().filter((l) => l.groupId);
+  if (!layers.length) { toast('Các layer đang chọn không thuộc group nào.'); return; }
+  const gids = new Set(layers.map((l) => l.groupId));
+  S.layers.forEach((l) => { if (gids.has(l.groupId)) l.groupId = null; });
+  render(); renderLayerList(); updateSelPanel();
+  toast('Đã bỏ group.');
+}
+// Tất cả layer cùng group với layer cho trước (bao gồm chính nó)
+function groupMembers(layer) {
+  if (!layer || !layer.groupId) return layer ? [layer] : [];
+  return S.layers.filter((l) => l.groupId === layer.groupId);
 }
 // Cập nhật panel "Layer đang chọn": tên + kích thước in + thông số file.
 // Khi chọn nhiều: hiện số lượng + ẩn ô nhập cỡ (căn chỉnh bằng nút trong panel Layers).
@@ -1931,6 +2039,15 @@ function renderLayerList() {
     thumb.className = 'layer-thumb'; thumb.width = 44; thumb.height = 44;
     const nm = document.createElement('span');
     nm.className = 'layer-name'; nm.textContent = layer.name; nm.title = layer.name;
+    // Badge "Nhóm" nếu layer thuộc group
+    if (layer.groupId) {
+      const badge = document.createElement('span');
+      badge.className = 'group-badge'; badge.title = 'Thuộc nhóm (Ctrl+Shift+G để bỏ group)';
+      badge.textContent = '⧉ Nhóm';
+      nm.appendChild(document.createTextNode(' '));
+      nm.appendChild(badge);
+      row.classList.add('in-group');
+    }
     const mkBtn = (cls, title, txt) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'icon-btn ' + cls; b.title = title; b.textContent = txt;
@@ -1964,11 +2081,9 @@ function renderLayerList() {
   if (ab) {
     const n = S.selectedIds.length;
     ab.hidden = n < 2;
-    const ac = $('alignCount');
-    if (ac) ac.textContent = n;
     ab.querySelectorAll('[data-align]').forEach((b) => {
       const m = b.dataset.align;
-      b.disabled = (m === 'distH' || m === 'distV') ? n < 3 : n < 2;
+      b.disabled = (m.indexOf('dist') === 0) ? n < 3 : n < 2;
     });
   }
 }
@@ -2040,7 +2155,7 @@ function buildProject() {
       kind: l.art.kind,
       colorCount: l.art.colorCount, typeLabel: l.art.typeLabel,
       brightness: (typeof l.art.brightness === 'number') ? l.art.brightness : 1,
-      x: l.x, y: l.y, wCm: l.wCm,
+      x: l.x, y: l.y, wCm: l.wCm, groupId: l.groupId || null,
     });
   }
   if (!layers.length) { toast('Chưa có layer nào để lưu.'); return null; }
@@ -2050,7 +2165,7 @@ function buildProject() {
     String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0');
   return {
     app: 'mockup-studio', fmt: 1,
-    tenKhach: $('inpCust').value || '', maDon: $('inpCode').value || '',
+    tenKhach: $('inpCust').value || '', maDon: getOrderCode(),
     ngay: $('inpDate').value || '', mockupId: S.mockupId,
     phuongPhapIn: $('selMethod').value, chestCm: S.cfg.ao.ngangNgucCm,
     activeLayerId: S.activeLayerId, layers,
@@ -2060,7 +2175,7 @@ function buildProject() {
   };
 }
 
-// Lưu file: tải .cm về máy, tên theo mã đơn hàng
+// Lưu file: tải .cm về máy, tên = {Mã đơn tự sinh}.cm
 function saveProjectFile() {
   const proj = buildProject();
   if (!proj) return;
@@ -2072,7 +2187,7 @@ function saveProjectFile() {
   document.body.appendChild(a);
   a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
-  toast(`Đã tải file "${fname}".`);
+  toast(`Đã tải file "${fname}". Mã đơn: ${proj.maDon}`, 5000);
 }
 
 // Mở file .cm: đọc JSON rồi khôi phục toàn bộ workspace
@@ -2130,7 +2245,7 @@ async function openProjectObj(proj) {
         kind: sl.kind, colorCount: sl.colorCount, typeLabel: sl.typeLabel,
         brightness: (typeof sl.brightness === 'number') ? sl.brightness : 1,
       },
-      x: sl.x, y: sl.y, wCm: sl.wCm,
+      x: sl.x, y: sl.y, wCm: sl.wCm, groupId: sl.groupId || null,
     });
   }
   S.activeLayerId = (proj.activeLayerId && S.layers.some((l) => l.id === proj.activeLayerId))
@@ -2138,7 +2253,8 @@ async function openProjectObj(proj) {
     : (S.layers.length ? S.layers[S.layers.length - 1].id : null);
   syncSingleSelect();
   $('inpCust').value = proj.tenKhach || '';
-  $('inpCode').value = proj.maDon || '';
+  S.orderCode = proj.maDon || '';
+  const _ro = $('inpCodeRo'); if (_ro) _ro.value = S.orderCode;
   if (proj.ngay) $('inpDate').value = proj.ngay;
   if (proj.phuongPhapIn) $('selMethod').value = proj.phuongPhapIn;
   if (proj.chestCm > 0) {
