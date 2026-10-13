@@ -1,4 +1,4 @@
-# Studio Mockup In Áo
+# Xưởng In Mẫu
 
 Web app tĩnh (không backend, không lưu server): đặt hình in lên **ảnh áo thật**,
 tự động đánh giá chất lượng in (DPI), đề xuất chuyển vector / phóng nét,
@@ -84,8 +84,11 @@ mockups/polo.json    config áo polo   (ảnh Polo.png  3469x1933, nền trong s
 
 ## Bố cục giao diện
 
-- **Header**: logo (`assets/logo.svg`, thay được bằng file cùng tên) + tiêu đề
-  "STUDIO MOCKUP IN ÁO" căn giữa viết hoa. Font **Be Vietnam Pro** (Google Fonts,
+**Màu sắc** (theo brand Coolmate): chỉ dùng 3 màu chính — `#2F5ACF` (xanh Cerulean Blue,
+màu accent/nút chính), `#F8F8F8` (Alabaster, nền sáng), `#000000` (đen, chữ/nền tối).
+Dark mode: nền đen, chữ trắng, accent xanh sáng `#5B7FE8`.
+- **Header**: logo PNG nhúng trực tiếp (data URL) + tiêu đề
+  "XƯỞNG IN MẪU" căn giữa viết hoa. Font **Be Vietnam Pro** (Google Fonts,
   hỗ trợ tốt tiếng Việt).
 - **Desktop (≥1024px)**: canvas lớn bên trái, sidebar phải (Layers + Layer đang
   chọn), hàng panel ngang **dưới canvas** (Chất lượng & Xử lý, Xuất file,
