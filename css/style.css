@@ -185,8 +185,18 @@ body {
 #cropCanvas { display: block; width: 100%; touch-action: none; cursor: crosshair; }
 .cmp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .cmp-label { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
-.cmp-scroll { overflow: auto; max-height: 46vh; background: #222; border-radius: 8px; }
-.cmp-scroll canvas { display: block; image-rendering: pixelated; }
+.cmp-scroll { overflow: auto; max-height: 62vh; border-radius: 8px;
+  background: repeating-conic-gradient(#d7d7d7 0% 25%, #f2f2f2 0% 50%) 0 0 / 20px 20px; }
+.cmp-scroll canvas { display: block; image-rendering: pixelated; max-width: none; }
+/* Dòng cảnh báo AI trong panel Chất lượng (ở lại đến khi xử lý khác xong hoặc đổi layer) */
+.warnline {
+  color: var(--warn); background: var(--warn-bg);
+  border: 1px solid var(--warn); border-radius: 8px;
+  padding: 8px 10px; margin: 8px 0 0; font-size: 13px; line-height: 1.5;
+}
+/* Logo header bấm để làm mới app */
+.brand-logo { cursor: pointer; }
+.brand-logo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 .zoom-row { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 13px; }
 .cmp-zoom.on { border-color: var(--accent); color: var(--accent); font-weight: 700; }
 #previewImg { width: 100%; border-radius: 8px; border: 1px solid var(--line); }
