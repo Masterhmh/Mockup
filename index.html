@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Mockup In Áo</title>
-<link rel="stylesheet" href="css/style.css?v=20261013k">
+<link rel="stylesheet" href="css/style.css?v=20261013l">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -67,25 +67,25 @@
       <div id="layerList" class="layer-list"></div>
       <div id="alignBar" class="align-bar" hidden>
         <div class="align-row">
-          <span class="muted small align-label">Align:</span>
-          <button class="btn small align-btn" data-align="left" title="Căn trái"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="4" height="16"/><rect x="9" y="7" width="4" height="10"/><rect x="15" y="5" width="4" height="14"/></svg></button>
-          <button class="btn small align-btn" data-align="hcenter" title="Căn giữa ngang"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="4" height="16"/><rect x="10" y="7" width="4" height="10"/><rect x="15" y="5" width="4" height="14"/><line x1="12" y1="2" x2="12" y2="22"/></svg></button>
-          <button class="btn small align-btn" data-align="right" title="Căn phải"><svg viewBox="0 0 24 24"><rect x="17" y="4" width="4" height="16"/><rect x="11" y="7" width="4" height="10"/><rect x="5" y="5" width="4" height="14"/></svg></button>
-          <button class="btn small align-btn" data-align="top" title="Căn trên"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="4"/><rect x="7" y="9" width="10" height="4"/><rect x="5" y="15" width="14" height="4"/></svg></button>
-          <button class="btn small align-btn" data-align="vcenter" title="Căn giữa dọc"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="4"/><rect x="7" y="10" width="10" height="4"/><rect x="5" y="15" width="14" height="4"/><line x1="2" y1="12" x2="22" y2="12"/></svg></button>
-          <button class="btn small align-btn" data-align="bottom" title="Căn dưới"><svg viewBox="0 0 24 24"><rect x="4" y="17" width="16" height="4"/><rect x="7" y="11" width="10" height="4"/><rect x="5" y="5" width="14" height="4"/></svg></button>
+          <span class="muted small align-label">C&#259;n ch&#7881;nh:</span>
+          <button class="btn small align-btn" data-align="left" title="C&#259;n tr&#225;i"><svg viewBox="0 0 24 24"><line x1="3" y1="2" x2="3" y2="22"/><rect x="5" y="4" width="7" height="4"/><rect x="5" y="10" width="5" height="6"/><rect x="5" y="18" width="8" height="3"/></svg></button>
+          <button class="btn small align-btn" data-align="hcenter" title="C&#259;n gi&#7919;a ngang"><svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22"/><rect x="8.5" y="4" width="7" height="4"/><rect x="9.5" y="10" width="5" height="6"/><rect x="8" y="18" width="8" height="3"/></svg></button>
+          <button class="btn small align-btn" data-align="right" title="C&#259;n ph&#7843;i"><svg viewBox="0 0 24 24"><line x1="21" y1="2" x2="21" y2="22"/><rect x="12" y="4" width="7" height="4"/><rect x="14" y="10" width="5" height="6"/><rect x="11" y="18" width="8" height="3"/></svg></button>
+          <button class="btn small align-btn" data-align="top" title="C&#259;n tr&#234;n"><svg viewBox="0 0 24 24"><line x1="2" y1="3" x2="22" y2="3"/><rect x="4" y="5" width="4" height="7"/><rect x="10" y="5" width="6" height="5"/><rect x="18" y="5" width="3" height="8"/></svg></button>
+          <button class="btn small align-btn" data-align="vcenter" title="C&#259;n gi&#7919;a d&#7885;c"><svg viewBox="0 0 24 24"><line x1="2" y1="12" x2="22" y2="12"/><rect x="4" y="10" width="4" height="4"/><rect x="10" y="9" width="6" height="6"/><rect x="18" y="10.5" width="3" height="3"/></svg></button>
+          <button class="btn small align-btn" data-align="bottom" title="C&#259;n d&#432;&#7899;i"><svg viewBox="0 0 24 24"><line x1="2" y1="21" x2="22" y2="21"/><rect x="4" y="12" width="4" height="7"/><rect x="10" y="14" width="6" height="5"/><rect x="18" y="11" width="3" height="8"/></svg></button>
         </div>
         <div class="align-row">
-          <span class="muted small align-label">Distribute:</span>
-          <button class="btn small align-btn" data-align="distL" title="Giãn đều cạnh trái (cần ≥3 layer)"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="4" height="12"/><rect x="10" y="8" width="4" height="8"/><rect x="18" y="6" width="4" height="12"/></svg></button>
-          <button class="btn small align-btn" data-align="distHC" title="Giãn đều tâm ngang (cần ≥3 layer)"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="6" height="12"/><rect x="9" y="8" width="6" height="8"/><rect x="17" y="6" width="6" height="12"/></svg></button>
-          <button class="btn small align-btn" data-align="distR" title="Giãn đều cạnh phải (cần ≥3 layer)"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="4" height="12"/><rect x="10" y="8" width="4" height="8"/><rect x="18" y="6" width="4" height="12"/></svg></button>
-          <button class="btn small align-btn" data-align="distT" title="Giãn đều cạnh trên (cần ≥3 layer)"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="4"/><rect x="8" y="10" width="8" height="4"/><rect x="6" y="18" width="12" height="4"/></svg></button>
-          <button class="btn small align-btn" data-align="distVC" title="Giãn đều tâm dọc (cần ≥3 layer)"><svg viewBox="0 0 24 24"><rect x="6" y="1" width="12" height="6"/><rect x="8" y="9" width="8" height="6"/><rect x="6" y="17" width="12" height="6"/></svg></button>
-          <button class="btn small align-btn" data-align="distB" title="Giãn đều cạnh dưới (cần ≥3 layer)"><svg viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="4"/><rect x="8" y="10" width="8" height="4"/><rect x="6" y="18" width="12" height="4"/></svg></button>
+          <span class="muted small align-label">Gi&#227;n &#273;&#7873;u:</span>
+          <button class="btn small align-btn" data-align="distT" title="Gi&#227;n &#273;&#7873;u c&#7841;nh tr&#234;n (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="2" y1="3" x2="22" y2="3"/><rect x="5" y="5" width="5" height="4"/><rect x="9" y="11" width="6" height="4"/><rect x="6" y="17" width="4" height="4"/></svg></button>
+          <button class="btn small align-btn" data-align="distVC" title="Gi&#227;n &#273;&#7873;u t&#226;m d&#7885;c (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="2" y1="12" x2="22" y2="12"/><rect x="5" y="3" width="5" height="4"/><rect x="9" y="10" width="6" height="4"/><rect x="6" y="17" width="4" height="4"/></svg></button>
+          <button class="btn small align-btn" data-align="distB" title="Gi&#227;n &#273;&#7873;u c&#7841;nh d&#432;&#7899;i (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="2" y1="21" x2="22" y2="21"/><rect x="5" y="3" width="5" height="4"/><rect x="9" y="10" width="6" height="4"/><rect x="6" y="17" width="4" height="4"/></svg></button>
+          <button class="btn small align-btn" data-align="distL" title="Gi&#227;n &#273;&#7873;u c&#7841;nh tr&#225;i (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="3" y1="2" x2="3" y2="22"/><rect x="5" y="5" width="4" height="5"/><rect x="11" y="9" width="4" height="6"/><rect x="17" y="6" width="4" height="4"/></svg></button>
+          <button class="btn small align-btn" data-align="distHC" title="Gi&#227;n &#273;&#7873;u t&#226;m ngang (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22"/><rect x="3" y="5" width="4" height="5"/><rect x="10" y="9" width="4" height="6"/><rect x="17" y="6" width="4" height="4"/></svg></button>
+          <button class="btn small align-btn" data-align="distR" title="Gi&#227;n &#273;&#7873;u c&#7841;nh ph&#7843;i (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="21" y1="2" x2="21" y2="22"/><rect x="3" y="5" width="4" height="5"/><rect x="10" y="9" width="4" height="6"/><rect x="17" y="6" width="4" height="4"/></svg></button>
         </div>
       </div>
-      <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · kéo góc để thu/phóng.<br>Giữ <b>Ctrl</b> (hoặc <b>Shift</b>) + click để chọn nhiều layer.<br>Phím tắt (sau khi click vào canvas): Ctrl+C copy · Ctrl+V paste · Del xóa · Ctrl+G group · Ctrl+Shift+G bỏ group.</p>
+      <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · <b>giữ Shift khi kéo</b> để đi thẳng ngang/dọc · kéo góc để thu/phóng.<br>Giữ <b>Ctrl</b> (hoặc <b>Shift</b>) + click để chọn nhiều layer.<br>Phím tắt (sau khi click vào canvas): Ctrl+C copy · Ctrl+V paste · Del xóa · Ctrl+G group · Ctrl+Shift+G bỏ group.</p>
     </div>
 
     <div class="panel" id="panelSel">
@@ -223,6 +223,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013k"></script>
+<script src="js/app.js?v=20261013l"></script>
 </body>
 </html>
