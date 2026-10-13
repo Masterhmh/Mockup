@@ -63,7 +63,9 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   tự do (không giới hạn vị trí), kéo 4 tay cầm góc để thu/phóng (luôn giữ đúng
   tỉ lệ gốc), bấm nút × đỏ để xóa.
 - **Panel Layers** (sidebar): thumbnail + tên file, bấm để chọn, nút 👁 ẩn/hiện,
-  ↑↓ đổi thứ tự chồng lớp, × xóa. Badge "⧉ Nhóm" cho layer thuộc group.
+  ↑↓ đổi thứ tự chồng lớp, ✎ đổi tên, × xóa. Badge "⧉ Nhóm" cho layer thuộc group.
+  Đổi tên: bấm nút bút chì (hoặc nhấp đúp vào tên) → gõ tên ngay tại chỗ,
+  Enter/bấm ra ngoài để lưu, Escape để hủy; tên rỗng giữ nguyên; có ghi bước hoàn tác.
 - **Group/Ungroup**: chọn ≥2 layer rồi `Ctrl+G` để group (kéo/xóa 1 layer sẽ áp dụng
   cả group), `Ctrl+Shift+G` để bỏ group.
 - **Căn chỉnh kiểu Photoshop**: thanh "Căn chỉnh / Giãn đều" với 12 icon SVG theo đúng
