@@ -4,9 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Mockup In Áo</title>
-<link rel="stylesheet" href="css/style.css?v=20261013i">
+<link rel="stylesheet" href="css/style.css?v=20261013j">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 <header class="topbar">
@@ -63,7 +65,20 @@
     <div class="panel" id="panelLayers">
       <h2>Layers</h2>
       <div id="layerList" class="layer-list"></div>
-      <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · kéo góc để thu/phóng.<br>Phím tắt: Ctrl+C copy · Ctrl+V paste · Del xóa layer đang chọn.</p>
+      <div id="alignBar" class="align-bar" hidden>
+        <span class="muted small">Căn chỉnh (<span id="alignCount">0</span> layer):</span>
+        <div class="align-grid">
+          <button class="btn small" data-align="left" title="Căn trái">⬅</button>
+          <button class="btn small" data-align="hcenter" title="Căn giữa ngang">↔</button>
+          <button class="btn small" data-align="right" title="Căn phải">➡</button>
+          <button class="btn small" data-align="top" title="Căn trên">⬆</button>
+          <button class="btn small" data-align="vcenter" title="Căn giữa dọc">↕</button>
+          <button class="btn small" data-align="bottom" title="Căn dưới">⬇</button>
+          <button class="btn small" data-align="distH" title="Giãn đều ngang (cần ≥3 layer)">⇋</button>
+          <button class="btn small" data-align="distV" title="Giãn đều dọc (cần ≥3 layer)">⇅</button>
+        </div>
+      </div>
+      <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · kéo góc để thu/phóng.<br>Giữ <b>Ctrl</b> (hoặc <b>Shift</b>) + click để chọn nhiều layer.<br>Phím tắt (sau khi click vào canvas): Ctrl+C copy · Ctrl+V paste · Del xóa.</p>
     </div>
 
     <div class="panel" id="panelSel">
@@ -119,7 +134,7 @@
       </div>
       <div class="btn-grid">
         <button class="btn primary" id="btnExpMockup">Xuất mockup</button>
-        <button class="btn" id="btnExpPrint">Xuất file in PNG</button>
+        <button class="btn" id="btnExpPrint" title="Tải gói ZIP: ảnh mockup + từng file in 300dpi + thông tin vị trí cho nhà in">Xuất file in (ZIP)</button>
         <button class="btn" id="btnExpSVG">Xuất file in SVG</button>
         <button class="btn" id="btnExpSpec">Xuất phiếu kỹ thuật</button>
       </div>
@@ -201,6 +216,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013i"></script>
+<script src="js/app.js?v=20261013j"></script>
 </body>
 </html>
