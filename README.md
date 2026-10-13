@@ -91,28 +91,31 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - Kéo thả chỉ ghi 1 bước undo khi thả ra (không ghi liên tục trong lúc kéo).
 - Giới hạn 50 bước.
 
-## Zoom canvas
+## Zoom canvas (chỉ zoom ẢNH BÊN TRONG khung)
 
-- **Cuộn chuột** trên canvas = zoom quanh vị trí con trỏ; **chụm 2 ngón** trên cảm ứng = zoom.
-- Cụm nút ở góc dưới-phải canvas: **−** / **% hiện tại** (bấm để về 100%) / **+** / **"Vừa khung"**.
-- Phạm vi 25%–400%. Zoom chỉ là chế độ xem — kéo/resize/chạm vẫn chính xác ở mọi mức zoom,
-  file xuất (mockup/file in) luôn full-size gốc không bị ảnh hưởng.
-- Khi zoom lớn hơn khung nhìn, khung canvas cho phép cuộn (scroll) bình thường.
+- Khung canvas **giữ nguyên kích thước** hiển thị — chỉ ảnh bên trong được
+  phóng to/thu nhỏ (view transform: scale + pan), không cuộn khung.
+- **Cuộn chuột** trên canvas = zoom quanh vị trí con trỏ (điểm ảnh dưới con trỏ
+  đứng yên); **chụm 2 ngón** trên cảm ứng = zoom quanh điểm giữa + di chuyển
+  theo điểm giữa.
+- **Di chuyển khung nhìn (pan)**: giữ phím **Space** rồi kéo chuột/chạm (con trỏ
+  đổi grab/grabbing, kể cả khi đang ở trên layer), hoặc **kéo ở vùng canvas
+  trống**. Chạm/click vùng trống mà không kéo vẫn bỏ chọn như cũ.
+- Cụm nút ở góc dưới-phải canvas: **−** / **% hiện tại** (bấm để về 100%) / **+** / **"Vừa khung"** (zoom 1, pan 0).
+- Phạm vi 25%–400%. Zoom/pan chỉ là chế độ xem — kéo/resize/chạm layer vẫn
+  chính xác ở mọi mức zoom, file xuất (mockup/file in) luôn full-size gốc.
 
-## Báo giá tự động (panel "BÁO GIÁ")
+## Báo giá (panel "BÁO GIÁ")
 
 - Nằm trong dock dưới canvas, cạnh panel "Xuất file".
-- Chọn **kỹ thuật in** cho cả đơn: In lụa / DTF / Decal / Thêu.
-- **Bảng đơn giá theo cỡ hình** (VNĐ, sửa được, mặc định 0):
-  Nhỏ (cạnh lớn nhất ≤ 15cm), Vừa (≤ 25cm), Lớn (≤ 35cm), Rất lớn (> 35cm).
-- **Hệ số theo kỹ thuật** (sửa được): In lụa ×1, DTF ×1.5, Decal ×1.2, Thêu ×3.
-- Tự tính cho từng hình in **đang hiện**: giá = đơn giá theo cỡ × hệ số kỹ thuật.
-  Hiển thị chi tiết từng hình + **TỔNG CỘNG** (định dạng 150.000đ), cập nhật realtime
-  khi đổi cỡ/di chuyển layer.
-- Cấu hình giá lưu trên máy (localStorage, key `mockupQuoteCfg`); kỹ thuật đã chọn
-  được lưu vào file .cm.
+- Chỉ 3 ô nhập: **Kiểu in** (DTF / DTG / In lụa / Decal / Thêu),
+  **Số lượng** (mặc định 1), **Đơn giá** (VNĐ, mặc định 0).
+- **Thành tiền** = Số lượng × Đơn giá, hiển thị to (định dạng 150.000đ),
+  cập nhật realtime khi gõ.
+- Cấu hình (kiểu in, số lượng, đơn giá) lưu trên máy (localStorage, key
+  `mockupQuoteCfg`) và trong file .cm.
 - **Phiếu kỹ thuật** và **thong-tin.txt** trong ZIP tự thêm mục "BÁO GIÁ"
-  (kỹ thuật in + chi tiết từng hình + tổng tiền) khi tổng tiền > 0.
+  (Kiểu in / Số lượng / Đơn giá + Thành tiền) khi thành tiền > 0.
 
 ## Panel "Chất lượng & Xử lý" (gộp đánh giá + xử lý)
 
