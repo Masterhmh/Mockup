@@ -216,6 +216,8 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - Mọi panel chức năng (Layers, Layer đang chọn, Lịch sử, Chất lượng & Xử lý, Xuất file,
   Báo giá) có tiêu đề nằm trên **dải đen #000 chữ trắng** như header (luôn đen ở cả
   2 theme, 14px/700/viết hoa/giãn chữ, tràn hết chiều ngang panel, bo 2 góc trên).
+  **(20261014s) Theme tối**: dải có đường phân cách sáng ở viền dưới (`inset box-shadow`)
+  để không chìm vào thân panel; hộp modal có thêm viền nhẹ.
   Nút "Xóa tất cả" nằm trong dải đen của panel Lịch sử (kiểu ghost viền trắng).
   Tiêu đề các modal (Cắt, So sánh, Xem trước, Hướng dẫn) cũng dùng dải đen đồng bộ.
 - Thang cỡ chữ thống nhất: tiêu đề dải 14px · **nhãn mục con 12.5px/600** (Thông số áo,
