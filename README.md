@@ -86,13 +86,14 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - **Ctrl+Z** hoàn tác, **Ctrl+Shift+Z** / **Ctrl+Y** làm lại — hoạt động **toàn trang**,
   không cần click vào canvas trước. Khi đang gõ chữ trong ô nhập liệu (tên khách,
   đơn giá...) thì trình duyệt xử lý mặc định (chỉ hoàn tác văn bản trong ô).
-- Cụm 3 nút **overlay cố định ở góc trên-trái trong khung canvas** (không bị zoom ảnh hưởng):
-  Hoàn tác, Làm lại, và **Khóa/Mở khung canvas**. Nền đặc theo theme, icon tương phản cao
-  ở cả 2 chế độ sáng/tối; nút tự mờ khi không có gì để undo/redo; trong lúc đang khôi
-  phục thì tạm khóa để chống bấm dồn.
+- Cụm 3 nút **overlay tách rời ở góc trên-trái trong khung canvas** (không bị zoom ảnh hưởng):
+  Hoàn tác, Làm lại, và **Khóa/Mở khung canvas** — mỗi nút là ô riêng có nền/viền/bóng
+  riêng theo theme, icon tương phản cao ở cả 2 chế độ sáng/tối; nút tự mờ khi không có
+  gì để undo/redo; trong lúc đang khôi phục thì tạm khóa để chống bấm dồn.
+  Di chuột vào mỗi nút hiện tooltip (nền đen chữ trắng); trên cảm ứng tooltip không hiện.
 - **Khóa khung canvas**: khi BẬT thì chặn zoom (cuộn chuột/chụm ngón/nút zoom) và kéo-pan
   vùng nhìn — tránh lỡ tay làm lệch khung khi đang căn chỉnh; kéo/sửa layer vẫn bình thường.
-  Nút có trạng thái active rõ + tooltip tiếng Việt.
+  Nút chỉ hiện 1 icon theo trạng thái (mở/đóng), khi BẬT có style đảo màu nền/chữ rõ ràng.
 - Chụp snapshot toàn workspace (layers + vị trí/kích thước/group/ẩn-hiện + màu áo + kiểu áo + tùy chọn màu in)
   **trước** mỗi thao tác: thêm/xóa/dán layer, kéo thả xong, thu/phóng xong, group/ungroup,
   căn chỉnh, preset vị trí, đổi cỡ ô nhập, đổi màu áo/kiểu áo, ẩn/hiện/đổi thứ tự layer,
