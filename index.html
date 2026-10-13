@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261014n">
+<link rel="stylesheet" href="css/style.css?v=20261014o">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -139,7 +139,10 @@
       </div>
     </div>
     <div class="panel" id="panelHistory">
-      <h2>Lịch sử</h2>
+      <div class="hist-head">
+        <h2>Lịch sử</h2>
+        <button type="button" class="btn small" id="btnHistClear" hidden>Xóa tất cả</button>
+      </div>
       <p class="muted small">Tự lưu trên trình duyệt này (tối đa 30 mục). Bấm "Nạp lại" để mở lại trạng thái.</p>
       <div id="historyList" class="history-list"></div>
     </div>
@@ -163,6 +166,7 @@
         </div>
         <p class="muted small" id="aiNote">Phóng nét = nội suy trong trình duyệt, <b>chưa phải AI upscale</b>.</p>
         <label class="chk" style="margin:2px 0 8px"><input type="checkbox" id="chkAI"> Phóng nét bằng AI (tải model 1 lần ~80KB)</label>
+        <button type="button" class="btn small" id="btnPreloadAI" style="margin:0 0 8px">Tải trước model AI</button>
         <p class="warnline" id="aiWarn" hidden></p>
       </div>
       <h3 class="adv-title">Nâng cao</h3>
@@ -387,7 +391,8 @@
 </div>
 
 <div id="toast" class="toast" hidden></div>
+<div id="progressToast" class="toast progress" hidden><span class="spin"></span><span class="ptxt"></span></div>
 
-<script src="js/app.js?v=20261014n"></script>
+<script src="js/app.js?v=20261014o"></script>
 </body>
 </html>
