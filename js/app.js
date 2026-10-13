@@ -11,10 +11,11 @@ const APP_V = '20261013r';
 
 // ---------- Chế độ sáng/tối ----------
 const THEME_KEY = 'mockupTheme';
-function applyTheme(t) {
+function applyTheme(t, manual) {
   const theme = (t === 'dark') ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', theme);
-  try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* bỏ qua */ }
+  // Chỉ lưu khi người dùng tự chọn tay — tự động theo thiết bị thì không lưu
+  if (manual) { try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* bỏ qua */ } }
   updateLogoForTheme(theme);
 }
 // Logo header luôn nền đen → dùng bản logo trắng (Logo-dark.png), fallback về Logo.png
@@ -25,13 +26,28 @@ function updateLogoForTheme(theme) {
   img.src = 'assets/Logo-dark.png';
 }
 function initTheme() {
-  let saved = 'light';
-  try { saved = localStorage.getItem(THEME_KEY) || 'light'; } catch (e) { /* bỏ qua */ }
+  let saved = null;
+  try { saved = localStorage.getItem(THEME_KEY); } catch (e) { /* bỏ qua */ }
+  // Chưa có lựa chọn thủ công → theo cài đặt thiết bị
+  if (!saved) {
+    saved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
   applyTheme(saved);
+  // Thiết bị đổi chế độ → app tự đổi theo (chỉ khi người dùng chưa chọn tay)
+  if (window.matchMedia) {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = (e) => {
+      let manual = null;
+      try { manual = localStorage.getItem(THEME_KEY); } catch (err) { /* bỏ qua */ }
+      if (!manual) applyTheme(e.matches ? 'dark' : 'light');
+    };
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+  }
   const btn = $('btnTheme');
   if (btn) btn.onclick = () => {
     const cur = document.documentElement.getAttribute('data-theme');
-    applyTheme(cur === 'dark' ? 'light' : 'dark');
+    applyTheme(cur === 'dark' ? 'light' : 'dark', true);
   };
 }
 
