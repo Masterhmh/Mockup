@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261014o">
+<link rel="stylesheet" href="css/style.css?v=20261014p">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -252,7 +252,7 @@
 
 <!-- ============ MODAL SO SÁNH TRƯỚC/SAU ============ -->
 <div class="modal" id="modalCompare" hidden>
-  <div class="modal-box wide">
+  <div class="modal-box wide cmp-box">
     <h3 id="cmpTitle">So sánh trước / sau</h3>
     <div class="zoom-row">
       <span>Độ phóng:</span>
@@ -262,8 +262,8 @@
       <button class="btn small cmp-zoom" data-z="4">400%</button>
     </div>
     <div class="cmp-grid">
-      <div><div class="cmp-label">Trước</div><div class="cmp-scroll"><canvas id="cmpBefore"></canvas></div></div>
-      <div><div class="cmp-label">Sau</div><div class="cmp-scroll"><canvas id="cmpAfter"></canvas></div></div>
+      <div class="cmp-side"><div class="cmp-label">Trước</div><div class="cmp-scroll"><canvas id="cmpBefore"></canvas></div></div>
+      <div class="cmp-side"><div class="cmp-label">Sau</div><div class="cmp-scroll"><canvas id="cmpAfter"></canvas></div></div>
     </div>
     <p class="muted small" id="cmpNote"></p>
     <div class="modal-actions">
@@ -393,6 +393,6 @@
 <div id="toast" class="toast" hidden></div>
 <div id="progressToast" class="toast progress" hidden><span class="spin"></span><span class="ptxt"></span></div>
 
-<script src="js/app.js?v=20261014o"></script>
+<script src="js/app.js?v=20261014p"></script>
 </body>
 </html>
