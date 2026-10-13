@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013a';
+const APP_V = '20261013c';
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -45,35 +45,37 @@ const S = {
   mockupId: 'tshirt',
   baseImg: null,        // ảnh áo thật
   off: document.createElement('canvas'), // canvas composite full-res
-  // Mỗi vị trí in giữ artwork/design RIÊNG trong S.places để lưu/mở file
-  // và xuất hàng loạt. S.art / S.design là "proxy" trỏ tới placement đang
-  // chọn — code cũ đọc/ghi S.art, S.design vẫn chạy bình thường.
-  art: null,            // {raster, svgText, w, h, aspect, name, kind, colorCount, typeLabel}
-  design: null,         // {cx, cy (tỉ lệ 0-1), wCm, hCm}
-  places: {},           // {posId: {art, design}}
-  posId: 'nguc-truoc',
+  // Layers kiểu Photoshop: mỗi file thiết kế tải lên = 1 layer, thao tác
+  // trực tiếp trên canvas (bấm chọn, kéo di chuyển tự do, kéo góc thu/phóng).
+  // Thứ tự mảng = z-order (đầu mảng = dưới cùng, cuối mảng = trên cùng).
+  // Layer: {id, name, art, x, y, wCm, visible}
+  //   x, y: tâm layer theo tỉ lệ 0-1 của ảnh gốc
+  //   wCm: rộng (cm) — LUÔN khóa tỉ lệ gốc (hCm = wCm / aspect)
+  //   art: {raster, svgText, w, h, aspect, name, kind, colorCount, typeLabel}
+  layers: [],
+  activeLayerId: null,  // id layer đang chọn
   ratioLocked: true,    // QUY TẮC CỨNG: luôn khóa tỉ lệ gốc
   drag: null,
   view: { dw: 0, dh: 0, dpr: 1 }, // ánh xạ ảnh gốc -> css px
 };
 
-// Placement (artwork + design) của vị trí in đang chọn; tự tạo nếu chưa có.
-function curPlace() {
-  if (!S.places[S.posId]) S.places[S.posId] = { art: null, design: null };
-  return S.places[S.posId];
+// Layer đang được chọn (null nếu chưa có layer nào)
+function activeLayer() {
+  return S.layers.find((l) => l.id === S.activeLayerId) || null;
 }
-// Biến S.art / S.design thành proxy -> mọi chỗ dùng S.art, S.design
-// tự động thao tác trên placement hiện tại.
-Object.defineProperty(S, 'art', {
-  get() { return curPlace().art; },
-  set(v) { curPlace().art = v; },
-  configurable: true,
-});
-Object.defineProperty(S, 'design', {
-  get() { return curPlace().design; },
-  set(v) { curPlace().design = v; },
-  configurable: true,
-});
+// Artwork của layer đang chọn (null nếu chưa có)
+function activeArt() {
+  const L = activeLayer();
+  return L ? L.art : null;
+}
+// Vị trí + cỡ mặc định cho layer mới: giữa ngực trước (lấy từ config,
+// fallback tọa độ cứng nếu config thiếu)
+function defaultLayerPlacement() {
+  const ps = (S.cfg && S.cfg.positions) || [];
+  const p = ps.find((x) => x.id === 'nguc-truoc') || ps[0];
+  if (p) return { x: p.center.x, y: p.center.y, wCm: p.khoInMacDinhCm || 28 };
+  return { x: 0.25, y: 0.47, wCm: 28 };
+}
 
 // Tùy chọn màu file in: 'orig' = giữ nguyên màu gốc (in ảnh),
 // 'single' = ép về 1 màu (in logo). Áp dụng cho MỌI đầu ra: mockup
@@ -143,7 +145,7 @@ function syncShirtColorUI() {
   $('shirtColorName').textContent = S.shirtColorName;
   // Legend ngoài canvas phải dùng đúng bảng màu đang vẽ trên canvas
   const P = pal();
-  const chips = { lgChest: P.chest, lgFrame: P.frame, lgSafe: P.safe, lgZone: P.zone };
+  const chips = { lgChest: P.chest, lgFrame: P.frame };
   Object.keys(chips).forEach((id) => { const el = $(id); if (el) el.style.borderColor = chips[id]; });
 }
 
@@ -179,26 +181,19 @@ async function loadMockup(id) {
     cfg = FALLBACK_CFG[id]; // mở trực tiếp file:// 
   }
   S.cfg = cfg;
-  S.places = {}; // mockup mới -> placements mới
+  S.layers = []; // mockup mới -> layers mới
+  S.activeLayerId = null;
   S.baseImg = await loadImage(cfg.fileAnh);
   S._tintBase = null; // đổi mockup -> tính lại nền nhuộm
   // PNG nền trong suốt: alpha của ảnh chính là mask vùng áo, không cần mask riêng
   S.off.width = cfg.kichThuocAnh.w;
   S.off.height = cfg.kichThuocAnh.h;
 
-  const sel = $('selPos');
-  sel.innerHTML = '';
-  cfg.positions.forEach((p) => {
-    const o = document.createElement('option');
-    o.value = p.id; o.textContent = p.ten;
-    sel.appendChild(o);
-  });
-  S.posId = cfg.positions[0].id;
-  sel.value = S.posId;
   $('inpChest').value = cfg.ao.ngangNgucCm;
 
-  resetDesign();
   fitStage();
+  renderLayerList();
+  $('fileInfo').innerHTML = 'Chưa có file. Hãy tải file thiết kế lên.';
   updateShirtPanel(); updatePrintPanel(); checkWarnings(); assess();
 }
 
@@ -216,54 +211,13 @@ function pxPerCm() {
   return S.cfg.ao.ngangNgucPx / S.cfg.ao.ngangNgucCm;
 }
 
-function curPos() {
-  return S.cfg.positions.find((p) => p.id === S.posId);
-}
-
-// Đặt lại hình in về mặc định của vị trí đang chọn (giữ đúng tỉ lệ artwork)
-function resetDesign() {
-  const p = curPos();
-  const wCm = p.khoInMacDinhCm;
-  const aspect = S.art ? S.art.aspect : 1;
-  S.design = { cx: p.center.x, cy: p.center.y, wCm, hCm: wCm / aspect };
-  syncSizeInputs();
-}
-
-// Vùng in an toàn theo cm: zone thu vào 6% mỗi bên (mọi hướng)
-function safeZoneCm() {
-  const p = curPos(), z = p.zone;
-  const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h, ppc = pxPerCm();
-  const mx = (z.x1 - z.x0) * 0.06, my = (z.y1 - z.y0) * 0.06;
-  const x0 = z.x0 + mx, x1 = z.x1 - mx, y0 = z.y0 + my, y1 = z.y1 - my;
-  return {
-    x0, y0, x1, y1,
-    wCm: ((x1 - x0) * W) / ppc,
-    hCm: ((y1 - y0) * H) / ppc,
-  };
-}
-
-// Tự fit design vừa khít trong vùng in an toàn (theo chiều bị chặn,
-// LUÔN giữ đúng tỉ lệ gốc), căn giữa vùng an toàn.
-function fitToSafeZone() {
-  const sz = safeZoneCm();
-  const aspect = S.art ? S.art.aspect : 1;
-  let wCm, hCm;
-  if (aspect >= sz.wCm / sz.hCm) { wCm = sz.wCm; hCm = wCm / aspect; }
-  else { hCm = sz.hCm; wCm = hCm * aspect; }
-  S.design = { cx: (sz.x0 + sz.x1) / 2, cy: (sz.y0 + sz.y1) / 2, wCm, hCm };
-  syncSizeInputs();
-}
-
-// Hộp hình in theo px ảnh gốc (của một placement cụ thể)
-function designPxOf(pl) {
+// Hộp hình in theo px ảnh gốc (của một layer cụ thể).
+// hCm suy từ wCm / aspect (luôn khóa tỉ lệ gốc).
+function layerPxOf(layer) {
   const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
   const ppc = pxPerCm();
-  const w = pl.design.wCm * ppc, h = pl.design.hCm * ppc;
-  return { x: pl.design.cx * W - w / 2, y: pl.design.cy * H - h / 2, w, h };
-}
-// Hộp hình in của placement đang chọn
-function designPx() {
-  return designPxOf(curPlace());
+  const w = layer.wCm * ppc, h = (layer.wCm / layer.art.aspect) * ppc;
+  return { x: layer.x * W - w / 2, y: layer.y * H - h / 2, w, h };
 }
 
 // ---------- Render mockup chân thực ----------
@@ -331,17 +285,17 @@ function composite(ctx, W, H) {
   ctx.globalAlpha = 1;
   drawBackdrop(ctx, W, H); // PNG trong suốt -> cần nền studio
   ctx.drawImage(getTintedBase(), 0, 0, W, H);
-  Object.values(S.places).forEach((pl) => {
-    if (pl.art && pl.design) drawOneDesign(ctx, W, H, pl);
+  S.layers.forEach((layer) => {
+    if (layer.visible && layer.art) drawOneDesign(ctx, W, H, layer);
   });
   ctx.restore();
 }
 
 // Vẽ một hình in (đã có ảnh nền) — dùng cho cả preview mockup và xuất mockup.
 // Dùng printRaster() để tôn trọng tùy chọn màu file in (giữ nguyên / 1 màu).
-function drawOneDesign(ctx, W, H, pl) {
-  const r = designPxOf(pl);
-  const art = printRaster(pl);
+function drawOneDesign(ctx, W, H, layer) {
+  const r = layerPxOf(layer);
+  const art = printRaster(layer);
   const fullScale = W / S.cfg.kichThuocAnh.w;
   const pad = Math.ceil(6 * fullScale);
 
@@ -416,7 +370,7 @@ function render() {
   sctx.drawImage(S.off, 0, 0, dw, dh);
   drawSelection();
   drawMeasureOverlays();
-  $('dropHint').style.display = S.art ? 'none' : 'flex';
+  $('dropHint').style.display = S.layers.length ? 'none' : 'flex';
 }
 
 // Đổi tọa độ px ảnh gốc -> css px trên canvas hiển thị
@@ -427,10 +381,11 @@ function toCss(px, py) {
   ];
 }
 
-// Khung chọn + 4 tay cầm góc + nút xóa × ở góc trên-phải
+// Khung chọn + 4 tay cầm góc + nút xóa × ở góc trên-phải + tên layer
 function drawSelection() {
-  if (!S.art || !S.design) return;
-  const r = designPx();
+  const L = activeLayer();
+  if (!L || !L.art) return;
+  const r = layerPxOf(L);
   const [x1, y1] = toCss(r.x, r.y);
   const [x2, y2] = toCss(r.x + r.w, r.y + r.h);
   sctx.save();
@@ -444,6 +399,15 @@ function drawSelection() {
   [[x1, y1], [x2, y1], [x1, y2], [x2, y2]].forEach(([x, y]) => {
     sctx.fillRect(x - HS, y - HS, HS * 2, HS * 2);
   });
+  // Tên layer phía trên khung chọn
+  sctx.font = '11px system-ui, sans-serif';
+  const tw = sctx.measureText(L.name).width;
+  sctx.fillStyle = 'rgba(14,124,91,0.92)';
+  const bx = clamp(x1, 2, S.view.dw - tw - 14), by = Math.max(2, y1 - 22);
+  sctx.fillRect(bx, by, tw + 12, 18);
+  sctx.fillStyle = '#ffffff';
+  sctx.textAlign = 'left'; sctx.textBaseline = 'middle';
+  sctx.fillText(L.name, bx + 6, by + 9.5);
   // Nút tròn đỏ dấu × ở góc trên-phải của khung chọn
   const db = deleteBtnCss();
   sctx.beginPath();
@@ -464,7 +428,8 @@ function drawSelection() {
 
 // Vị trí nút xóa × (tọa độ css px) — dùng chung cho vẽ và hit-test
 function deleteBtnCss() {
-  const r = designPx();
+  const L = activeLayer();
+  const r = layerPxOf(L);
   const [x, y] = toCss(r.x + r.w, r.y);
   return { x, y, r: 13 };
 }
@@ -472,9 +437,7 @@ function deleteBtnCss() {
 // ---------- Lớp phủ số đo (toggle "Hiện số đo", mặc định bật) ----------
 // - Số đo áo: line 2 đầu mũi tên ngang qua ngực ("52cm") + line dọc thân
 //   ("72cm"); độ dài line = số cm trong config × pxPerCm (đúng tỉ lệ hiệu chuẩn).
-// - Số đo hình in: khung + line kích thước quanh bbox design ("28 × 18.7 cm").
-// - Vùng in an toàn: chữ nhật nét đứt = zone thu vào 5% mỗi bên.
-// - Phạm vi vùng có thể in: chữ nhật nét liền bao quanh zone của vị trí.
+// - Số đo hình in đang chọn: khung + line kích thước quanh bbox ("28 × 18.7 cm").
 // Tất cả vẽ bằng toCss() nên luôn đúng tọa độ; nhãn có nền trắng cho dễ đọc.
 function drawMeasureOverlays() {
   if (!S.cfg || !$('chkMeasure') || !$('chkMeasure').checked) return;
@@ -503,30 +466,10 @@ function drawMeasureOverlays() {
   // Nhãn 72cm ở đầu DƯỚI line dọc
   labels.push({ x: v1[0], y: v2[1] + 20, text: fmt(a.daiAoCm) + 'cm', color: P.chest });
 
-  // 2) Phạm vi vùng có thể in: chữ nhật nét liền xám + nhãn ở góc trên-phải, bên ngoài
-  const p = curPos(), z = p.zone;
-  const z1 = toCss(z.x0 * W, z.y0 * H), z2 = toCss(z.x1 * W, z.y1 * H);
-  sctx.save();
-  sctx.strokeStyle = P.zone; sctx.lineWidth = 1.5;
-  sctx.strokeRect(z1[0], z1[1], z2[0] - z1[0], z2[1] - z1[1]);
-  sctx.restore();
-  labels.push({ x: z2[0], y: z1[1] - 18, text: 'vùng in', color: P.zone, align: 'right' });
-
-  // 3) Vùng in an toàn: zone thu vào 5% mỗi bên, nét đứt xanh lá + nhãn góc trên-trái, bên ngoài
-  const mx = (z.x1 - z.x0) * 0.05, my = (z.y1 - z.y0) * 0.05;
-  const s1 = toCss((z.x0 + mx) * W, (z.y0 + my) * H);
-  const s2 = toCss((z.x1 - mx) * W, (z.y1 - my) * H);
-  sctx.save();
-  sctx.strokeStyle = P.safe; sctx.lineWidth = 1.5;
-  sctx.setLineDash([7, 5]);
-  sctx.strokeRect(s1[0], s1[1], s2[0] - s1[0], s2[1] - s1[1]);
-  sctx.setLineDash([]);
-  sctx.restore();
-  labels.push({ x: s1[0] - 8, y: s1[1] - 18, text: 'vùng an toàn', color: P.safe, align: 'right' });
-
-  // 4) Số đo hình in: khung xanh dương + line kích thước DƯỚI bbox, nhãn căn giữa
-  if (S.art && S.design) {
-    const r = designPx();
+  // 2) Số đo hình in đang chọn: khung xanh dương + line kích thước DƯỚI bbox, nhãn căn giữa
+  const AL = activeLayer();
+  if (AL && AL.art) {
+    const r = layerPxOf(AL);
     const d1 = toCss(r.x, r.y), d2 = toCss(r.x + r.w, r.y + r.h);
     sctx.save();
     sctx.strokeStyle = P.frame; sctx.lineWidth = 1.5;
@@ -536,7 +479,7 @@ function drawMeasureOverlays() {
     dimLine(d2[0] + 22, d1[1], d2[0] + 22, d2[1], P.frame); // line dọc phụ, không nhãn
     labels.push({
       x: (d1[0] + d2[0]) / 2, y: d2[1] + 30,
-      text: `${fmt(S.design.wCm)} × ${fmt(S.design.hCm)} cm`, color: P.frame,
+      text: `${fmt(AL.wCm)} × ${fmt(AL.wCm / AL.art.aspect)} cm`, color: P.frame,
     });
   }
 
@@ -598,8 +541,9 @@ function evtImg(e) {
 }
 
 function hitHandle(p) {
-  if (!S.design) return -1;
-  const r = designPx();
+  const L = activeLayer();
+  if (!L || !L.art) return -1;
+  const r = layerPxOf(L);
   const corners = [[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]];
   const R = (16 / S.view.dw) * S.cfg.kichThuocAnh.w; // ~16 css px
   for (let i = 0; i < 4; i++) {
@@ -609,45 +553,73 @@ function hitHandle(p) {
   return -1;
 }
 
+// Bấm vào canvas: ưu tiên nút × xóa, rồi tay cầm thu/phóng của layer đang
+// chọn, rồi hit-test từ layer trên cùng xuống (bấm trúng layer nào thì chọn
+// layer đó và kéo di chuyển tự do). Bấm ra ngoài mọi layer thì bỏ chọn.
 stage.addEventListener('pointerdown', (e) => {
-  if (!S.art || !S.design) return;
+  if (!S.cfg || !S.baseImg) return;
   const p = evtImg(e);
+  const L = activeLayer();
   // Ưu tiên nút xóa × ở góc trên-phải khung chọn (trước mọi thao tác kéo)
-  const cssX = (p.x / S.cfg.kichThuocAnh.w) * S.view.dw;
-  const cssY = (p.y / S.cfg.kichThuocAnh.h) * S.view.dh;
-  const db = deleteBtnCss();
-  if (Math.hypot(cssX - db.x, cssY - db.y) <= db.r + 6) {
-    clearArt();
-    e.preventDefault();
-    return;
+  if (L && L.art) {
+    const cssX = (p.x / S.cfg.kichThuocAnh.w) * S.view.dw;
+    const cssY = (p.y / S.cfg.kichThuocAnh.h) * S.view.dh;
+    const db = deleteBtnCss();
+    if (Math.hypot(cssX - db.x, cssY - db.y) <= db.r + 6) {
+      deleteLayer(L.id);
+      e.preventDefault();
+      return;
+    }
+    // Tay cầm 4 góc của layer đang chọn -> thu/phóng (giữ tỉ lệ)
+    if (hitHandle(p) >= 0) {
+      const r = layerPxOf(L);
+      S.drag = {
+        mode: 'scale', layerId: L.id,
+        cx: r.x + r.w / 2, cy: r.y + r.h / 2,
+        d0: Math.hypot(p.x - (r.x + r.w / 2), p.y - (r.y + r.h / 2)),
+        w0: L.wCm,
+      };
+      stage.setPointerCapture(e.pointerId);
+      stage.style.cursor = 'grabbing';
+      e.preventDefault();
+      return;
+    }
   }
-  const r = designPx();
-  if (hitHandle(p) >= 0) {
-    S.drag = {
-      mode: 'scale',
-      cx: r.x + r.w / 2, cy: r.y + r.h / 2,
-      d0: Math.hypot(p.x - (r.x + r.w / 2), p.y - (r.y + r.h / 2)),
-      w0: S.design.wCm,
-    };
-  } else if (p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h) {
-    S.drag = { mode: 'move', ox: p.x - r.x, oy: p.y - r.y };
-  } else return;
-  stage.setPointerCapture(e.pointerId);
-  stage.style.cursor = 'grabbing';
-  e.preventDefault();
+  // Hit-test layers từ trên cùng xuống dưới
+  for (let i = S.layers.length - 1; i >= 0; i--) {
+    const lay = S.layers[i];
+    if (!lay.visible || !lay.art) continue;
+    const r = layerPxOf(lay);
+    if (p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h) {
+      if (lay.id !== S.activeLayerId) setActiveLayer(lay.id, true);
+      S.drag = { mode: 'move', layerId: lay.id, ox: p.x - r.x, oy: p.y - r.y };
+      stage.setPointerCapture(e.pointerId);
+      stage.style.cursor = 'grabbing';
+      e.preventDefault();
+      return;
+    }
+  }
+  // Bấm ra ngoài: bỏ chọn layer
+  if (S.activeLayerId) setActiveLayer(null);
 });
+
+function dragLayer() {
+  return S.drag ? S.layers.find((l) => l.id === S.drag.layerId) : null;
+}
 
 stage.addEventListener('pointermove', (e) => {
   if (!S.drag) return;
+  const lay = dragLayer();
+  if (!lay || !lay.art) { S.drag = null; return; }
   const p = evtImg(e);
   const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
   if (S.drag.mode === 'move') {
-    const r = designPx();
-    S.design.cx = clamp((p.x - S.drag.ox + r.w / 2) / W, 0, 1);
-    S.design.cy = clamp((p.y - S.drag.oy + r.h / 2) / H, 0, 1);
+    const r = layerPxOf(lay);
+    lay.x = clamp((p.x - S.drag.ox + r.w / 2) / W, 0, 1);
+    lay.y = clamp((p.y - S.drag.oy + r.h / 2) / H, 0, 1);
   } else {
     const d = Math.hypot(p.x - S.drag.cx, p.y - S.drag.cy);
-    if (d > 4 && S.drag.d0 > 4) setPrintWidth((S.drag.w0 * d) / S.drag.d0);
+    if (d > 4 && S.drag.d0 > 4) setLayerWidth(lay, (S.drag.w0 * d) / S.drag.d0);
   }
   render(); updatePrintPanel(); checkWarnings();
 });
@@ -657,23 +629,30 @@ stage.addEventListener('pointerup', endDrag);
 stage.addEventListener('pointercancel', endDrag);
 
 // ---------- Kích thước in (cm): 2 ô tự đồng bộ, LUÔN giữ tỉ lệ gốc ----------
-function setPrintWidth(wCm) {
-  wCm = clamp(wCm, 1, 200);
-  S.design.wCm = wCm;
-  S.design.hCm = wCm / S.art.aspect;
+// Áp dụng cho layer đang chọn (wCm là nguồn chân lý, hCm suy từ aspect).
+function setLayerWidth(layer, wCm) {
+  layer.wCm = clamp(wCm, 1, 200);
   syncSizeInputs();
+}
+function setPrintWidth(wCm) {
+  const L = activeLayer();
+  if (L) setLayerWidth(L, wCm);
 }
 function setPrintHeight(hCm) {
-  hCm = clamp(hCm, 1, 200);
-  S.design.hCm = hCm;
-  S.design.wCm = hCm * S.art.aspect;
-  syncSizeInputs();
+  const L = activeLayer();
+  if (!L || !L.art || hCm <= 0) return;
+  setLayerWidth(L, hCm * L.art.aspect);
 }
 function syncSizeInputs() {
-  if (!S.design) return;
-  $('inpW').value = fmt(S.design.wCm);
-  $('inpH').value = fmt(S.design.hCm);
-  $('lockRatio').textContent = S.art ? 'tỉ lệ ' + ratioText(S.art.aspect) : '—';
+  const L = activeLayer();
+  if (!L || !L.art) {
+    $('inpW').value = ''; $('inpH').value = '';
+    $('lockRatio').textContent = '—';
+    return;
+  }
+  $('inpW').value = fmt(L.wCm);
+  $('inpH').value = fmt(L.wCm / L.art.aspect);
+  $('lockRatio').textContent = 'tỉ lệ ' + ratioText(L.art.aspect);
 }
 // Hiển thị tỉ lệ dạng "16:9" gần đúng
 function ratioText(a) {
@@ -689,7 +668,7 @@ function ratioText(a) {
 // =====================================================================
 
 function needArt() {
-  if (!S.art) { toast('Hãy tải file thiết kế lên trước.'); return false; }
+  if (!activeArt()) { toast('Hãy tải file thiết kế lên trước.'); return false; }
   return true;
 }
 
@@ -795,29 +774,33 @@ async function rasterFromPDF(file) {
   }
 }
 
-// Nhận artwork mới: lưu raster + tỉ lệ gốc, đặt lại vị trí/cỡ in, đánh giá chất lượng.
-// Nếu bật "Tự động fit theo vị trí in": thu design vừa khít trong vùng in an toàn
-// rồi mới chạy assess() để nội suy/đánh giá chất lượng ở đúng khổ đã fit.
+// Nhận artwork mới: tạo 1 LAYER mới (kiểu Photoshop) đặt ở giữa ngực trước
+// với cỡ in mặc định, rồi đánh giá chất lượng ở đúng khổ đó.
 async function setArtwork(rasterCanvas, name, kind, svgText) {
   const w = rasterCanvas.width, h = rasterCanvas.height;
   if (!w || !h) throw new Error('EMPTY');
-  S.art = { raster: rasterCanvas, svgText, w, h, aspect: w / h, name, kind, colorCount: 0, typeLabel: '' };
+  const art = { raster: rasterCanvas, svgText, w, h, aspect: w / h, name, kind, colorCount: 0, typeLabel: '' };
   const an = analyzeArtwork(rasterCanvas);
-  S.art.colorCount = an.colors;
-  S.art.typeLabel = an.kind === 'flat' ? 'Hình phẳng, ít màu' : 'Ảnh phức tạp';
-  if ($('chkAutoFit') && $('chkAutoFit').checked) fitToSafeZone();
-  else resetDesign();
+  art.colorCount = an.colors;
+  art.typeLabel = an.kind === 'flat' ? 'Hình phẳng, ít màu' : 'Ảnh phức tạp';
+  const dp = defaultLayerPlacement();
+  const layer = {
+    id: 'L' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36),
+    name, art, x: dp.x, y: dp.y, wCm: dp.wCm, visible: true,
+  };
+  S.layers.push(layer);
+  S.activeLayerId = layer.id;
   assess();
-  render(); updatePrintPanel(); checkWarnings();
-  $('fileInfo').innerHTML = `<b>${esc(name)}</b><br>${w} × ${h} px · ${S.art.typeLabel}`;
-  toast('Đã tải file xong.');
+  render(); renderLayerList(); updatePrintPanel(); checkWarnings();
+  $('fileInfo').innerHTML = `<b>${esc(name)}</b><br>${w} × ${h} px · ${art.typeLabel}`;
+  toast('Đã thêm layer mới — kéo để di chuyển tự do.');
 }
 
 // ---------- Khử nền trắng ----------
 // Pixel gần trắng thành trong suốt (viền feather nhẹ). Giữ nguyên kích thước/tỉ lệ.
 function btnWhite() {
   if (!needArt()) return;
-  const src = S.art.raster;
+  const src = activeArt().raster;
   const cv = document.createElement('canvas');
   cv.width = src.width; cv.height = src.height;
   const ctx = cv.getContext('2d', { willReadFrequently: true });
@@ -832,7 +815,8 @@ function btnWhite() {
   openCompare(src, cv, 'So sánh: gốc vs khử nền trắng',
     'Pixel gần trắng đã thành trong suốt. Nếu viền hình bị ăn mòn, bấm “Bỏ qua”.',
     () => {
-      S.art.raster = cv; S.art.svgText = null; S.art.kind = 'raster';
+      const a = activeArt();
+      a.raster = cv; a.svgText = null; a.kind = 'raster';
       afterProcess('Đã khử nền trắng.');
     });
 }
@@ -843,7 +827,7 @@ let cropSt = null;
 
 function openCrop() {
   if (!needArt()) return;
-  const src = S.art.raster;
+  const src = activeArt().raster;
   const cv = $('cropCanvas');
   const sc = Math.min(1, 880 / src.width);
   cv.width = Math.max(2, Math.round(src.width * sc));
@@ -855,7 +839,7 @@ function openCrop() {
 
 function drawCrop() {
   const cv = $('cropCanvas'), ctx = cv.getContext('2d');
-  const src = S.art.raster;
+  const src = activeArt().raster;
   ctx.clearRect(0, 0, cv.width, cv.height);
   ctx.drawImage(src, 0, 0, cv.width, cv.height);
   const s = cropSt;
@@ -899,7 +883,7 @@ function applyCrop() {
     toast('Hãy kéo một khung chữ nhật trên ảnh trước.');
     return;
   }
-  const src = S.art.raster;
+  const src = activeArt().raster;
   const x = clamp(Math.round(x0 / s.sc), 0, src.width - 1);
   const y = clamp(Math.round(y0 / s.sc), 0, src.height - 1);
   const w = clamp(Math.round((x1 - x0) / s.sc), 1, src.width - x);
@@ -907,8 +891,9 @@ function applyCrop() {
   const cv = document.createElement('canvas');
   cv.width = w; cv.height = h;
   cv.getContext('2d').drawImage(src, x, y, w, h, 0, 0, w, h);
-  S.art.raster = cv; S.art.svgText = null; S.art.kind = 'raster';
-  S.art.w = w; S.art.h = h; S.art.aspect = w / h;
+  const a = activeArt();
+  a.raster = cv; a.svgText = null; a.kind = 'raster';
+  a.w = w; a.h = h; a.aspect = w / h;
   $('modalCrop').hidden = true;
   afterProcess('Đã cắt artwork theo khung.');
 }
@@ -919,9 +904,11 @@ function applyCrop() {
 
 // DPI thực tế = pixel artwork / khổ in (inch). Lấy chiều nhỏ nhất (trường hợp xấu nhất).
 function artworkDPI() {
-  if (!S.art || !S.design) return 0;
-  const dpiW = S.art.w / (S.design.wCm / 2.54);
-  const dpiH = S.art.h / (S.design.hCm / 2.54);
+  const L = activeLayer();
+  if (!L || !L.art) return 0;
+  const wCm = L.wCm, hCm = L.wCm / L.art.aspect;
+  const dpiW = L.art.w / (wCm / 2.54);
+  const dpiH = L.art.h / (hCm / 2.54);
   return Math.min(dpiW, dpiH);
 }
 
@@ -952,7 +939,8 @@ function analyzeArtwork(canvas) {
 // Đề xuất chỉ là gợi ý — người dùng chốt tay sau khi so sánh.
 function assess() {
   const box = $('dpiBox'), sg = $('suggestBox');
-  if (!S.art || !S.design) { box.hidden = true; sg.hidden = true; return; }
+  const L = activeLayer();
+  if (!L || !L.art) { box.hidden = true; sg.hidden = true; return; }
   const dpi = artworkDPI();
   box.hidden = false; sg.hidden = false;
   const badge = $('dpiBadge');
@@ -962,11 +950,12 @@ function assess() {
   else { cls = 'bad'; label = 'Không nên in'; }
   badge.className = 'badge ' + cls;
   badge.textContent = label;
+  const wCm = L.wCm, hCm = L.wCm / L.art.aspect;
   $('dpiText').textContent =
-    `DPI thực tế: ${Math.round(dpi)} (khổ ${fmt(S.design.wCm)} × ${fmt(S.design.hCm)} cm)`;
+    `DPI thực tế: ${Math.round(dpi)} (khổ ${fmt(wCm)} × ${fmt(hCm)} cm)`;
 
   const rec = dpi >= 300 ? 'keep'
-    : (S.art.typeLabel.indexOf('Hình phẳng') === 0 ? 'vector' : 'up');
+    : (L.art.typeLabel.indexOf('Hình phẳng') === 0 ? 'vector' : 'up');
   const note = $('suggestNote');
   ['sgKeep', 'sgVector', 'sgUp2', 'sgUp4'].forEach((id) => $(id).classList.remove('rec'));
   if (rec === 'keep') {
@@ -974,7 +963,7 @@ function assess() {
     note.textContent = 'File đã đủ 300dpi ở khổ in này — giữ nguyên là in đẹp.';
   } else if (rec === 'vector') {
     $('sgVector').classList.add('rec');
-    note.textContent = `Hình phẳng ít màu (${S.art.colorCount} màu) — chuyển vector cho nét ở mọi khổ in.`;
+    note.textContent = `Hình phẳng ít màu (${L.art.colorCount} màu) — chuyển vector cho nét ở mọi khổ in.`;
   } else {
     $('sgUp4').classList.add('rec');
     note.textContent = 'Ảnh phức tạp — vector sẽ méo hình, nên phóng nét để tăng mật độ điểm ảnh.';
@@ -1023,18 +1012,19 @@ function btnVector() {
   toast('Đang tracing vector...');
   setTimeout(() => {
     try {
-      const { svg, layers, skippedWhite } = traceArtwork(S.art.raster, 8);
+      const { svg, layers, skippedWhite } = traceArtwork(activeArt().raster, 8);
       rasterizeSVG(svg, 1600).then((raster) => {
         openCompare(
-          S.art.raster, raster, 'So sánh: gốc vs vector',
+          activeArt().raster, raster, 'So sánh: gốc vs vector',
           `Tracing tạo ${layers} lớp path vector thật${skippedWhite ? ' (đã bỏ nền trắng)' : ''}. ` +
           'Kiểm tra kỹ ở 100%: nếu méo hình thì bấm “Bỏ qua” và dùng Phóng nét.',
           () => {
-            S.art.raster = raster;
-            S.art.svgText = svg;   // giữ vector thật để xuất file in SVG
-            S.art.kind = 'vector';
-            S.art.w = raster.width; S.art.h = raster.height; // tỉ lệ giữ nguyên
-            S.art.colorCount = layers;
+            const a = activeArt();
+            a.raster = raster;
+            a.svgText = svg;   // giữ vector thật để xuất file in SVG
+            a.kind = 'vector';
+            a.w = raster.width; a.h = raster.height; // tỉ lệ giữ nguyên
+            a.colorCount = layers;
             afterProcess('Đã chuyển vector.');
           }
         );
@@ -1236,7 +1226,7 @@ function simplify(pts, eps) {
 // ---------- Phóng nét: nội suy canvas 2x/4x (ghi chú rõ: chưa phải AI upscale) ----------
 function btnUpscale(f) {
   if (!needArt()) return;
-  const src = S.art.raster;
+  const src = activeArt().raster;
   const cv = document.createElement('canvas');
   cv.width = src.width * f; cv.height = src.height * f;
   const ctx = cv.getContext('2d');
@@ -1246,20 +1236,23 @@ function btnUpscale(f) {
   openCompare(src, cv, `So sánh: gốc vs phóng nét ${f}× (nội suy)`,
     'Phóng nét nội suy chỉ tăng mật độ điểm ảnh, không thêm chi tiết thật như AI upscale.',
     () => {
-      S.art.raster = cv; S.art.svgText = null; S.art.kind = 'raster';
-      S.art.w = cv.width; S.art.h = cv.height; // tỉ lệ giữ nguyên (cùng nhân f)
+      const a = activeArt();
+      a.raster = cv; a.svgText = null; a.kind = 'raster';
+      a.w = cv.width; a.h = cv.height; // tỉ lệ giữ nguyên (cùng nhân f)
       afterProcess(`Đã phóng nét ${f}×.`);
     });
 }
 
 // Cập nhật sau mỗi lần xử lý: đếm lại màu, đánh giá DPI, vẽ lại
 function afterProcess(msg) {
-  const an = analyzeArtwork(S.art.raster);
-  if (!S.art.svgText) S.art.colorCount = an.colors;
-  assess(); render(); updatePrintPanel(); checkWarnings();
+  const a = activeArt();
+  if (!a) return;
+  const an = analyzeArtwork(a.raster);
+  if (!a.svgText) a.colorCount = an.colors;
+  assess(); render(); renderLayerList(); updatePrintPanel(); checkWarnings();
   $('fileInfo').innerHTML =
-    `<b>${esc(S.art.name)}</b><br>${S.art.w} × ${S.art.h} px · ` +
-    (S.art.svgText ? 'Đã vector hóa' : S.art.typeLabel);
+    `<b>${esc(a.name)}</b><br>${a.w} × ${a.h} px · ` +
+    (a.svgText ? 'Đã vector hóa' : a.typeLabel);
   toast(msg);
 }
 
@@ -1267,20 +1260,17 @@ function afterProcess(msg) {
 // PHẦN 4: Cảnh báo vùng in, panel số đo, xuất file, khởi động app
 // =====================================================================
 
-// Cảnh báo khi design tràn khỏi zone an toàn hoặc đè lên vùng cấm
-// (cổ áo, nẹp nút, đường may trong warnZones của config)
+// Cảnh báo khi layer đang chọn đè lên vùng cấm
+// (cổ áo, nẹp nút trong warnZones của config)
 function checkWarnings() {
   const bar = $('warnBar');
-  if (!S.art || !S.design) { bar.hidden = true; return; }
+  const L = activeLayer();
+  if (!L || !L.art) { bar.hidden = true; return; }
   const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
-  const r = designPx();
+  const r = layerPxOf(L);
   const bx0 = r.x / W, by0 = r.y / H;
   const bx1 = (r.x + r.w) / W, by1 = (r.y + r.h) / H;
-  const msgs = [], danger = [];
-  const p = curPos(), z = p.zone;
-  if (bx0 < z.x0 || by0 < z.y0 || bx1 > z.x1 || by1 > z.y1) {
-    msgs.push(`Hình in tràn ra khỏi vùng in an toàn của vị trí “${p.ten}”.`);
-  }
+  const danger = [];
   (S.cfg.warnZones || []).forEach((wz) => {
     let hit = false;
     if (wz.loai === 'tron') {
@@ -1292,10 +1282,9 @@ function checkWarnings() {
     }
     if (hit) danger.push(`Hình in đè lên vùng “${wz.ten}” — nên dời ra.`);
   });
-  const all = danger.concat(msgs);
-  bar.hidden = !all.length;
+  bar.hidden = !danger.length;
   bar.className = 'warnbar' + (danger.length ? ' danger' : '');
-  bar.innerHTML = all.map((m) => '• ' + esc(m)).join('<br>');
+  bar.innerHTML = danger.map((m) => '• ' + esc(m)).join('<br>');
 }
 
 // Panel thông số áo + tỉ lệ px/cm hiện tại
@@ -1308,31 +1297,33 @@ function updateShirtPanel() {
     `<br><span class="muted small">Tỉ lệ ảnh: ${fmt(pxPerCm(), 2)} px/cm</span>`;
 }
 
-// Panel số đo hình in: rộng × cao (cm), px @300dpi, DPI thực tế
+// Panel số đo hình in đang chọn: rộng × cao (cm), px @300dpi, DPI thực tế
 function updatePrintPanel() {
   const el = $('printInfo');
-  if (!S.art || !S.design) {
+  const L = activeLayer();
+  if (!L || !L.art) {
     el.innerHTML = '<span class="muted">Chưa có file thiết kế.</span>';
     return;
   }
-  const pxW = Math.round((S.design.wCm / 2.54) * 300);
-  const pxH = Math.round((S.design.hCm / 2.54) * 300);
+  const wCm = L.wCm, hCm = L.wCm / L.art.aspect;
+  const pxW = Math.round((wCm / 2.54) * 300);
+  const pxH = Math.round((hCm / 2.54) * 300);
   const colInfo = S.printColor.mode === 'single'
     ? `<br>Màu file in: <b>${esc(S.printColor.color)}</b> (in 1 màu)`
     : '<br>Màu file in: <b>giữ nguyên màu gốc</b>';
   el.innerHTML =
-    `Hình in: <b>${fmt(S.design.wCm)} × ${fmt(S.design.hCm)} cm</b> — ` +
+    `Layer “<b>${esc(L.name)}</b>”: <b>${fmt(wCm)} × ${fmt(hCm)} cm</b> — ` +
     `${pxW} × ${pxH} px @300dpi` +
-    `<br>DPI thực tế: <b>${Math.round(artworkDPI())}</b> · Vị trí: ${esc(curPos().ten)}` +
+    `<br>DPI thực tế: <b>${Math.round(artworkDPI())}</b>` +
     colInfo +
-    (S.art.svgText ? '<br><span class="muted small">Đã vector hóa — xuất được file SVG.</span>' : '');
+    (L.art.svgText ? '<br><span class="muted small">Đã vector hóa — xuất được file SVG.</span>' : '');
 }
 
 // ---------- Xuất file ----------
 
 // (a) Xuất mockup PNG full-res: hiện preview + nút tải rõ ràng
 function exportMockup() {
-  if (!needArt()) return;
+  if (!S.layers.some((l) => l.visible && l.art)) { toast('Chưa có layer nào để xuất.'); return; }
   const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
   const cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
@@ -1343,45 +1334,61 @@ function exportMockup() {
     $('previewImg').src = url;
     const dl = $('pvDownload');
     dl.href = url;
-    dl.download = `mockup-${S.mockupId}-${S.posId}.png`;
+    dl.download = `mockup-${S.mockupId}.png`;
     $('modalPreview').hidden = false;
     toast('Đã tạo mockup — bấm “Tải PNG về máy”.');
   }, 'image/png');
 }
 
-// (b1) Xuất file in: PNG nền trong suốt, 300dpi, đúng khổ cm (giữ tỉ lệ)
+// (b1) Xuất file in: mỗi layer visible -> 1 file PNG nền trong suốt,
+// 300dpi, đúng khổ cm (giữ tỉ lệ gốc). Vẽ phẳng (không warp).
 function exportPrintPNG() {
-  if (!needArt()) return;
-  const pw = Math.round((S.design.wCm / 2.54) * 300);
-  const ph = Math.round((S.design.hCm / 2.54) * 300);
-  const cv = document.createElement('canvas');
-  cv.width = pw; cv.height = ph;
-  const ctx = cv.getContext('2d');
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(printRaster(curPlace()), 0, 0, pw, ph);
-  cv.toBlob((b) => {
-    if (!b) { toast('Xuất file in thất bại.'); return; }
-    download(b, `file-in-${S.posId}-${fmt(S.design.wCm)}x${fmt(S.design.hCm)}cm-300dpi.png`);
-    toast('Đã xuất file in PNG 300dpi.');
-  }, 'image/png');
+  const layers = S.layers.filter((l) => l.visible && l.art);
+  if (!layers.length) { toast('Chưa có layer nào để xuất.'); return; }
+  layers.forEach((layer, i) => {
+    const wCm = layer.wCm, hCm = wCm / layer.art.aspect;
+    const pw = Math.round((wCm / 2.54) * 300);
+    const ph = Math.round((hCm / 2.54) * 300);
+    const cv = document.createElement('canvas');
+    cv.width = pw; cv.height = ph;
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(printRaster(layer), 0, 0, pw, ph);
+    const fname = `file-in-${cleanName(layer.name, 'layer' + (i + 1))}-${fmt(wCm)}x${fmt(hCm)}cm-300dpi.png`;
+    setTimeout(() => {
+      cv.toBlob((b) => { if (b) download(b, fname); }, 'image/png');
+    }, i * 800); // giãn cách để trình duyệt không chặn tải nhiều file
+  });
+  toast(`Đang xuất ${layers.length} file in PNG 300dpi...`);
 }
 
-// (b2) Xuất file in SVG — chỉ khi đã có vector (tải SVG lên hoặc đã tracing)
+// (b2) Xuất file in SVG — mỗi layer visible có vector -> 1 file SVG đúng khổ cm
 function exportPrintSVG() {
-  if (!needArt()) return;
-  if (!S.art.svgText) {
-    toast('Chưa có vector. Hãy bấm “Chuyển vector” hoặc tải file SVG lên trước.');
+  const layers = S.layers.filter((l) => l.visible && l.art && l.art.svgText);
+  if (!layers.length) {
+    toast('Chưa có layer vector nào. Hãy bấm “Chuyển vector” hoặc tải file SVG lên trước.');
     return;
   }
-  download(new Blob([svgForPrint(S.art.svgText)], { type: 'image/svg+xml' }),
-    `file-in-${S.posId}.svg`);
-  toast('Đã xuất file in SVG.');
+  layers.forEach((layer, i) => {
+    const wCm = layer.wCm, hCm = wCm / layer.art.aspect;
+    const vb = svgViewBox(layer.art.svgText, layer.art.w, layer.art.h);
+    const svg =
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" ` +
+      `width="${fmt(wCm)}cm" height="${fmt(hCm)}cm">` +
+      `${svgInner(svgForPrint(layer.art.svgText))}</svg>`;
+    const fname = `file-in-${cleanName(layer.name, 'layer' + (i + 1))}.svg`;
+    setTimeout(() => {
+      download(new Blob([svg], { type: 'image/svg+xml' }), fname);
+    }, i * 800);
+  });
+  toast(`Đang xuất ${layers.length} file in SVG...`);
 }
 
-// (c) Xuất phiếu kỹ thuật .txt gửi nhà in
+// (c) Xuất phiếu kỹ thuật .txt gửi nhà in (liệt kê từng layer)
 function exportSpec() {
-  if (!needArt()) return;
+  const layers = S.layers.filter((l) => l.art);
+  if (!layers.length) { toast('Chưa có layer nào để xuất.'); return; }
   const a = S.cfg.ao;
   const lines = [
     'PHIEU KY THUAT IN AO',
@@ -1390,151 +1397,143 @@ function exportSpec() {
     `Ma don: ${$('inpCode').value || '—'}`,
     `Mockup: ${S.cfg.ten} (${a.kieu}, size ${a.size})`,
     `Mau ao: ${S.shirtColorName} (${S.shirtColor})`,
-    `Vi tri in: ${curPos().ten}`,
-    `Kich thuoc hinh in: ${fmt(S.design.wCm)} x ${fmt(S.design.hCm)} cm`,
-    `DPI thuc te: ${Math.round(artworkDPI())}`,
-    `So mau artwork: ${S.art.colorCount}`,
-    `File thiet ke: ${S.art.name}${S.art.svgText ? ' (da vector hoa)' : ''}`,
+    `So layer: ${layers.length}`,
+  ];
+  layers.forEach((l, i) => {
+    const wCm = l.wCm, hCm = wCm / l.art.aspect;
+    const dpiW = l.art.w / (wCm / 2.54), dpiH = l.art.h / (hCm / 2.54);
+    lines.push(
+      `--- Layer ${i + 1}: ${l.name}${l.visible ? '' : ' (dang an)'}`,
+      `  Kich thuoc: ${fmt(wCm)} x ${fmt(hCm)} cm`,
+      `  DPI thuc te: ${Math.round(Math.min(dpiW, dpiH))}`,
+      `  So mau: ${l.art.colorCount}${l.art.svgText ? ' (da vector hoa)' : ''}`,
+    );
+  });
+  lines.push(
     `Mau file in: ${S.printColor.mode === 'single' ? S.printColor.color + ' (in 1 mau)' : 'Giu nguyen mau goc'}`,
     `Phuong phap in: ${$('selMethod').value}`,
     `Ngay chot: ${$('inpDate').value || '—'}`,
     `Ti le px/cm hieu chuan: ${fmt(pxPerCm(), 2)}`,
-  ];
+  );
   const code = ($('inpCode').value || 'don').replace(/[^\w-]+/g, '-');
   download(new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' }),
     `phieu-ky-thuat-${code}.txt`);
   toast('Đã xuất phiếu kỹ thuật.');
 }
 
-// ---------- Xuất file in THEO VỊ TRÍ (khung = vùng thân áo) ----------
-// File xuất ra là khung chữ nhật đúng bằng exportZone của vị trí (tỉ lệ 0-1
-// trong config), ở 300dpi, nền trong suốt, hình in nằm ĐÚNG vị trí tương đối
-// trong khung — nhà in in luôn, không cần bình file lại.
-// Design vẽ PHẲNG (không warp — warp chỉ dùng cho mockup).
-function zoneOf(pos) {
-  return pos.exportZone || pos.zone;
-}
-
-// Làm sạch chuỗi để đặt tên file (bỏ dấu tiếng Việt, ký tự đặc biệt)
-function cleanName(s, fb) {
-  const c = String(s || '').trim()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^\w\-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-  return c || fb;
-}
-
-function zoneFileName(ext, zwCm, zhCm, pos, dpiTag) {
-  const cust = cleanName($('inpCust').value, 'khach');
-  const code = cleanName($('inpCode').value, 'don');
-  const vtri = cleanName(pos.ten, pos.id).toLowerCase();
-  const size = `${fmt(zwCm)}x${fmt(zhCm)}cm`;
-  return `in-${cust}-${code}-${vtri}-${size}${dpiTag ? '-' + dpiTag : ''}.${ext}`;
-}
-
-// Hình học chung cho xuất theo vị trí: khung zone (px output 300dpi) + offset design
-function zoneExportGeom(posId) {
-  const pl = S.places[posId];
-  const p = S.cfg.positions.find((x) => x.id === posId);
-  if (!pl || !pl.art || !pl.design || !p) return null;
-  const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
-  const ppc = pxPerCm();
-  const z = zoneOf(p);
-  const zx = z.x0 * W, zy = z.y0 * H;
-  const zw = (z.x1 - z.x0) * W, zh = (z.y1 - z.y0) * H;
-  const zwCm = zw / ppc, zhCm = zh / ppc;
-  const outW = Math.round((zwCm / 2.54) * 300);
-  const outH = Math.round((zhCm / 2.54) * 300);
-  const dwPx = (pl.design.wCm / 2.54) * 300; // đúng tỉ lệ gốc (wCm/hCm đã khóa)
-  const dhPx = (pl.design.hCm / 2.54) * 300;
-  const dcx = pl.design.cx * W, dcy = pl.design.cy * H;
-  const ox = ((dcx - zx) / zw) * outW - dwPx / 2;
-  const oy = ((dcy - zy) / zh) * outH - dhPx / 2;
-  return { pl, p, zwCm, zhCm, outW, outH, dwPx, dhPx, ox, oy };
-}
-
-function exportZonePNG(posId) {
-  posId = posId || S.posId;
-  const g = zoneExportGeom(posId);
-  if (!g) {
-    if (posId === S.posId) toast('Vị trí này chưa có hình in.');
-    return false;
+// ---------- Xóa layer ----------
+// Xóa layer theo id; nếu là layer đang chọn thì chọn layer trên cùng còn lại.
+function deleteLayer(id) {
+  const idx = S.layers.findIndex((l) => l.id === id);
+  if (idx < 0) return;
+  const [rm] = S.layers.splice(idx, 1);
+  if (S.activeLayerId === id) {
+    S.activeLayerId = S.layers.length ? S.layers[S.layers.length - 1].id : null;
   }
-  const cv = document.createElement('canvas');
-  cv.width = g.outW; cv.height = g.outH;
-  const ctx = cv.getContext('2d');
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(printRaster(g.pl), g.ox, g.oy, g.dwPx, g.dhPx); // vẽ phẳng, nền trong suốt
-  const fname = zoneFileName('png', g.zwCm, g.zhCm, g.p, '300dpi');
-  cv.toBlob((b) => {
-    if (!b) { toast('Xuất file in thất bại.'); return; }
-    download(b, fname);
-    if (posId === S.posId) toast(`Đã xuất file in theo vị trí “${g.p.ten}” (PNG 300dpi).`);
-  }, 'image/png');
-  return true;
+  syncSizeInputs();
+  assess(); render(); renderLayerList(); updatePrintPanel(); checkWarnings();
+  updateFileInfo();
+  toast(`Đã xóa layer “${rm.name}”.`);
 }
-
-// Tách nội dung bên trong thẻ <svg>...</svg> ngoài cùng
-function svgInner(svgText) {
-  const m = String(svgText).match(/<svg[^>]*>([\s\S]*)<\/svg>\s*$/i);
-  return m ? m[1] : svgText;
-}
-// Lấy viewBox gốc của SVG (fallback 0 0 w h)
-function svgViewBox(svgText, w, h) {
-  const m = String(svgText).match(/<svg[^>]*viewBox\s*=\s*["']([^"']+)["']/i);
-  return m ? m[1] : `0 0 ${w} ${h}`;
-}
-
-function exportZoneSVG(posId) {
-  posId = posId || S.posId;
-  const g = zoneExportGeom(posId);
-  if (!g) {
-    if (posId === S.posId) toast('Vị trí này chưa có hình in.');
-    return false;
-  }
-  if (!g.pl.art.svgText) {
-    toast('Vị trí này chưa có vector. Hãy bấm “Chuyển vector” hoặc tải file SVG lên trước.');
-    return false;
-  }
-  // SVG lồng: khung ngoài viewBox đúng bằng zone, svg con đặt đúng offset
-  // (x/y/width/height + viewBox gốc = translate + scale, giữ đúng vị trí)
-  const vb = svgViewBox(g.pl.art.svgText, g.pl.art.w, g.pl.art.h);
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${g.outW} ${g.outH}" ` +
-    `width="${fmt(g.zwCm)}cm" height="${fmt(g.zhCm)}cm">` +
-    `<svg x="${g.ox.toFixed(1)}" y="${g.oy.toFixed(1)}" ` +
-    `width="${g.dwPx.toFixed(1)}" height="${g.dhPx.toFixed(1)}" viewBox="${vb}">` +
-    `${svgInner(svgForPrint(g.pl.art.svgText))}</svg></svg>`;
-  const fname = zoneFileName('svg', g.zwCm, g.zhCm, g.p, '');
-  download(new Blob([svg], { type: 'image/svg+xml' }), fname);
-  if (posId === S.posId) toast(`Đã xuất file in theo vị trí “${g.p.ten}” (SVG).`);
-  return true;
-}
-
-// ---------- Xuất hàng loạt: mọi placement có artwork -> mỗi cái 1 file in theo vị trí ----------
-async function batchExport() {
-  const ids = Object.keys(S.places).filter((id) => {
-    const pl = S.places[id];
-    return pl && pl.art && pl.design;
-  });
-  if (!ids.length) { toast('Chưa có vị trí nào có hình in để xuất.'); return; }
-  for (let i = 0; i < ids.length; i++) {
-    toast(`Đang xuất file ${i + 1}/${ids.length}...`);
-    exportZonePNG(ids[i]);
-    await new Promise((r) => setTimeout(r, 800)); // giãn cách để trình duyệt không chặn tải nhiều file
-  }
-  toast(`Đã xuất ${ids.length} file in theo vị trí.`);
-}
-
-// ---------- Xóa hình in ở vị trí đang chọn ----------
+// Nút "Xóa hình in": xóa layer đang chọn
 function clearArt() {
-  const pl = curPlace();
-  if (!pl.art) { toast('Vị trí này chưa có hình in.'); return; }
-  pl.art = null;
-  pl.design = null;
-  $('fileInfo').innerHTML = 'Chưa có file. Hãy tải file thiết kế lên.';
-  assess(); render(); updatePrintPanel(); checkWarnings();
-  toast(`Đã xóa hình in ở vị trí “${curPos().ten}”.`);
+  const L = activeLayer();
+  if (!L) { toast('Chưa có layer nào để xóa.'); return; }
+  deleteLayer(L.id);
+}
+
+// Cập nhật panel File thiết kế theo layer đang chọn
+function updateFileInfo() {
+  const L = activeLayer();
+  $('fileInfo').innerHTML = (L && L.art)
+    ? `<b>${esc(L.art.name)}</b><br>${L.art.w} × ${L.art.h} px · ` +
+      (L.art.svgText ? 'Đã vector hóa' : L.art.typeLabel)
+    : 'Chưa có file. Hãy tải file thiết kế lên.';
+}
+
+// ---------- Panel Layers (kiểu Photoshop) ----------
+// Vẽ danh sách layers: thumbnail + tên + nút ẩn/hiện + lên/xuống + xóa.
+// Hiển thị từ layer TRÊN CÙNG xuống dưới (ngược thứ tự mảng).
+function renderLayerList() {
+  const el = $('layerList');
+  if (!el) return;
+  el.innerHTML = '';
+  if (!S.layers.length) {
+    el.innerHTML = '<div class="muted small">Chưa có layer nào.<br>Bấm “Tải file thiết kế” để thêm.</div>';
+    return;
+  }
+  for (let i = S.layers.length - 1; i >= 0; i--) {
+    const layer = S.layers[i];
+    const row = document.createElement('div');
+    row.className = 'layer-row' + (layer.id === S.activeLayerId ? ' active' : '');
+    row.dataset.id = layer.id;
+    const thumb = document.createElement('canvas');
+    thumb.className = 'layer-thumb'; thumb.width = 44; thumb.height = 44;
+    const nm = document.createElement('span');
+    nm.className = 'layer-name'; nm.textContent = layer.name; nm.title = layer.name;
+    const mkBtn = (cls, title, txt) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'icon-btn ' + cls; b.title = title; b.textContent = txt;
+      b.dataset.id = layer.id;
+      return b;
+    };
+    const bUp = mkBtn('ly-up', 'Đưa lên trên', '↑');
+    const bDn = mkBtn('ly-down', 'Đưa xuống dưới', '↓');
+    const bEye = mkBtn('ly-eye', layer.visible ? 'Ẩn layer' : 'Hiện layer', layer.visible ? '👁' : '🚫');
+    if (!layer.visible) row.classList.add('hidden-layer');
+    const bDel = mkBtn('ly-del', 'Xóa layer', '×');
+    row.append(thumb, nm, bUp, bDn, bEye, bDel);
+    // Vẽ thumbnail từ raster (giữ tỉ lệ, căn giữa)
+    try {
+      const t = thumb.getContext('2d');
+      t.clearRect(0, 0, 44, 44);
+      const sc = Math.min(44 / layer.art.raster.width, 44 / layer.art.raster.height);
+      const dw = layer.art.raster.width * sc, dh = layer.art.raster.height * sc;
+      t.drawImage(layer.art.raster, (44 - dw) / 2, (44 - dh) / 2, dw, dh);
+    } catch (e) { /* bỏ qua */ }
+    // Bấm vào dòng (trừ các nút) -> chọn layer
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.icon-btn')) return;
+      setActiveLayer(layer.id);
+    });
+    el.appendChild(row);
+  }
+}
+
+// Xử lý click trên các nút của từng dòng layer (dùng event delegation)
+function initLayerList() {
+  $('layerList').addEventListener('click', (e) => {
+    const b = e.target.closest('.icon-btn');
+    if (!b) return;
+    const id = b.dataset.id;
+    const idx = S.layers.findIndex((l) => l.id === id);
+    if (idx < 0) return;
+    if (b.classList.contains('ly-eye')) {
+      S.layers[idx].visible = !S.layers[idx].visible;
+      render(); renderLayerList();
+    } else if (b.classList.contains('ly-del')) {
+      deleteLayer(id);
+    } else if (b.classList.contains('ly-up') && idx < S.layers.length - 1) {
+      // lên trên = đổi chỗ với phần tử đứng sau (vẽ sau = nằm trên)
+      [S.layers[idx], S.layers[idx + 1]] = [S.layers[idx + 1], S.layers[idx]];
+      render(); renderLayerList();
+    } else if (b.classList.contains('ly-down') && idx > 0) {
+      [S.layers[idx], S.layers[idx - 1]] = [S.layers[idx - 1], S.layers[idx]];
+      render(); renderLayerList();
+    }
+  });
+}
+
+// Chọn layer đang thao tác + refresh UI liên quan
+function setActiveLayer(id, silent) {
+  S.activeLayerId = id;
+  syncSizeInputs();
+  assess(); render(); renderLayerList(); updatePrintPanel(); checkWarnings();
+  updateFileInfo();
+  if (!silent) {
+    const L = activeLayer();
+    if (L) toast(`Đang chọn layer “${L.name}”.`);
+  }
 }
 
 // =====================================================================
@@ -1553,34 +1552,34 @@ function projectFileName() {
   return `${cleanName($('inpCust').value, 'khach')}-${cleanName($('inpCode').value, 'don')}`;
 }
 
-// Lưu project: toàn bộ placements (artwork dạng PNG dataURL + design) theo tên khách + mã đơn
+// Lưu project: toàn bộ layers (artwork dạng PNG dataURL + vị trí/cỡ) theo tên khách + mã đơn
 function saveProject() {
-  const placements = [];
-  for (const [posId, pl] of Object.entries(S.places)) {
-    if (!pl.art || !pl.design) continue;
+  const layers = [];
+  for (const l of S.layers) {
+    if (!l.art) continue;
     let artDataURL = null;
     try {
-      artDataURL = pl.art.raster.toDataURL('image/png');
+      artDataURL = l.art.raster.toDataURL('image/png');
     } catch (e) {
       toast('File quá lớn, không lưu được ảnh. Hãy giảm phóng nét rồi lưu lại.', 4500);
       return;
     }
-    placements.push({
-      posId,
+    layers.push({
+      id: l.id, name: l.name, visible: l.visible !== false,
       artDataURL,
-      svgText: pl.art.svgText || null,
-      w: pl.art.w, h: pl.art.h, aspect: pl.art.aspect,
-      name: pl.art.name, kind: pl.art.kind,
-      colorCount: pl.art.colorCount, typeLabel: pl.art.typeLabel,
-      design: { ...pl.design },
+      svgText: l.art.svgText || null,
+      w: l.art.w, h: l.art.h, aspect: l.art.aspect,
+      kind: l.art.kind,
+      colorCount: l.art.colorCount, typeLabel: l.art.typeLabel,
+      x: l.x, y: l.y, wCm: l.wCm,
     });
   }
-  if (!placements.length) { toast('Chưa có hình in nào để lưu.'); return; }
+  if (!layers.length) { toast('Chưa có layer nào để lưu.'); return; }
   const proj = {
     tenKhach: $('inpCust').value || '', maDon: $('inpCode').value || '',
     ngay: $('inpDate').value || '', mockupId: S.mockupId,
     phuongPhapIn: $('selMethod').value, chestCm: S.cfg.ao.ngangNgucCm,
-    curPosId: S.posId, placements,
+    activeLayerId: S.activeLayerId, layers,
     printColor: { ...S.printColor },
     shirtColor: S.shirtColor, shirtColorName: S.shirtColorName,
     savedAt: new Date().toISOString(),
@@ -1608,21 +1607,44 @@ async function openProject(name) {
       await loadMockup(proj.mockupId);
       $('selMockup').value = proj.mockupId;
     } else {
-      S.places = {};
+      S.layers = [];
+      S.activeLayerId = null;
     }
-    for (const sp of proj.placements || []) {
+    // Tương thích file cũ (placements theo vị trí) -> chuyển thành layers
+    const oldPlacements = proj.placements || [];
+    for (const sp of oldPlacements) {
       const raster = await loadImage(sp.artDataURL);
-      S.places[sp.posId] = {
+      S.layers.push({
+        id: 'L' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36),
+        name: (sp.name || 'layer') + '',
+        visible: true,
         art: {
           raster, svgText: sp.svgText || null,
           w: sp.w, h: sp.h, aspect: sp.aspect, name: sp.name,
           kind: sp.kind, colorCount: sp.colorCount, typeLabel: sp.typeLabel,
         },
-        design: { ...sp.design },
-      };
+        x: sp.design ? sp.design.cx : 0.25,
+        y: sp.design ? sp.design.cy : 0.47,
+        wCm: sp.design ? sp.design.wCm : 28,
+      });
     }
-    S.posId = (proj.curPosId && S.places[proj.curPosId]) ? proj.curPosId : Object.keys(S.places)[0];
-    $('selPos').value = S.posId;
+    for (const sl of proj.layers || []) {
+      const raster = await loadImage(sl.artDataURL);
+      S.layers.push({
+        id: sl.id || ('L' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36)),
+        name: sl.name || 'layer',
+        visible: sl.visible !== false,
+        art: {
+          raster, svgText: sl.svgText || null,
+          w: sl.w, h: sl.h, aspect: sl.aspect, name: sl.name,
+          kind: sl.kind, colorCount: sl.colorCount, typeLabel: sl.typeLabel,
+        },
+        x: sl.x, y: sl.y, wCm: sl.wCm,
+      });
+    }
+    S.activeLayerId = (proj.activeLayerId && S.layers.some((l) => l.id === proj.activeLayerId))
+      ? proj.activeLayerId
+      : (S.layers.length ? S.layers[S.layers.length - 1].id : null);
     $('inpCust').value = proj.tenKhach || '';
     $('inpCode').value = proj.maDon || '';
     if (proj.ngay) $('inpDate').value = proj.ngay;
@@ -1640,14 +1662,9 @@ async function openProject(name) {
       S.shirtColorName = proj.shirtColorName || proj.shirtColor;
       syncShirtColorUI();
     }
-    const pl = curPlace();
-    if (pl.art) {
-      $('fileInfo').innerHTML =
-        `<b>${esc(pl.art.name)}</b><br>${pl.art.w} × ${pl.art.h} px · ` +
-        (pl.art.svgText ? 'Đã vector hóa' : pl.art.typeLabel);
-    }
+    updateFileInfo();
     syncSizeInputs(); assess();
-    render(); updateShirtPanel(); updatePrintPanel(); checkWarnings();
+    render(); renderLayerList(); updateShirtPanel(); updatePrintPanel(); checkWarnings();
     toast(`Đã mở file "${name}".`);
   } catch (e) {
     console.error(e);
@@ -1668,13 +1685,13 @@ function renderSavedList() {
   el.innerHTML = '';
   names.forEach((name) => {
     const p = all[name];
-    const nPl = (p.placements || []).length;
+    const nPl = (p.layers || p.placements || []).length;
     const d = document.createElement('div');
     d.className = 'saved-item';
     const day = String(p.savedAt || '').slice(0, 10);
     d.innerHTML =
       `<div><b>${esc(name)}</b></div>` +
-      `<div class="meta">${esc(p.mockupId || '')} · ${nPl} vị trí in · ${esc(day)}</div>` +
+      `<div class="meta">${esc(p.mockupId || '')} · ${nPl} layer · ${esc(day)}</div>` +
       `<div class="acts"></div>`;
     const bO = document.createElement('button');
     bO.className = 'btn small primary'; bO.textContent = 'Mở lại';
@@ -1702,35 +1719,14 @@ async function init() {
   });
   sel.onchange = () => loadMockup(sel.value);
 
-  $('selPos').onchange = (e) => {
-    S.posId = e.target.value;
-    // Chuyển placement đang sửa: giữ nguyên artwork/design đã làm ở vị trí này;
-    // vị trí mới (chưa có gì) thì đặt cỡ in mặc định.
-    const pl = curPlace();
-    if (!pl.design) {
-      resetDesign();
-    } else {
-      syncSizeInputs();
-    }
-    if (pl.art) {
-      $('fileInfo').innerHTML =
-        `<b>${esc(pl.art.name)}</b><br>${pl.art.w} × ${pl.art.h} px · ` +
-        (pl.art.svgText ? 'Đã vector hóa' : pl.art.typeLabel);
-    } else {
-      $('fileInfo').innerHTML = 'Chưa có file. Hãy tải file thiết kế lên.';
-    }
-    assess();
-    render(); updatePrintPanel(); checkWarnings();
-  };
-
   $('inpW').addEventListener('change', () => {
-    if (!S.design || !S.art) return;
+    if (!activeLayer()) return;
     const v = parseFloat($('inpW').value);
     if (v > 0) setPrintWidth(v);
     render(); updatePrintPanel(); checkWarnings(); assess();
   });
   $('inpH').addEventListener('change', () => {
-    if (!S.design || !S.art) return;
+    if (!activeLayer()) return;
     const v = parseFloat($('inpH').value);
     if (v > 0) setPrintHeight(v);
     render(); updatePrintPanel(); checkWarnings(); assess();
@@ -1773,19 +1769,20 @@ async function init() {
   $('btnExpPrint').onclick = exportPrintPNG;
   $('btnExpSVG').onclick = exportPrintSVG;
   $('btnExpSpec').onclick = exportSpec;
-  $('btnExpZonePNG').onclick = () => exportZonePNG();
-  $('btnExpZoneSVG').onclick = () => exportZoneSVG();
-  $('btnExpBatch').onclick = batchExport;
 
   // Xóa hình in ở vị trí đang chọn
   $('btnClearArt').onclick = clearArt;
 
-  // Nút Auto: fit lại đúng tỉ lệ ảnh, vừa khít vùng an toàn, đúng vị trí
+  // Nút Auto: đưa layer đang chọn về giữa ngực trước với cỡ in mặc định
+  // (giữ đúng tỉ lệ gốc)
   $('btnAutoFitNow').onclick = () => {
-    if (!S.art || !S.design) { toast('Chưa có hình in để căn.'); return; }
-    fitToSafeZone();
+    const L = activeLayer();
+    if (!L || !L.art) { toast('Chưa có layer nào để căn.'); return; }
+    const dp = defaultLayerPlacement();
+    L.x = dp.x; L.y = dp.y; L.wCm = dp.wCm;
+    syncSizeInputs();
     render(); updatePrintPanel(); checkWarnings(); assess();
-    toast('Đã căn lại: đúng tỉ lệ, vừa vùng an toàn.');
+    toast('Đã đưa layer về giữa ngực trước.');
   };
 
   // Tùy chọn màu file in: áp dụng cho mockup + mọi file xuất
@@ -1830,6 +1827,10 @@ async function init() {
 
   // Toggle hiện/ẩn lớp số đo
   $('chkMeasure').onchange = () => render();
+
+  // Panel Layers kiểu Photoshop
+  initLayerList();
+  renderLayerList();
 
   // Lưu / mở file làm việc
   $('btnSave').onclick = saveProject;
