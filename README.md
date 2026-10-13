@@ -180,9 +180,12 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - Mỗi mục gồm: giờ ghi, tên khách, mã đơn, kiểu áo + màu áo, tóm tắt từng layer
   (tên + kích thước cm + DPI), **ảnh thu nhỏ 240px** của mockup, và **toàn bộ project**
   để **nạp lại 1 chạm** (nút "Nạp lại" — hỏi xác nhận trước khi thay thế workspace hiện tại).
-- Lưu trên trình duyệt này (localStorage, key `mockupInAo.history.v1`), **tối đa 30 mục**;
-  đầy quota bộ nhớ thì tự xóa mục cũ nhất, trường hợp xấu nhất thì bỏ ảnh gốc
-  của mục mới (ghi chú "Thiếu ảnh gốc" — mục đó không nạp lại được).
+- Lưu trên trình duyệt này trong **IndexedDB** (kho lưu dung lượng lớn, đủ cho file
+  thiết kế nặng), **tối đa 30 mục**; lần đầu chạy bản này tự **di trú** dữ liệu cũ từ
+  localStorage sang rồi xóa key cũ. Trình duyệt chặn IndexedDB thì tự rơi về
+  localStorage (giữ hành vi cũ).
+- Đầy quota thật (hiếm gặp): tự xóa mục cũ nhất; trường hợp xấu nhất thì lưu mục mới
+  thiếu ảnh gốc (ghi chú "Thiếu ảnh gốc" — mục đó không nạp lại được).
 - Nút "Xóa" từng mục.
 
 ## Bố cục giao diện
