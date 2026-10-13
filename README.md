@@ -3,9 +3,11 @@
 Web app tĩnh (không backend, không lưu server): đặt hình in lên **ảnh áo thật**,
 tự động đánh giá chất lượng in (DPI), đề xuất chuyển vector / phóng nét,
 xuất mockup PNG gửi khách và xuất file in (PNG 300dpi / SVG) + phiếu kỹ thuật
-cho nhà in. Mỗi vị trí in (ngực trước, logo ngực trái, lưng) giữ artwork
-riêng — lưu/mở lại file làm việc theo tên khách + mã đơn (localStorage),
-xuất hàng loạt file in khi khách chốt. Giao diện tiếng Việt.
+cho nhà in. Giao diện **Layers kiểu Photoshop**: mỗi file thiết kế tải lên
+là 1 layer — bấm trực tiếp vào hình trên canvas để chọn, kéo di chuyển tự do,
+kéo góc thu/phóng (luôn khóa tỉ lệ). Panel Layers quản lý ẩn/hiện, thứ tự,
+xóa từng layer. Lưu/mở lại file làm việc theo tên khách + mã đơn (localStorage).
+Giao diện tiếng Việt.
 
 ## Cách mở
 
@@ -31,6 +33,21 @@ js/app.js           toàn bộ logic (có comment tiếng Việt ở các hàm c
 mockups/tshirt.json  config áo cổ tròn (ảnh Tshirt.png 4052x2283, nền trong suốt)
 mockups/polo.json    config áo polo   (ảnh Polo.png  3469x1933, nền trong suốt)
 ```
+
+## Layers (kiểu Photoshop)
+
+- Mỗi file tải lên ("Tải file thiết kế" hoặc kéo-thả vào canvas) tạo 1 layer mới,
+  đặt ở giữa ngực trước với cỡ in mặc định.
+- **Thao tác trực tiếp trên canvas**: bấm vào hình để chọn layer, kéo để di chuyển
+  tự do (không giới hạn vị trí), kéo 4 tay cầm góc để thu/phóng (luôn giữ đúng
+  tỉ lệ gốc), bấm nút × đỏ để xóa.
+- **Panel Layers** (sidebar): thumbnail + tên file, bấm để chọn, nút 👁 ẩn/hiện,
+  ↑↓ đổi thứ tự chồng lớp, × xóa.
+- Mọi nút xử lý ảnh (vector, phóng nét, khử nền, crop), đánh giá DPI, ô kích thước
+  cm đều áp dụng cho **layer đang chọn**.
+- Xuất file: "Xuất mockup PNG" vẽ tất cả layer hiện; "Xuất file in PNG/SVG"
+  xuất **từng layer** thành file riêng (nền trong suốt, 300dpi, đúng khổ cm,
+  tên file theo tên layer).
 
 ## Thêm mockup mới (chỉ cần ảnh + JSON, không sửa code)
 
