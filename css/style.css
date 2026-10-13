@@ -436,3 +436,36 @@ details.panel.adv summary:hover { color: var(--accent); }
     transition-duration: .01ms !important;
   }
 }
+
+/* ============ TÍNH NĂNG 1+2+3: Undo/Redo, Zoom, Báo giá ============ */
+/* Nút undo/redo icon trên toolbar */
+#btnUndo svg, #btnRedo svg { width: 16px; height: 16px; }
+#btnUndo:disabled, #btnRedo:disabled { opacity: .35; cursor: default; }
+/* Khung canvas cho phép cuộn khi zoom lớn */
+.canvas-wrap { overflow: auto; }
+/* Cụm điều khiển zoom ở góc canvas */
+.zoom-ctl {
+  position: absolute; right: 10px; bottom: 10px; z-index: 5;
+  display: flex; gap: 4px; align-items: center;
+  background: rgba(255,255,255,.94); border: 1px solid var(--line);
+  border-radius: 10px; padding: 4px; box-shadow: var(--shadow);
+}
+[data-theme="dark"] .zoom-ctl { background: rgba(22,22,22,.94); }
+.zbtn {
+  border: 1px solid transparent; background: transparent; color: var(--ink);
+  border-radius: 6px; padding: 4px 9px; font-size: 15px; font-weight: 700;
+  cursor: pointer; line-height: 1.2; transition: background-color .15s ease;
+}
+.zbtn:hover:not(:disabled) { background: var(--accent-soft); }
+.zbtn:disabled { opacity: .35; cursor: default; }
+.zpct { min-width: 52px; font-size: 13px; font-weight: 600; }
+.zfit { font-size: 12px; font-weight: 600; white-space: nowrap; }
+/* Panel báo giá */
+#panelQuote h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; margin: 12px 0 6px; color: var(--muted); }
+.quote-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.quote-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.quote-grid input { width: 100%; }
+.quote-detail { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.quote-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; padding: 6px 8px; background: var(--accent-soft); border-radius: 8px; }
+.quote-total { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px 12px; background: var(--ink); color: var(--bg); border-radius: 10px; font-size: 14px; }
+.quote-sum { font-size: 18px; font-weight: 800; }
