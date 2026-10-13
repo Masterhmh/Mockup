@@ -440,18 +440,18 @@ details.panel.adv summary:hover { color: var(--accent); }
 
 /* ============ TÍNH NĂNG 1+2+3: Undo/Redo, Zoom, Báo giá ============ */
 /* Cụm nút overlay trong canvas (Hoàn tác / Làm lại / Khóa khung):
-   nền đặc theo theme, viền rõ, icon tương phản cao, KHÔNG bị zoom ảnh hưởng */
+   3 nút RIÊNG BIỆT, mỗi nút có nền/viền/bóng riêng, KHÔNG bị zoom ảnh hưởng */
 .canvas-tools {
   position: absolute; left: 10px; top: 10px; z-index: 6;
-  display: flex; gap: 4px; align-items: center;
-  background: var(--card); border: 1px solid var(--line);
-  border-radius: 10px; padding: 4px; box-shadow: var(--shadow);
+  display: flex; gap: 8px; align-items: center;
+  background: transparent; border: 0; padding: 0; box-shadow: none;
 }
 .ctbtn {
-  border: 1px solid transparent; background: transparent; color: var(--ink);
-  border-radius: 6px; width: 36px; height: 36px; padding: 0;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  border-radius: 10px; width: 38px; height: 38px; padding: 0;
   display: inline-flex; align-items: center; justify-content: center;
-  cursor: pointer; line-height: 0;
+  cursor: pointer; line-height: 0; box-shadow: var(--shadow);
+  position: relative;
   transition: background-color .15s ease, color .15s ease, transform .12s ease;
 }
 .ctbtn:hover:not(:disabled) { background: var(--hover); }
@@ -462,6 +462,23 @@ details.panel.adv summary:hover { color: var(--accent); }
 .ctbtn svg rect { fill: currentColor; stroke: none; }
 /* Khóa khung đang BẬT: nền đặc tương phản rõ trạng thái */
 .ctbtn.locked { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+/* Nút khóa chỉ hiện 1 icon theo trạng thái (toggle bằng class, không dùng hidden vì SVG không phản chiếu) */
+#btnLockFrame .lock-closed { display: none; }
+#btnLockFrame.locked .lock-open { display: none; }
+#btnLockFrame.locked .lock-closed { display: block; }
+/* Tooltip tùy biến khi di chuột vào nút (nền đen chữ trắng, trễ nhẹ); ẩn trên thiết bị chạm.
+   Canh lề trái theo nút để không bị cắt khi nút ở sát mép trái canvas */
+.ctbtn::after {
+  content: attr(data-tip);
+  position: absolute; top: calc(100% + 8px); left: 0;
+  transform: translateY(-4px);
+  background: #000; color: #fff; font-size: 11.5px; font-weight: 500; line-height: 1.4;
+  padding: 5px 9px; border-radius: 6px; white-space: nowrap;
+  opacity: 0; pointer-events: none; z-index: 20;
+  transition: opacity .15s ease .35s, transform .15s ease .35s;
+}
+.ctbtn:hover:not(:disabled)::after { opacity: 1; transform: translateY(0); }
+@media (hover: none) { .ctbtn::after { display: none; } }
 /* Khung canvas cho phép cuộn khi zoom lớn */
 .canvas-wrap { overflow: auto; }
 /* Cụm điều khiển zoom ở góc canvas */
@@ -523,8 +540,8 @@ details.panel.adv summary:hover { color: var(--accent); }
   .zpct { min-width: 42px; font-size: 11px; }
   .zfit { font-size: 11px; }
   /* Cụm nút trong canvas trên mobile: gọn hơn */
-  .canvas-tools { left: 6px; top: 6px; padding: 2px; gap: 2px; }
-  .ctbtn { width: 34px; height: 34px; }
+  .canvas-tools { left: 6px; top: 6px; gap: 6px; padding: 0; }
+  .ctbtn { width: 34px; height: 34px; border-radius: 9px; }
   .ctbtn svg { width: 17px; height: 17px; }
 
   /* Chữ hint ngắn gọn hơn */
