@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261014m">
+<link rel="stylesheet" href="css/style.css?v=20261014n">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -16,7 +16,7 @@
 <body>
 <header class="topbar">
   <div class="brand">
-    <img id="brandLogo" src="assets/Logo-dark.png" alt="Logo Xưởng In Mẫu" class="brand-logo" onerror="this.onerror=null;this.src='assets/Logo.png'">
+    <img id="brandLogo" src="assets/Logo-dark.png" alt="Logo Xưởng In Mẫu" class="brand-logo" role="button" tabindex="0" title="Bấm để làm mới app" onerror="this.onerror=null;this.src='assets/Logo.png'">
     <div class="brand-text">
       <h1>XƯỞNG IN MẪU</h1>
     </div>
@@ -163,6 +163,7 @@
         </div>
         <p class="muted small" id="aiNote">Phóng nét = nội suy trong trình duyệt, <b>chưa phải AI upscale</b>.</p>
         <label class="chk" style="margin:2px 0 8px"><input type="checkbox" id="chkAI"> Phóng nét bằng AI (tải model 1 lần ~80KB)</label>
+        <p class="warnline" id="aiWarn" hidden></p>
       </div>
       <h3 class="adv-title">Nâng cao</h3>
       <div class="adv-body">
@@ -251,7 +252,8 @@
     <h3 id="cmpTitle">So sánh trước / sau</h3>
     <div class="zoom-row">
       <span>Độ phóng:</span>
-      <button class="btn small cmp-zoom on" data-z="1">100%</button>
+      <button class="btn small cmp-zoom on" data-z="fit">Vừa khung</button>
+      <button class="btn small cmp-zoom" data-z="1">100%</button>
       <button class="btn small cmp-zoom" data-z="2">200%</button>
       <button class="btn small cmp-zoom" data-z="4">400%</button>
     </div>
@@ -310,7 +312,7 @@
           <li><b>Cuộn chuột / chụm 2 ngón</b> hoặc bấm <b>− · % · +</b> ở góc dưới-phải để zoom.</li>
           <li>Khi zoom &gt; 100%: <b>kéo vùng trống</b> trên canvas, hoặc giữ <b>Space</b> + kéo, để di chuyển vùng nhìn.</li>
           <li>Nút <b>"Vừa khung"</b>: đưa canvas về vừa khung.</li>
-          <li>Nút <b>ổ khóa</b> (góc trên-trái trong canvas): <b>Khóa khung</b> — chặn zoom và di chuyển vùng nhìn, tránh lỡ tay; kéo/sửa layer vẫn bình thường.</li>
+          <li>Nút <b>ổ khóa</b> (góc trên-trái trong canvas): <b>Khóa khung</b> — chặn zoom và di chuyển vùng nhìn, tránh lỡ tay; kéo/sửa layer vẫn bình thường. Khóa <b>đang BẬT sẵn</b> mỗi khi mở app, bấm để tắt/bật.</li>
         </ul>
       </div>
       <div class="guide-sec">
@@ -386,6 +388,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261014m"></script>
+<script src="js/app.js?v=20261014n"></script>
 </body>
 </html>
