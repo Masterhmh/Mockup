@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261014b">
+<link rel="stylesheet" href="css/style.css?v=20261014d">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -151,7 +151,8 @@
           <button class="btn" id="btnWhite">Khử nền trắng</button>
           <button class="btn" id="btnCrop">Cắt bớt (crop)</button>
         </div>
-        <p class="muted small">Phóng nét = nội suy trong trình duyệt, <b>chưa phải AI upscale</b>.</p>
+        <p class="muted small" id="aiNote">Phóng nét = nội suy trong trình duyệt, <b>chưa phải AI upscale</b>.</p>
+        <label class="chk" style="margin:2px 0 8px"><input type="checkbox" id="chkAI"> Phóng nét bằng AI (tải model 1 lần ~80KB)</label>
       </div>
       <h3 class="adv-title">Nâng cao</h3>
       <div class="adv-body">
@@ -218,6 +219,12 @@
       <p class="muted small">Thành tiền = Số lượng × Đơn giá. Cấu hình lưu trên máy này.</p>
     </div>
 
+    <div class="panel" id="panelHistory">
+      <h2>Lịch sử</h2>
+      <p class="muted small">Tự lưu trên trình duyệt này (tối đa 30 mục). Bấm "Nạp lại" để mở lại trạng thái.</p>
+      <div id="historyList" class="history-list"></div>
+    </div>
+
   </div><!-- /dock -->
 </main>
 
@@ -270,6 +277,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261014b"></script>
+<script src="js/app.js?v=20261014d"></script>
 </body>
 </html>
