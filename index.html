@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Mockup In Áo</title>
-<link rel="stylesheet" href="css/style.css?v=20261013m">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=20261013n">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -12,8 +15,14 @@
 </head>
 <body>
 <header class="topbar">
-  <h1>Studio Mockup In Áo</h1>
-  <p class="sub">Đặt hình in lên ảnh áo thật — đánh giá chất lượng in — xuất file cho nhà in</p>
+  <div class="brand">
+    <img src="assets/logo.svg" alt="Logo Studio Mockup In Áo" class="brand-logo"
+         onerror="this.style.display='none'">
+    <div class="brand-text">
+      <h1>STUDIO MOCKUP IN ÁO</h1>
+      <p class="sub">Đặt hình in lên ảnh áo thật — đánh giá chất lượng in — xuất file cho nhà in</p>
+    </div>
+  </div>
 </header>
 
 <main class="layout">
@@ -152,7 +161,7 @@
     </div>
 
     <details class="panel adv" id="panelAdv" open>
-      <summary>Nâng cao</summary>
+      <summary>NÂNG CAO</summary>
       <div class="adv-body">
         <h3>Thông số áo</h3>
         <div id="shirtInfo">—</div>
@@ -227,6 +236,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013m"></script>
+<script src="js/app.js?v=20261013n"></script>
 </body>
 </html>
