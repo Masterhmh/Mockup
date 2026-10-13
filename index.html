@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Mockup In Áo</title>
-<link rel="stylesheet" href="css/style.css?v=20261013e">
+<link rel="stylesheet" href="css/style.css?v=20261013f">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -37,7 +37,7 @@
       </div>
       <button id="btnUpload" class="btn primary">Tải file thiết kế</button>
       <label class="chk"><input type="checkbox" id="chkMeasure"> Hiện số đo</label>
-      <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.pdf" hidden>
+      <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.pdf" multiple hidden>
     </div>
 
     <div class="legend" id="legend">
@@ -139,11 +139,12 @@
     </details>
     <div class="panel" id="panelProject">
       <h2>File làm việc</h2>
-      <p class="muted small">Lưu theo tên khách + mã đơn để mở lại sau này. Khi khách chốt, mở lại file rồi xuất hàng loạt.</p>
+      <p class="muted small">Lưu toàn bộ công việc ra file .cm đặt tên theo mã đơn. Mở file .cm để tiếp tục chỉnh sửa.</p>
       <div class="btn-grid">
-        <button class="btn primary" id="btnSave">Lưu file làm việc</button>
+        <button class="btn primary" id="btnSaveCm">Lưu file (.cm)</button>
+        <button class="btn" id="btnOpenCm">Mở file (.cm)</button>
       </div>
-      <div id="savedList" class="saved-list"></div>
+      <input type="file" id="fileCmInput" accept=".cm,.json" hidden>
     </div>
   </div><!-- /dock -->
 </main>
@@ -197,6 +198,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013e"></script>
+<script src="js/app.js?v=20261013f"></script>
 </body>
 </html>
