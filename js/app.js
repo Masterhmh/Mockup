@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013h';
+const APP_V = '20261013i';
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -182,8 +182,9 @@ async function loadMockup(id) {
     cfg = FALLBACK_CFG[id]; // mở trực tiếp file:// 
   }
   S.cfg = cfg;
-  S.layers = []; // mockup mới -> layers mới
-  S.activeLayerId = null;
+  // Đổi kiểu áo: GIỮ NGUYÊN layers (vị trí tương đối 0-1 + cỡ cm giữ nguyên)
+  // để so sánh cùng hình in trên các kiểu áo khác nhau. Chỉ reset khi mở file .cm.
+  if (!S.layers) { S.layers = []; S.activeLayerId = null; }
   syncProcVisibility();
   S.baseImg = await loadImage(cfg.fileAnh);
   S._tintBase = null; // đổi mockup -> tính lại nền nhuộm
@@ -1745,12 +1746,12 @@ async function openProjectFile(file) {
 
 // Khôi phục workspace từ object project (dùng chung cho mở file)
 async function openProjectObj(proj) {
+  // Mở file .cm: thay thế toàn bộ workspace -> xóa layers trước
+  S.layers = [];
+  S.activeLayerId = null;
   if (proj.mockupId !== S.mockupId) {
     await loadMockup(proj.mockupId);
     $('selMockup').value = proj.mockupId;
-  } else {
-    S.layers = [];
-    S.activeLayerId = null;
   }
   // Tương thích file cũ (placements theo vị trí) -> chuyển thành layers
   const oldPlacements = proj.placements || [];
