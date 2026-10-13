@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013e';
+const APP_V = '20261013f';
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -691,23 +691,37 @@ wrap.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
 
 // Nhận file upload, phân loại theo đuôi file
 async function handleFiles(files) {
-  const f = files && files[0];
-  if (!f) return;
+  const list = Array.from(files || []);
+  if (!list.length) return;
+  const batch = list.length > 1;
+  if (batch) toast(`Đang đọc ${list.length} file...`);
+  let ok = 0, fail = 0;
+  for (const f of list) {
+    if (await handleOneFile(f, batch)) ok++; else fail++;
+  }
+  if (batch) {
+    if (ok) toast(`Đã thêm ${ok} layer.` + (fail ? ` (${fail} file lỗi)` : ''));
+    else toast('Không đọc được file nào. Hãy thử PNG/JPG/WEBP/SVG.', 4000);
+  }
+}
+
+async function handleOneFile(f, quiet) {
   const ext = (f.name.split('.').pop() || '').toLowerCase();
-  toast('Đang đọc file...');
+  if (!quiet) toast('Đang đọc file...');
   try {
     if (['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
-      await setArtwork(await rasterFromFile(f), f.name, 'raster', null);
+      await setArtwork(await rasterFromFile(f), f.name, 'raster', null, quiet);
     } else if (ext === 'svg') {
       const text = await f.text();
       const cv = await rasterizeSVG(text, 1600);
-      await setArtwork(cv, f.name, 'svg-file', text); // giữ SVG gốc để xuất file in
+      await setArtwork(cv, f.name, 'svg-file', text, quiet); // giữ SVG gốc để xuất file in
     } else if (['ai', 'eps', 'pdf'].includes(ext)) {
       const cv = await rasterFromPDF(f); // thử đọc như PDF (file .ai thường có nhân PDF)
-      await setArtwork(cv, f.name, 'raster', null);
+      await setArtwork(cv, f.name, 'raster', null, quiet);
     } else {
       throw new Error('UNSUPPORTED');
     }
+    return true;
   } catch (err) {
     console.error(err);
     if (err && err.message === 'PDF_READ_FAIL') {
@@ -715,8 +729,9 @@ async function handleFiles(files) {
     } else if (err && err.message === 'PDFJS_MISSING') {
       toast('Thiếu thư viện PDF.js (cần mạng ở lần đầu). Hãy tải file dưới dạng PNG/JPG/SVG.', 5000);
     } else {
-      toast('Không đọc được file này. Hãy thử PNG/JPG/WEBP/SVG.', 4000);
+      toast(`Không đọc được file "${f.name}". Hãy thử PNG/JPG/WEBP/SVG.`, 4000);
     }
+    return false;
   }
 }
 
@@ -777,7 +792,7 @@ async function rasterFromPDF(file) {
 
 // Nhận artwork mới: tạo 1 LAYER mới (kiểu Photoshop) đặt ở giữa ngực trước
 // với cỡ in mặc định, rồi đánh giá chất lượng ở đúng khổ đó.
-async function setArtwork(rasterCanvas, name, kind, svgText) {
+async function setArtwork(rasterCanvas, name, kind, svgText, quiet) {
   const w = rasterCanvas.width, h = rasterCanvas.height;
   if (!w || !h) throw new Error('EMPTY');
   const art = { raster: rasterCanvas, svgText, w, h, aspect: w / h, name, kind, colorCount: 0, typeLabel: '', brightness: 1 };
@@ -796,7 +811,7 @@ async function setArtwork(rasterCanvas, name, kind, svgText) {
   assess();
   render(); renderLayerList(); updateSelPanel(); checkWarnings();
   updateSelPanel();
-  toast('Đã thêm layer mới — kéo để di chuyển tự do.');
+  if (!quiet) toast('Đã thêm layer mới — kéo để di chuyển tự do.');
 }
 
 // ---------- Khử nền trắng ----------
@@ -1332,11 +1347,8 @@ function checkWarnings() {
 
 // Panel thông số áo + tỉ lệ px/cm hiện tại
 function updateShirtPanel() {
-  const a = S.cfg.ao;
   $('shirtInfo').innerHTML =
-    `Áo: <b>${esc(a.kieu)}</b>, size ${esc(a.size)} — ` +
-    `Ngang ngực <b>${fmt(a.ngangNgucCm)}</b> cm, Dài <b>${fmt(a.daiAoCm)}</b> cm` +
-    `<br>Màu áo: <b>${esc(S.shirtColorName)}</b> <span class="muted small">(${esc(S.shirtColor)})</span>` +
+    `Màu áo: <b>${esc(S.shirtColorName)}</b> <span class="muted small">(${esc(S.shirtColor)})</span>` +
     `<br><span class="muted small">Tỉ lệ ảnh: ${fmt(pxPerCm(), 2)} px/cm</span>`;
 }
 
@@ -1584,23 +1596,17 @@ function setActiveLayer(id, silent) {
 }
 
 // =====================================================================
-// PHẦN 5: Lưu / mở lại file làm việc (localStorage, theo tên khách + mã đơn)
+// PHẦN 5: File làm việc .cm (JSON) — Lưu = tải file về máy, Mở = mở file
 // =====================================================================
-const LS_KEY = 'mockupStudioProjects';
 
-function lsAll() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); }
-  catch (e) { return {}; }
-}
-function lsPut(all) {
-  localStorage.setItem(LS_KEY, JSON.stringify(all));
-}
-function projectFileName() {
-  return `${cleanName($('inpCust').value, 'khach')}-${cleanName($('inpCode').value, 'don')}`;
+// Tên file an toàn cho mã đơn (giữ nguyên chữ hoa/dấu, chỉ bỏ ký tự cấm)
+function cmFileName(s, fallback) {
+  const t = String(s || '').replace(/[\\/:*?"<>|]/g, '-').trim();
+  return (t || fallback || 'mockup') + '.cm';
 }
 
-// Lưu project: toàn bộ layers (artwork dạng PNG dataURL + vị trí/cỡ) theo tên khách + mã đơn
-function saveProject() {
+// Thu thập toàn bộ state hiện tại thành object project
+function buildProject() {
   const layers = [];
   for (const l of S.layers) {
     if (!l.art) continue;
@@ -1609,7 +1615,7 @@ function saveProject() {
       artDataURL = l.art.raster.toDataURL('image/png');
     } catch (e) {
       toast('File quá lớn, không lưu được ảnh. Hãy giảm phóng nét rồi lưu lại.', 4500);
-      return;
+      return null;
     }
     layers.push({
       id: l.id, name: l.name, visible: l.visible !== false,
@@ -1622,140 +1628,118 @@ function saveProject() {
       x: l.x, y: l.y, wCm: l.wCm,
     });
   }
-  if (!layers.length) { toast('Chưa có layer nào để lưu.'); return; }
-  const proj = {
+  if (!layers.length) { toast('Chưa có layer nào để lưu.'); return null; }
+  const d = new Date();
+  const stamp = d.getFullYear() +
+    String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '-' +
+    String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0');
+  return {
+    app: 'mockup-studio', fmt: 1,
     tenKhach: $('inpCust').value || '', maDon: $('inpCode').value || '',
     ngay: $('inpDate').value || '', mockupId: S.mockupId,
     phuongPhapIn: $('selMethod').value, chestCm: S.cfg.ao.ngangNgucCm,
     activeLayerId: S.activeLayerId, layers,
     printColor: { ...S.printColor },
     shirtColor: S.shirtColor, shirtColorName: S.shirtColorName,
-    savedAt: new Date().toISOString(),
+    savedAt: d.toISOString(), stamp,
   };
-  const name = projectFileName();
-  try {
-    const all = lsAll();
-    const existed = !!all[name];
-    all[name] = proj;
-    lsPut(all);
-    renderSavedList();
-    toast(existed ? `Đã ghi đè file "${name}".` : `Đã lưu file "${name}".`);
-  } catch (e) {
-    toast('Không lưu được (bộ nhớ trình duyệt đầy?).', 4000);
-  }
 }
 
-// Mở lại project: khôi phục mockup + toàn bộ placements + artwork
-async function openProject(name) {
-  const proj = lsAll()[name];
-  if (!proj) { toast('Không tìm thấy file.'); return; }
+// Lưu file: tải .cm về máy, tên theo mã đơn hàng
+function saveProjectFile() {
+  const proj = buildProject();
+  if (!proj) return;
+  const fname = cmFileName(proj.maDon, 'mockup-' + proj.stamp);
+  const blob = new Blob([JSON.stringify(proj)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  toast(`Đã tải file "${fname}".`);
+}
+
+// Mở file .cm: đọc JSON rồi khôi phục toàn bộ workspace
+async function openProjectFile(file) {
+  if (!file) return;
   toast('Đang mở file...');
   try {
-    if (proj.mockupId !== S.mockupId) {
-      await loadMockup(proj.mockupId);
-      $('selMockup').value = proj.mockupId;
-    } else {
-      S.layers = [];
-      S.activeLayerId = null;
-    }
-    // Tương thích file cũ (placements theo vị trí) -> chuyển thành layers
-    const oldPlacements = proj.placements || [];
-    for (const sp of oldPlacements) {
-      const raster = await loadImage(sp.artDataURL);
-      S.layers.push({
-        id: 'L' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36),
-        name: (sp.name || 'layer') + '',
-        visible: true,
-        art: {
-          raster, svgText: sp.svgText || null,
-          w: sp.w, h: sp.h, aspect: sp.aspect, name: sp.name,
-          kind: sp.kind, colorCount: sp.colorCount, typeLabel: sp.typeLabel,
-        },
-        x: sp.design ? sp.design.cx : 0.25,
-        y: sp.design ? sp.design.cy : 0.47,
-        wCm: sp.design ? sp.design.wCm : 28,
-      });
-    }
-    for (const sl of proj.layers || []) {
-      const raster = await loadImage(sl.artDataURL);
-      S.layers.push({
-        id: sl.id || ('L' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36)),
-        name: sl.name || 'layer',
-        visible: sl.visible !== false,
-        art: {
-          raster, svgText: sl.svgText || null,
-          w: sl.w, h: sl.h, aspect: sl.aspect, name: sl.name,
-          kind: sl.kind, colorCount: sl.colorCount, typeLabel: sl.typeLabel,
-          brightness: (typeof sl.brightness === 'number') ? sl.brightness : 1,
-        },
-        x: sl.x, y: sl.y, wCm: sl.wCm,
-      });
-    }
-    S.activeLayerId = (proj.activeLayerId && S.layers.some((l) => l.id === proj.activeLayerId))
-      ? proj.activeLayerId
-      : (S.layers.length ? S.layers[S.layers.length - 1].id : null);
-    $('inpCust').value = proj.tenKhach || '';
-    $('inpCode').value = proj.maDon || '';
-    if (proj.ngay) $('inpDate').value = proj.ngay;
-    if (proj.phuongPhapIn) $('selMethod').value = proj.phuongPhapIn;
-    if (proj.chestCm > 0) {
-      S.cfg.ao.ngangNgucCm = proj.chestCm;
-      $('inpChest').value = proj.chestCm;
-    }
-    if (proj.printColor && proj.printColor.mode) {
-      S.printColor = { mode: proj.printColor.mode, color: proj.printColor.color || '#1a1a1a' };
-      syncColorUI();
-    }
-    if (proj.shirtColor) {
-      S.shirtColor = proj.shirtColor;
-      S.shirtColorName = proj.shirtColorName || proj.shirtColor;
-      syncShirtColorUI();
-    }
-    updateSelPanel();
-    syncSizeInputs(); syncProcVisibility(); assess();
-    render(); renderLayerList(); updateShirtPanel(); updateSelPanel(); checkWarnings();
-    toast(`Đã mở file "${name}".`);
+    const proj = JSON.parse(await file.text());
+    if (!proj || !Array.isArray(proj.layers)) throw new Error('BAD_FMT');
+    await openProjectObj(proj);
+    toast(`Đã mở file "${file.name}".`);
   } catch (e) {
     console.error(e);
-    toast('Mở file thất bại (dữ liệu lưu có thể đã hỏng).', 4000);
+    toast('Mở file thất bại (file .cm không đúng định dạng).', 4000);
   }
 }
 
-// Danh sách file đã lưu: mở lại / xóa
-function renderSavedList() {
-  const el = $('savedList');
-  const all = lsAll();
-  const names = Object.keys(all).sort((a, b) =>
-    String(all[b].savedAt || '').localeCompare(String(all[a].savedAt || '')));
-  if (!names.length) {
-    el.innerHTML = '<div class="muted small">Chưa lưu file nào.</div>';
-    return;
+// Khôi phục workspace từ object project (dùng chung cho mở file)
+async function openProjectObj(proj) {
+  if (proj.mockupId !== S.mockupId) {
+    await loadMockup(proj.mockupId);
+    $('selMockup').value = proj.mockupId;
+  } else {
+    S.layers = [];
+    S.activeLayerId = null;
   }
-  el.innerHTML = '';
-  names.forEach((name) => {
-    const p = all[name];
-    const nPl = (p.layers || p.placements || []).length;
-    const d = document.createElement('div');
-    d.className = 'saved-item';
-    const day = String(p.savedAt || '').slice(0, 10);
-    d.innerHTML =
-      `<div><b>${esc(name)}</b></div>` +
-      `<div class="meta">${esc(p.mockupId || '')} · ${nPl} layer · ${esc(day)}</div>` +
-      `<div class="acts"></div>`;
-    const bO = document.createElement('button');
-    bO.className = 'btn small primary'; bO.textContent = 'Mở lại';
-    bO.onclick = () => openProject(name);
-    const bD = document.createElement('button');
-    bD.className = 'btn small'; bD.textContent = 'Xóa';
-    bD.onclick = () => {
-      if (confirm(`Xóa file "${name}"?`)) {
-        const a2 = lsAll(); delete a2[name]; lsPut(a2);
-        renderSavedList(); toast('Đã xóa file.');
-      }
-    };
-    d.querySelector('.acts').append(bO, bD);
-    el.appendChild(d);
-  });
+  // Tương thích file cũ (placements theo vị trí) -> chuyển thành layers
+  const oldPlacements = proj.placements || [];
+  for (const sp of oldPlacements) {
+    const raster = await loadImage(sp.artDataURL);
+    S.layers.push({
+      id: 'L' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36),
+      name: (sp.name || 'layer') + '',
+      visible: true,
+      art: {
+        raster, svgText: sp.svgText || null,
+        w: sp.w, h: sp.h, aspect: sp.aspect, name: sp.name,
+        kind: sp.kind, colorCount: sp.colorCount, typeLabel: sp.typeLabel,
+      },
+      x: sp.design ? sp.design.cx : 0.25,
+      y: sp.design ? sp.design.cy : 0.47,
+      wCm: sp.design ? sp.design.wCm : 28,
+    });
+  }
+  for (const sl of proj.layers || []) {
+    const raster = await loadImage(sl.artDataURL);
+    S.layers.push({
+      id: sl.id || ('L' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36)),
+      name: sl.name || 'layer',
+      visible: sl.visible !== false,
+      art: {
+        raster, svgText: sl.svgText || null,
+        w: sl.w, h: sl.h, aspect: sl.aspect, name: sl.name,
+        kind: sl.kind, colorCount: sl.colorCount, typeLabel: sl.typeLabel,
+        brightness: (typeof sl.brightness === 'number') ? sl.brightness : 1,
+      },
+      x: sl.x, y: sl.y, wCm: sl.wCm,
+    });
+  }
+  S.activeLayerId = (proj.activeLayerId && S.layers.some((l) => l.id === proj.activeLayerId))
+    ? proj.activeLayerId
+    : (S.layers.length ? S.layers[S.layers.length - 1].id : null);
+  $('inpCust').value = proj.tenKhach || '';
+  $('inpCode').value = proj.maDon || '';
+  if (proj.ngay) $('inpDate').value = proj.ngay;
+  if (proj.phuongPhapIn) $('selMethod').value = proj.phuongPhapIn;
+  if (proj.chestCm > 0) {
+    S.cfg.ao.ngangNgucCm = proj.chestCm;
+    $('inpChest').value = proj.chestCm;
+  }
+  if (proj.printColor && proj.printColor.mode) {
+    S.printColor = { mode: proj.printColor.mode, color: proj.printColor.color || '#1a1a1a' };
+    syncColorUI();
+  }
+  if (proj.shirtColor) {
+    S.shirtColor = proj.shirtColor;
+    S.shirtColorName = proj.shirtColorName || proj.shirtColor;
+    syncShirtColorUI();
+  }
+  updateSelPanel();
+  syncSizeInputs(); syncProcVisibility(); assess();
+  render(); renderLayerList(); updateShirtPanel(); updateSelPanel(); checkWarnings();
 }
 
 // ---------- Khởi động ----------
@@ -1869,8 +1853,12 @@ async function init() {
   renderLayerList();
 
   // Lưu / mở file làm việc
-  $('btnSave').onclick = saveProject;
-  renderSavedList();
+  $('btnSaveCm').onclick = saveProjectFile;
+  $('btnOpenCm').onclick = () => $('fileCmInput').click();
+  $('fileCmInput').addEventListener('change', (e) => {
+    openProjectFile(e.target.files && e.target.files[0]);
+    e.target.value = '';
+  });
 
   // Modal so sánh / preview
   $('cmpApply').onclick = () => {
