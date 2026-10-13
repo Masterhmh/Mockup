@@ -7,10 +7,39 @@
   --line: #e2e5ea;
   --accent: #0e7c5b;
   --accent-d: #0a5f46;
+  --accent-soft: #eef7f3;
   --warn: #b45309;
+  --warn-bg: #fef3c7;
   --danger: #b91c1c;
+  --danger-bg: #fee2e2;
   --ok: #15803d;
+  --ok-bg: #dcfce7;
+  --input-bg: #ffffff;
+  --hover: #eef0f3;
+  --shadow: 0 1px 3px rgba(16, 24, 40, .08);
   --radius: 10px;
+  color-scheme: light;
+}
+/* Chế độ tối */
+[data-theme="dark"] {
+  --bg: #1a1d21;
+  --card: #24282e;
+  --ink: #e8eaed;
+  --muted: #9aa1ad;
+  --line: #3a3f46;
+  --accent: #34b183;
+  --accent-d: #2a9a70;
+  --accent-soft: #1d2f28;
+  --warn: #e8a33d;
+  --warn-bg: #3a2f1a;
+  --danger: #e86a6a;
+  --danger-bg: #3a2222;
+  --ok: #4ade80;
+  --ok-bg: #1d3226;
+  --input-bg: #2e333a;
+  --hover: #2e333a;
+  --shadow: 0 1px 3px rgba(0, 0, 0, .35);
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body {
@@ -47,15 +76,15 @@ body {
 .fld.inline { margin-top: 8px; }
 .fld input, .fld select {
   font-size: 14px; padding: 7px 9px; border: 1px solid var(--line);
-  border-radius: 8px; background: #fff; color: var(--ink); min-width: 0;
+  border-radius: 8px; background: var(--input-bg); color: var(--ink); min-width: 0;
 }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 .btn {
   font-size: 14px; padding: 8px 14px; border-radius: 8px; cursor: pointer;
-  border: 1px solid var(--line); background: #fff; color: var(--ink);
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
 }
-.btn:hover { background: #eef0f3; }
+.btn:hover { background: var(--hover); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.primary:hover { background: var(--accent-d); }
 .btn.small { font-size: 13px; padding: 6px 10px; }
@@ -64,10 +93,10 @@ body {
 .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
 .warnbar {
-  background: #fef3c7; border: 1px solid #f5c66b; color: #7c4a03;
+  background: var(--warn-bg); border: 1px solid var(--warn); color: var(--warn);
   border-radius: var(--radius); padding: 8px 12px; margin-bottom: 10px; font-size: 13px;
 }
-.warnbar.danger { background: #fee2e2; border-color: #f3a3a3; color: var(--danger); }
+.warnbar.danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 
 .canvas-wrap {
   position: relative; background: #e4e4e4; border-radius: var(--radius);
@@ -111,9 +140,9 @@ body {
 
 .dpi { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 14px; }
 .badge { padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: 13px; }
-.badge.ok { background: #dcfce7; color: var(--ok); }
-.badge.warn { background: #fef3c7; color: var(--warn); }
-.badge.bad { background: #fee2e2; color: var(--danger); }
+.badge.ok { background: var(--ok-bg); color: var(--ok); }
+.badge.warn { background: var(--warn-bg); color: var(--warn); }
+.badge.bad { background: var(--danger-bg); color: var(--danger); }
 
 /* ---- modal ---- */
 .modal {
@@ -122,7 +151,7 @@ body {
 }
 .modal[hidden] { display: none; }
 .modal-box {
-  background: #fff; border-radius: 12px; padding: 18px; max-width: 560px; width: 100%;
+  background: var(--card); border-radius: 12px; padding: 18px; max-width: 560px; width: 100%;
   max-height: 92vh; overflow: auto;
 }
 .modal-box.wide { max-width: 980px; }
@@ -162,10 +191,10 @@ body {
 .colorpick .fld { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
 .colorpick .chk { margin-bottom: 6px; font-size: 13.5px; }
 .colorrow { display: flex; align-items: center; gap: 10px; margin: 2px 0 2px 24px; }
-.colorrow input[type="color"] { width: 42px; height: 32px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; background: #fff; }
+.colorrow input[type="color"] { width: 42px; height: 32px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; background: var(--input-bg); }
 .swatches { display: flex; gap: 6px; flex-wrap: wrap; }
 .swatches .sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
-.swatches .sw.on { border-color: var(--ink); box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--ink); }
+.swatches .sw.on { border-color: var(--ink); box-shadow: 0 0 0 2px var(--card), 0 0 0 3px var(--ink); }
 
 /* ---- panel Nâng cao (details thu gọn) ---- */
 details.panel.adv summary {
@@ -199,9 +228,9 @@ details.panel.adv .colorrow { margin-left: 0; }
 .layer-row {
   display: flex; align-items: center; gap: 8px;
   border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px;
-  cursor: pointer; background: #fff;
+  cursor: pointer; background: var(--card);
 }
-.layer-row:hover { background: #f6f7f9; }
+.layer-row:hover { background: var(--hover); }
 .layer-row.active { border-color: var(--accent); background: #eef7f3; }
 /* Layer được chọn thêm (multi-select): viền hồng để phân biệt với layer chính */
 .layer-row.multisel { border-color: #ec4899; background: #fdf2f8; }
@@ -226,7 +255,7 @@ details.panel.adv .colorrow { margin-left: 0; }
   font-size: 14px; line-height: 1; color: var(--ink);
   display: flex; align-items: center; justify-content: center;
 }
-.icon-btn:hover { background: #eef0f3; }
+.icon-btn:hover { background: var(--hover); }
 .icon-btn.ly-del { color: var(--danger); font-size: 17px; font-weight: 700; }
 
 /* ---- Thanh căn chỉnh nhiều layer ---- */
@@ -238,9 +267,83 @@ details.panel.adv .colorrow { margin-left: 0; }
   display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px;
 }
 .align-label { grid-column: 1 / -1; font-weight: 600; margin-bottom: 2px; }
-.align-btn { padding: 4px; line-height: 0; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+.align-btn { padding: 4px; line-height: 0; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; }
 .align-btn svg { width: 28px; height: 28px; }
-.align-btn svg rect { fill: #111; }
-.align-btn svg line { stroke: #111; stroke-width: 1; }
 .align-btn:hover { border-color: var(--accent); }
 .align-btn:disabled { opacity: 0.35; }
+
+/* ---- Icon flat hiện đại (dùng currentColor, tự đổi theo theme) ---- */
+.flat-icon, .align-btn svg, .theme-toggle svg, .icon-btn svg {
+  fill: currentColor;
+  stroke: none;
+}
+.align-btn svg .ax {
+  fill: none; stroke: currentColor; stroke-width: 1.5; opacity: .55;
+}
+.align-btn svg rect { fill: currentColor; }
+.theme-toggle svg { width: 18px; height: 18px; }
+.theme-toggle .icon-sun { display: none; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+.theme-toggle svg path, .theme-toggle svg circle {
+  fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round;
+}
+.theme-toggle svg.icon-moon path { fill: currentColor; stroke: none; }
+#btnLock svg { width: 14px; height: 14px; vertical-align: -2px; }
+#btnLock svg rect { fill: currentColor; }
+#btnLock svg path { fill: none; stroke: currentColor; stroke-width: 2; }
+/* Icon nút trong dòng layer */
+.icon-btn svg { width: 15px; height: 15px; }
+.icon-btn svg path, .icon-btn svg circle, .icon-btn svg line {
+  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.icon-btn svg .fill { fill: currentColor; stroke: none; }
+.icon-btn.ly-del { color: var(--danger); }
+
+/* ---- Nút toggle theme trên toolbar ---- */
+.theme-toggle {
+  margin-left: auto; padding: 8px 10px; line-height: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+/* ---- Polish: panel + canvas chuyên nghiệp ---- */
+.panel { box-shadow: var(--shadow); }
+.panel h2 {
+  font-size: 14px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--ink);
+  padding-bottom: 8px; border-bottom: 1px solid var(--line);
+}
+.canvas-wrap { box-shadow: var(--shadow); }
+/* Viền canvas tinh tế hơn khi có nội dung */
+.canvas-wrap.fitted { border-color: var(--line); }
+.topbar h1 { font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
+/* Nút primary nổi bật hơn */
+.btn.primary { font-weight: 600; box-shadow: var(--shadow); }
+/* Input focus rõ ràng */
+.fld input:focus, .fld select:focus, .size-row input:focus {
+  outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent);
+}
+/* Toast theo theme */
+.toast { background: var(--ink); color: var(--bg); }
+/* Modal theo theme */
+.modal-box { box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+/* Layer row active rõ ràng */
+.layer-row.active { border-color: var(--accent); background: var(--accent-soft); }
+.layer-row.multisel { border-color: #ec4899; background: #fdf2f8; }
+[data-theme="dark"] .layer-row.multisel { background: #2e1f2e; }
+/* Group badge theo theme */
+.group-badge {
+  color: #7c3aed; background: #ede9fe; border: 1px solid #c4b5fd;
+}
+[data-theme="dark"] .group-badge {
+  color: #c4b5fd; background: #2e2440; border-color: #6d5aa8;
+}
+/* Thumbnail checkerboard nhẹ để thấy vùng trong suốt */
+.layer-thumb {
+  background-image:
+    linear-gradient(45deg, var(--line) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--line) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--line) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--line) 75%);
+  background-size: 10px 10px; background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+}
