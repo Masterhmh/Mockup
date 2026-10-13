@@ -94,6 +94,9 @@ body {
 .size-row label { display: flex; align-items: center; gap: 6px; font-size: 14px; }
 .size-row input { width: 76px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; font-size: 14px; }
 .size-row .x { color: var(--muted); }
+/* Khối nút preset vị trí in trong panel Layer đang chọn */
+.preset-block { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.preset-block .btn-grid.presets { grid-template-columns: repeat(3, 1fr); margin-top: 6px; }
 .hint { color: var(--muted); font-size: 13px; margin: 8px 2px 0; }
 
 /* ---- panel ---- */
