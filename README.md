@@ -50,13 +50,20 @@ mockups/polo.json    config áo polo   (ảnh Polo.png  3469x1933, nền trong s
   tự do (không giới hạn vị trí), kéo 4 tay cầm góc để thu/phóng (luôn giữ đúng
   tỉ lệ gốc), bấm nút × đỏ để xóa.
 - **Panel Layers** (sidebar): thumbnail + tên file, bấm để chọn, nút 👁 ẩn/hiện,
-  ↑↓ đổi thứ tự chồng lớp, × xóa.
+  ↑↓ đổi thứ tự chồng lớp, × xóa. Badge "⧉ Nhóm" cho layer thuộc group.
+- **Group/Ungroup**: chọn ≥2 layer rồi `Ctrl+G` để group (kéo/xóa 1 layer sẽ áp dụng
+  cả group), `Ctrl+Shift+G` để bỏ group.
+- **Căn chỉnh kiểu Photoshop**: thanh Align/Distribute với icon SVG (6 căn + 6 giãn đều),
+  giữ Ctrl/Shift + click để chọn nhiều layer, kéo có đường gióng magenta + hút.
 - Mọi nút xử lý ảnh (vector, phóng nét, khử nền, crop), đánh giá DPI, ô kích thước
   cm đều áp dụng cho **layer đang chọn**.
+- **Mã đơn tự sinh**: `CM_POD_` + 7 chữ số (hiện ở ô readonly khi lưu/xuất).
+  Tên file ZIP = `{Tên KH}-{Mã đơn}.zip` (trống tên KH thì chỉ `{Mã đơn}.zip`).
 - Xuất file: "Xuất mockup" vẽ tất cả layer hiện; "Xuất file in (ZIP)" tải gói ZIP gồm
   **mockup.png** + từng file in **300dpi** nền trong suốt đúng khổ cm (tên theo layer)
-  + **thong-tin.txt** (vị trí mặt trước/lưng, kích thước từng hình cho nhà in đặt đúng chỗ),
-  tên file ZIP theo mã đơn; "Xuất file in SVG" xuất từng layer vector riêng.
+  + **thong-tin.txt** (tên KH, mã đơn, vị trí mặt trước/lưng, kích thước từng hình);
+  "Xuất file in SVG (ZIP)" tải gói ZIP gồm **mockup.png** + từng file **SVG** đúng khổ cm
+  + **thong-tin.txt**.
 - Cảnh báo trùng màu: hình có độ sáng gần giống màu áo (chênh < 0.3, cả sáng-trên-sáng
   và tối-trên-tối) hiện trong thanh cảnh báo + toast khi thêm/đổi màu áo.
 
