@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261013z">
+<link rel="stylesheet" href="css/style.css?v=20261014a">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -104,7 +104,7 @@
           <button class="btn small align-btn" data-align="distR" title="Gi&#227;n &#273;&#7873;u c&#7841;nh ph&#7843;i (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><path d="M20 3v18" class="ax"/><rect x="3" y="4" width="4" height="5" rx="1"/><rect x="10" y="9.5" width="4" height="5" rx="1"/><rect x="13" y="15" width="4" height="5" rx="1"/></svg></button>
         </div>
       </div>
-      <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · <b>giữ Shift khi kéo</b> để đi thẳng ngang/dọc · kéo góc để thu/phóng.<br>Giữ <b>Ctrl</b> (hoặc <b>Shift</b>) + click để chọn nhiều layer.<br>Phím tắt (sau khi click vào canvas): Ctrl+C copy · Ctrl+V paste · Del xóa · Ctrl+G group · Ctrl+Shift+G bỏ group · <b>Ctrl+Z hoàn tác</b> · <b>Ctrl+Shift+Z làm lại</b>.</p>
+      <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · <b>giữ Shift khi kéo</b> để đi thẳng ngang/dọc · kéo góc để thu/phóng.<br>Giữ <b>Ctrl</b> (hoặc <b>Shift</b>) + click để chọn nhiều layer.<br>Phím tắt (làm việc với layer, sau khi click vào canvas): Ctrl+C copy · Ctrl+V paste · Del xóa · Ctrl+G group · Ctrl+Shift+G bỏ group.<br><b>Ctrl+Z hoàn tác · Ctrl+Shift+Z (hoặc Ctrl+Y) làm lại</b> — hoạt động mọi lúc, không cần click canvas trước.</p>
     </div>
 
     <div class="panel" id="panelSel">
@@ -205,7 +205,7 @@
         <input type="number" id="qQty" min="1" step="1" value="1">
       </label>
       <label class="fld">Đơn giá (VNĐ)
-        <input type="number" id="qPrice" min="0" step="1000" placeholder="0">
+        <input type="text" id="qPrice" inputmode="numeric" placeholder="0">
       </label>
       <div id="quoteTotal" class="quote-total"></div>
       <button class="btn primary" id="btnExpQuote" style="margin-top:8px" title="Tạo ảnh báo giá (PNG) để gửi khách hàng">Xuất ảnh báo giá</button>
@@ -264,6 +264,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013z"></script>
+<script src="js/app.js?v=20261014a"></script>
 </body>
 </html>
