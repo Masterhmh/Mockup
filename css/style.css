@@ -46,7 +46,7 @@
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--font-family);
-  font-size: 15px; line-height: 1.5;
+  font-size: 14px; line-height: 1.5;
 }
 /* ---- Header: logo + title căn giữa ---- */
 .topbar { padding: 14px 20px 10px; }
@@ -87,7 +87,7 @@ body {
 /* ---- khu canvas ---- */
 .toolbar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; margin-bottom: 10px; }
 .fld { display: flex; flex-direction: column; font-size: 13px; color: var(--muted); gap: 4px; }
-.fld-label { font-size: 13px; color: var(--muted); }
+.fld-label { font-size: 12.5px; color: var(--muted); }
 .fld-label b { color: var(--ink); }
 .toolbar .swatches .sw { width: 26px; height: 26px; }
 .fld.inline { margin-top: 8px; }
@@ -134,7 +134,7 @@ body {
   align-items: center; justify-content: center; text-align: center;
   color: #6b7280; font-size: 17px; pointer-events: none; padding: 20px;
 }
-.drophint small { font-size: 13px; color: #9aa1ad; }
+.drophint small { font-size: 12.5px; color: #9aa1ad; }
 .canvas-wrap.dragover { outline: 3px dashed var(--accent); outline-offset: -3px; }
 /* Canvas đang active (đã click vào) -> viền xanh lá để biết phím tắt layer đang bật */
 .canvas-wrap.canvas-on { outline: 2px solid var(--accent); outline-offset: -2px; }
@@ -146,23 +146,42 @@ body {
 }
 /* size-row nằm trong panel thì gọn lại, không cần khung card lồng nhau */
 .panel .size-row { background: transparent; border: none; padding: 8px 0 0; margin-top: 8px; }
-.size-row label { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.size-row label { display: flex; align-items: center; gap: 6px; font-size: 13px; }
 .size-row input { width: 76px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; font-size: 14px; }
 .size-row .x { color: var(--muted); }
 /* Khối nút preset vị trí in trong panel Layer đang chọn */
 .preset-block { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); }
 .preset-block .btn-grid.presets { grid-template-columns: repeat(3, 1fr); margin-top: 6px; }
-.hint { color: var(--muted); font-size: 13px; margin: 8px 2px 0; }
+.hint { color: var(--muted); font-size: 12.5px; margin: 8px 2px 0; }
 
 /* ---- panel ---- */
 .panels { display: flex; flex-direction: column; gap: 12px; }
-.panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
-.panel h2 { margin: 0 0 8px; font-size: 15px; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 0; overflow: hidden; }
+/* Dải tiêu đề đen kiểu header (luôn đen ở cả 2 theme) */
+.panel > h2, .panel > .hist-head {
+  background: #000; color: #fff;
+  font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  margin: 0; padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.panel > h2 { border: none; }
+.hist-head { display: flex; align-items: center; justify-content: space-between; }
+.hist-head h2 { margin: 0; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #fff; }
+/* Nút ghost trên dải đen */
+.hist-head .btn { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.55); }
+.hist-head .btn:hover { background: #fff; color: #000; border-color: #fff; }
+/* Thân panel: thụt lề đều dưới dải */
+.panel > *:not(h2):not(.hist-head) { padding-left: 14px; padding-right: 14px; }
+.panel > :nth-child(2) { padding-top: 12px; }
+.panel > :last-child { padding-bottom: 12px; }
+.panel h2 { margin: 0; }
 .panel .fld { margin-bottom: 8px; }
+/* Nhãn mục con trong panel (Thông số áo, Màu file in...) — cỡ phụ đồng bộ */
+.panel h3 { font-size: 12.5px; font-weight: 600; color: var(--ink); margin: 12px 0 6px; }
 .muted { color: var(--muted); }
 .small { font-size: 12.5px; }
 
-.dpi { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 14px; }
+.dpi { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 13px; }
 .badge { padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: 13px; }
 .badge.ok { background: var(--ok-bg); color: var(--ok); }
 .badge.warn { background: var(--warn-bg); color: var(--warn); }
@@ -179,12 +198,18 @@ body {
   max-height: 92vh; overflow: auto;
 }
 .modal-box.wide { max-width: 980px; }
-.modal-box h3 { margin: 0 0 10px; font-size: 17px; }
+/* Dải tiêu đề đen cho modal (luôn đen ở cả 2 theme, giống header) */
+.modal-box > h3 {
+  background: #000; color: #fff;
+  font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  margin: -18px -18px 14px; padding: 12px 18px;
+  border-radius: 11px 11px 0 0;
+}
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
 .crop-wrap { background: #222; border-radius: 8px; overflow: hidden; }
 #cropCanvas { display: block; width: 100%; touch-action: none; cursor: crosshair; }
 .cmp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.cmp-label { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.cmp-label { font-weight: 600; font-size: 12.5px; margin-bottom: 4px; }
 .cmp-scroll { overflow: auto; max-height: 62vh; border-radius: 8px;
   background: repeating-conic-gradient(#d7d7d7 0% 25%, #f2f2f2 0% 50%) 0 0 / 20px 20px; }
 .cmp-scroll canvas { display: block; image-rendering: pixelated; max-width: none; }
@@ -215,10 +240,9 @@ body {
   border-top-color: #fff; border-radius: 50%; animation: pspin .8s linear infinite; }
 @keyframes pspin { to { transform: rotate(360deg); } }
 /* Tiêu đề panel Lịch sử + nút "Xóa tất cả" */
-.hist-head { display: flex; align-items: center; justify-content: space-between; }
-.hist-head h2 { margin: 0 0 8px; }
+/* (đã gộp vào dải tiêu đề đen ở trên) */
 
-.chk { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink); cursor: pointer; user-select: none; }
+.chk { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); cursor: pointer; user-select: none; }
 .chk input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
 
 /* ---- chú thích màu các đường kẻ (legend) ---- */
@@ -231,7 +255,7 @@ body {
 
 /* ---- chọn màu file in ---- */
 .colorpick { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
-.colorpick .fld { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+.colorpick .fld { font-weight: 600; font-size: 12.5px; margin-bottom: 6px; }
 .colorpick .chk { margin-bottom: 6px; font-size: 13.5px; }
 .colorrow { display: flex; align-items: center; gap: 10px; margin: 2px 0 2px 24px; }
 .colorrow input[type="color"] { width: 42px; height: 32px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; background: var(--input-bg); }
@@ -264,7 +288,8 @@ details.panel.adv .colorrow { margin-left: 0; }
   .size-row { gap: 8px; padding: 8px 10px; }
   .size-row input { width: 64px; }
   .btn-grid { gap: 6px; }
-  .panel { padding: 10px 12px; }
+  .panel > *:not(h2):not(.hist-head) { padding-left: 12px; padding-right: 12px; }
+  .panel > h2, .panel > .hist-head { padding: 9px 12px; }
 }
 
 /* ---- Panel Layers (kiểu Photoshop) ---- */
@@ -379,8 +404,13 @@ details.panel.adv .colorrow { margin-left: 0; }
 .hint-link svg .dot { fill: currentColor; stroke: none; }
 /* Cửa sổ hướng dẫn: thân cuộn, tối đa 85vh */
 .guide-box { max-width: 640px; max-height: 85vh; display: flex; flex-direction: column; }
-.guide-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.guide-head h3 { margin: 0; }
+.guide-head {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #000; color: #fff;
+  margin: -18px -18px 8px; padding: 10px 18px;
+  border-radius: 11px 11px 0 0;
+}
+.guide-head h3 { margin: 0; color: #fff; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
 .guide-close { flex: 0 0 auto; }
 .guide-body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .guide-sec { margin: 0 0 14px; }
@@ -389,19 +419,15 @@ details.panel.adv .colorrow { margin-left: 0; }
   text-transform: uppercase; color: var(--ink);
 }
 .guide-sec ul { margin: 4px 0 0; padding-left: 18px; }
-.guide-sec li { margin: 3px 0; font-size: 13.5px; line-height: 1.55; color: var(--ink); }
+.guide-sec li { margin: 3px 0; font-size: 13px; line-height: 1.55; color: var(--ink); }
 .guide-quote {
-  margin: 6px 0; font-size: 13.5px; line-height: 1.6; color: var(--ink);
+  margin: 6px 0; font-size: 13px; line-height: 1.6; color: var(--ink);
   border-left: 3px solid var(--accent, #2F5ACF); padding-left: 10px;
 }
 
 /* ---- Polish: panel + canvas chuyên nghiệp ---- */
 .panel { box-shadow: var(--shadow); }
-.panel h2 {
-  font-size: 14px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .04em; color: var(--ink);
-  padding-bottom: 8px; border-bottom: 1px solid var(--line);
-}
+/* Tiêu đề panel đã thành dải đen ở trên — bỏ kiểu viền cũ */
 .canvas-wrap { box-shadow: var(--shadow); }
 /* Viền canvas tinh tế hơn khi có nội dung */
 .canvas-wrap.fitted { border-color: var(--line); }
@@ -612,7 +638,8 @@ details.panel.adv summary:hover { color: var(--accent); }
   .hint { font-size: 12px; margin-top: 6px; }
 
   /* Panel: gọn, nút dễ bấm */
-  .panel { padding: 10px; }
+  .panel > *:not(h2):not(.hist-head) { padding-left: 10px; padding-right: 10px; }
+  .panel > h2, .panel > .hist-head { padding: 9px 10px; }
   .dock .btn, .panels .btn { min-height: 40px; }
   .fld input, .fld select { max-width: 100%; min-width: 0; }
   .size-row input { width: 56px; }
@@ -630,7 +657,7 @@ details.panel.adv summary:hover { color: var(--accent); }
 .hist-row{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--card)}
 .hist-thumb{width:56px;height:56px;object-fit:contain;border-radius:6px;background:var(--hover);flex:none}
 .hist-info{flex:1;min-width:0;font-size:12.5px;line-height:1.45}
-.hist-info .hist-title{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-info .hist-title{font-weight:700;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hist-btns{display:flex;flex-direction:column;gap:4px;flex:none}
 .hist-btns .btn{padding:4px 10px;font-size:12px}
 
