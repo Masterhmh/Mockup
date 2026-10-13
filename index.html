@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Mockup In Áo</title>
-<link rel="stylesheet" href="css/style.css?v=20261013l">
+<link rel="stylesheet" href="css/style.css?v=20261013m">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -42,6 +42,10 @@
       <button id="btnOpenCm" class="btn" title="Mở file .cm để khôi phục toàn bộ công việc">Mở file (.cm)</button>
       <input type="file" id="fileCmInput" accept=".cm,.json" hidden>
       <label class="chk"><input type="checkbox" id="chkMeasure"> Hiện số đo</label>
+      <button id="btnTheme" class="btn theme-toggle" title="Chuyển chế độ sáng/tối" aria-label="Chuyển chế độ sáng/tối">
+        <svg viewBox="0 0 24 24" class="icon-moon"><path d="M20.4 14.2A8.5 8.5 0 0 1 9.8 3.6a.7.7 0 0 0-.9-.9 10 10 0 1 0 12.4 12.4.7.7 0 0 0-.9-.9z"/></svg>
+        <svg viewBox="0 0 24 24" class="icon-sun"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3L19 19M19 5l-1.7 1.7M6.7 17.3L5 19"/></svg>
+      </button>
       <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.pdf" multiple hidden>
     </div>
 
@@ -68,21 +72,21 @@
       <div id="alignBar" class="align-bar" hidden>
         <div class="align-row">
           <span class="muted small align-label">C&#259;n ch&#7881;nh:</span>
-          <button class="btn small align-btn" data-align="left" title="C&#259;n tr&#225;i"><svg viewBox="0 0 24 24"><line x1="3" y1="2" x2="3" y2="22"/><rect x="5" y="4" width="7" height="4"/><rect x="5" y="10" width="5" height="6"/><rect x="5" y="18" width="8" height="3"/></svg></button>
-          <button class="btn small align-btn" data-align="hcenter" title="C&#259;n gi&#7919;a ngang"><svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22"/><rect x="8.5" y="4" width="7" height="4"/><rect x="9.5" y="10" width="5" height="6"/><rect x="8" y="18" width="8" height="3"/></svg></button>
-          <button class="btn small align-btn" data-align="right" title="C&#259;n ph&#7843;i"><svg viewBox="0 0 24 24"><line x1="21" y1="2" x2="21" y2="22"/><rect x="12" y="4" width="7" height="4"/><rect x="14" y="10" width="5" height="6"/><rect x="11" y="18" width="8" height="3"/></svg></button>
-          <button class="btn small align-btn" data-align="top" title="C&#259;n tr&#234;n"><svg viewBox="0 0 24 24"><line x1="2" y1="3" x2="22" y2="3"/><rect x="4" y="5" width="4" height="7"/><rect x="10" y="5" width="6" height="5"/><rect x="18" y="5" width="3" height="8"/></svg></button>
-          <button class="btn small align-btn" data-align="vcenter" title="C&#259;n gi&#7919;a d&#7885;c"><svg viewBox="0 0 24 24"><line x1="2" y1="12" x2="22" y2="12"/><rect x="4" y="10" width="4" height="4"/><rect x="10" y="9" width="6" height="6"/><rect x="18" y="10.5" width="3" height="3"/></svg></button>
-          <button class="btn small align-btn" data-align="bottom" title="C&#259;n d&#432;&#7899;i"><svg viewBox="0 0 24 24"><line x1="2" y1="21" x2="22" y2="21"/><rect x="4" y="12" width="4" height="7"/><rect x="10" y="14" width="6" height="5"/><rect x="18" y="11" width="3" height="8"/></svg></button>
+          <button class="btn small align-btn" data-align="left" title="C&#259;n tr&#225;i"><svg viewBox="0 0 24 24"><path d="M4 3v18" class="ax"/><rect x="7" y="5" width="8" height="4" rx="1"/><rect x="7" y="11" width="6" height="4" rx="1"/><rect x="7" y="17" width="9" height="3" rx="1"/></svg></button>
+          <button class="btn small align-btn" data-align="hcenter" title="C&#259;n gi&#7919;a ngang"><svg viewBox="0 0 24 24"><path d="M12 3v18" class="ax"/><rect x="8" y="5" width="8" height="4" rx="1"/><rect x="9" y="11" width="6" height="4" rx="1"/><rect x="7.5" y="17" width="9" height="3" rx="1"/></svg></button>
+          <button class="btn small align-btn" data-align="right" title="C&#259;n ph&#7843;i"><svg viewBox="0 0 24 24"><path d="M20 3v18" class="ax"/><rect x="9" y="5" width="8" height="4" rx="1"/><rect x="11" y="11" width="6" height="4" rx="1"/><rect x="8" y="17" width="9" height="3" rx="1"/></svg></button>
+          <button class="btn small align-btn" data-align="top" title="C&#259;n tr&#234;n"><svg viewBox="0 0 24 24"><path d="M3 4h18" class="ax"/><rect x="5" y="7" width="4" height="8" rx="1"/><rect x="11" y="7" width="6" height="6" rx="1"/><rect x="19" y="7" width="3" height="9" rx="1" transform="translate(-4 0)"/></svg></button>
+          <button class="btn small align-btn" data-align="vcenter" title="C&#259;n gi&#7919;a d&#7885;c"><svg viewBox="0 0 24 24"><path d="M3 12h18" class="ax"/><rect x="5" y="8" width="4" height="8" rx="1"/><rect x="11" y="9" width="6" height="6" rx="1"/><rect x="15" y="10" width="4" height="4" rx="1"/></svg></button>
+          <button class="btn small align-btn" data-align="bottom" title="C&#259;n d&#432;&#7899;i"><svg viewBox="0 0 24 24"><path d="M3 20h18" class="ax"/><rect x="5" y="9" width="4" height="8" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/><rect x="15" y="8" width="4" height="9" rx="1"/></svg></button>
         </div>
         <div class="align-row">
           <span class="muted small align-label">Gi&#227;n &#273;&#7873;u:</span>
-          <button class="btn small align-btn" data-align="distT" title="Gi&#227;n &#273;&#7873;u c&#7841;nh tr&#234;n (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="2" y1="3" x2="22" y2="3"/><rect x="5" y="5" width="5" height="4"/><rect x="9" y="11" width="6" height="4"/><rect x="6" y="17" width="4" height="4"/></svg></button>
-          <button class="btn small align-btn" data-align="distVC" title="Gi&#227;n &#273;&#7873;u t&#226;m d&#7885;c (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="2" y1="12" x2="22" y2="12"/><rect x="5" y="3" width="5" height="4"/><rect x="9" y="10" width="6" height="4"/><rect x="6" y="17" width="4" height="4"/></svg></button>
-          <button class="btn small align-btn" data-align="distB" title="Gi&#227;n &#273;&#7873;u c&#7841;nh d&#432;&#7899;i (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="2" y1="21" x2="22" y2="21"/><rect x="5" y="3" width="5" height="4"/><rect x="9" y="10" width="6" height="4"/><rect x="6" y="17" width="4" height="4"/></svg></button>
-          <button class="btn small align-btn" data-align="distL" title="Gi&#227;n &#273;&#7873;u c&#7841;nh tr&#225;i (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="3" y1="2" x2="3" y2="22"/><rect x="5" y="5" width="4" height="5"/><rect x="11" y="9" width="4" height="6"/><rect x="17" y="6" width="4" height="4"/></svg></button>
-          <button class="btn small align-btn" data-align="distHC" title="Gi&#227;n &#273;&#7873;u t&#226;m ngang (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22"/><rect x="3" y="5" width="4" height="5"/><rect x="10" y="9" width="4" height="6"/><rect x="17" y="6" width="4" height="4"/></svg></button>
-          <button class="btn small align-btn" data-align="distR" title="Gi&#227;n &#273;&#7873;u c&#7841;nh ph&#7843;i (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><line x1="21" y1="2" x2="21" y2="22"/><rect x="3" y="5" width="4" height="5"/><rect x="10" y="9" width="4" height="6"/><rect x="17" y="6" width="4" height="4"/></svg></button>
+          <button class="btn small align-btn" data-align="distT" title="Gi&#227;n &#273;&#7873;u c&#7841;nh tr&#234;n (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><path d="M3 4h18" class="ax"/><rect x="4" y="7" width="5" height="4" rx="1"/><rect x="9.5" y="12" width="5" height="4" rx="1"/><rect x="15" y="17" width="5" height="4" rx="1"/></svg></button>
+          <button class="btn small align-btn" data-align="distVC" title="Gi&#227;n &#273;&#7873;u t&#226;m d&#7885;c (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><path d="M3 12h18" class="ax"/><rect x="4" y="3" width="5" height="4" rx="1"/><rect x="9.5" y="10" width="5" height="4" rx="1"/><rect x="15" y="17" width="5" height="4" rx="1"/></svg></button>
+          <button class="btn small align-btn" data-align="distB" title="Gi&#227;n &#273;&#7873;u c&#7841;nh d&#432;&#7899;i (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><path d="M3 20h18" class="ax"/><rect x="4" y="3" width="5" height="4" rx="1"/><rect x="9.5" y="10" width="5" height="4" rx="1"/><rect x="15" y="13" width="5" height="4" rx="1"/></svg></button>
+          <button class="btn small align-btn" data-align="distL" title="Gi&#227;n &#273;&#7873;u c&#7841;nh tr&#225;i (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><path d="M4 3v18" class="ax"/><rect x="7" y="4" width="4" height="5" rx="1"/><rect x="12" y="9.5" width="4" height="5" rx="1"/><rect x="17" y="15" width="4" height="5" rx="1"/></svg></button>
+          <button class="btn small align-btn" data-align="distHC" title="Gi&#227;n &#273;&#7873;u t&#226;m ngang (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><path d="M12 3v18" class="ax"/><rect x="3" y="4" width="4" height="5" rx="1"/><rect x="10" y="9.5" width="4" height="5" rx="1"/><rect x="17" y="15" width="4" height="5" rx="1"/></svg></button>
+          <button class="btn small align-btn" data-align="distR" title="Gi&#227;n &#273;&#7873;u c&#7841;nh ph&#7843;i (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><path d="M20 3v18" class="ax"/><rect x="3" y="4" width="4" height="5" rx="1"/><rect x="10" y="9.5" width="4" height="5" rx="1"/><rect x="13" y="15" width="4" height="5" rx="1"/></svg></button>
         </div>
       </div>
       <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · <b>giữ Shift khi kéo</b> để đi thẳng ngang/dọc · kéo góc để thu/phóng.<br>Giữ <b>Ctrl</b> (hoặc <b>Shift</b>) + click để chọn nhiều layer.<br>Phím tắt (sau khi click vào canvas): Ctrl+C copy · Ctrl+V paste · Del xóa · Ctrl+G group · Ctrl+Shift+G bỏ group.</p>
@@ -95,7 +99,7 @@
         <label>Rộng <input type="number" id="inpW" min="1" max="200" step="0.5"> cm</label>
         <span class="x">×</span>
         <label>Cao <input type="number" id="inpH" min="1" max="200" step="0.5"> cm</label>
-        <button id="btnLock" class="btn small lock on" title="Tỉ lệ luôn khóa để không méo hình">🔒 <span id="lockRatio">—</span></button>
+        <button id="btnLock" class="btn small lock on" title="Tỉ lệ luôn khóa để không méo hình"><svg viewBox="0 0 24 24" class="flat-icon"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> <span id="lockRatio">—</span></button>
       </div>
       <div class="preset-block">
         <span class="muted small">Vị trí in (bấm để tự căn đúng vị trí + cỡ chuẩn):</span>
@@ -223,6 +227,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013l"></script>
+<script src="js/app.js?v=20261013m"></script>
 </body>
 </html>
