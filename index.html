@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261014g">
+<link rel="stylesheet" href="css/style.css?v=20261014h">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -53,6 +53,9 @@
         <svg viewBox="0 0 24 24" class="icon-moon"><path d="M20.4 14.2A8.5 8.5 0 0 1 9.8 3.6a.7.7 0 0 0-.9-.9 10 10 0 1 0 12.4 12.4.7.7 0 0 0-.9-.9z"/></svg>
         <svg viewBox="0 0 24 24" class="icon-sun"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5 5l1.7 1.7M17.3 17.3L19 19M19 5l-1.7 1.7M6.7 17.3L5 19"/></svg>
       </button>
+      <button id="btnGuide" class="btn guide-toggle" title="Hướng dẫn sử dụng" aria-label="Hướng dẫn sử dụng">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M9.7 9.4a2.6 2.6 0 1 1 3.7 2.9c-.9.5-1.4 1-1.4 2"/><circle cx="12" cy="17.2" r="1.05" class="dot"/></svg>
+      </button>
       <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.pdf" multiple hidden>
     </div>
 
@@ -85,7 +88,7 @@
     </div>
     <!-- /canvas-frame -->
 
-    <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc) · <b>cuộn chuột / chụm 2 ngón để zoom canvas</b> · giữ <b>Space</b> + kéo hoặc kéo vùng trống (khi zoom &gt; 100%) để di chuyển vùng nhìn</p>
+    <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc) · <b>cuộn chuột / chụm 2 ngón để zoom canvas</b> · giữ <b>Space</b> + kéo hoặc kéo vùng trống (khi zoom &gt; 100%) để di chuyển vùng nhìn · <button type="button" class="hint-link" id="btnGuideHint"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M9.7 9.4a2.6 2.6 0 1 1 3.7 2.9c-.9.5-1.4 1-1.4 2"/><circle cx="12" cy="17.2" r="1.05" class="dot"/></svg> Xem hướng dẫn đầy đủ</button></p>
   </section>
 
   <!-- ============ PANEL ĐIỀU KHIỂN ============ -->
@@ -278,8 +281,112 @@
   </div>
 </div>
 
+<!-- ============ MODAL HƯỚNG DẪN SỬ DỤNG ============ -->
+<div class="modal" id="modalGuide" hidden>
+  <div class="modal-box guide-box">
+    <div class="guide-head">
+      <h3>HƯỚNG DẪN SỬ DỤNG</h3>
+      <button type="button" class="btn small guide-close" id="guideClose" title="Đóng (Esc)" aria-label="Đóng hướng dẫn">✕</button>
+    </div>
+    <div class="guide-body">
+      <div class="guide-sec">
+        <h4>1. Bắt đầu</h4>
+        <ul>
+          <li>Bấm nút <b>"Tải file"</b> trên thanh công cụ, hoặc kéo-thả file thẳng vào khung áo.</li>
+          <li>Hỗ trợ: <b>PNG · JPG · WEBP · SVG · AI · EPS</b>. Chọn nhiều file cùng lúc — mỗi file thành 1 layer riêng.</li>
+        </ul>
+      </div>
+      <div class="guide-sec">
+        <h4>2. Thao tác trên canvas</h4>
+        <p class="guide-quote">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · giữ Shift khi kéo để đi thẳng ngang/dọc · kéo góc để thu/phóng (luôn giữ đúng tỉ lệ gốc). Giữ Ctrl (hoặc Shift) + click để chọn nhiều layer.</p>
+      </div>
+      <div class="guide-sec">
+        <h4>3. Phím tắt</h4>
+        <p class="guide-quote">Phím tắt layer (sau khi click vào canvas): <b>Ctrl+C</b> copy · <b>Ctrl+V</b> paste · <b>Del</b> xóa · <b>Ctrl+G</b> group · <b>Ctrl+Shift+G</b> bỏ group.</p>
+        <p class="guide-quote"><b>Ctrl+Z</b> hoàn tác · <b>Ctrl+Shift+Z</b> (hoặc <b>Ctrl+Y</b>) làm lại — hoạt động mọi lúc, không cần click canvas trước. Tối đa 50 bước, mỗi lần lùi/tiến đúng 1 thao tác.</p>
+      </div>
+      <div class="guide-sec">
+        <h4>4. Zoom &amp; khung nhìn</h4>
+        <ul>
+          <li><b>Cuộn chuột / chụm 2 ngón</b> hoặc bấm <b>− · % · +</b> ở góc dưới-phải để zoom.</li>
+          <li>Khi zoom &gt; 100%: <b>kéo vùng trống</b> trên canvas, hoặc giữ <b>Space</b> + kéo, để di chuyển vùng nhìn.</li>
+          <li>Nút <b>"Vừa khung"</b>: đưa canvas về vừa khung.</li>
+          <li>Nút <b>ổ khóa</b> (góc trên-trái trong canvas): <b>Khóa khung</b> — chặn zoom và di chuyển vùng nhìn, tránh lỡ tay; kéo/sửa layer vẫn bình thường.</li>
+        </ul>
+      </div>
+      <div class="guide-sec">
+        <h4>5. Panel Layers</h4>
+        <ul>
+          <li>Mỗi layer 1 dòng: ảnh thu nhỏ, icon <b>mắt</b> ẩn/hiện, nút <b>mũi tên lên/xuống</b> đổi thứ tự, nút <b>×</b> xóa layer.</li>
+          <li>Bấm vào dòng để chọn layer (giữ <b>Ctrl</b>/<b>Shift</b> + click để chọn nhiều).</li>
+          <li>Chọn từ 2 layer trở lên sẽ hiện hàng nút <b>"Căn chỉnh:"</b> / <b>"Giãn đều:"</b>.</li>
+        </ul>
+      </div>
+      <div class="guide-sec">
+        <h4>6. Vị trí in nhanh</h4>
+        <ul>
+          <li>5 nút <b>Ngực trái · Ngực phải · Giữa mặt trước · Lưng trên · Lưng giữa</b> — tự đặt đúng vị trí + cỡ chuẩn.</li>
+          <li>Chỉnh tay ra ngoài vùng in an toàn sẽ có <b>cảnh báo</b>; dùng ô nhập <b>Rộng/Cao (cm)</b> để đặt cỡ chính xác.</li>
+        </ul>
+      </div>
+      <div class="guide-sec">
+        <h4>7. Màu áo &amp; màu in</h4>
+        <ul>
+          <li><b>10 màu áo</b> trên thanh công cụ. App tự cảnh báo khi màu hình in gần trùng màu áo (khó nhìn).</li>
+          <li><b>"Giữ nguyên màu gốc (in ảnh)"</b> hoặc <b>"In 1 màu (in logo)"</b> — hình chuyển thành 1 màu do mình chọn.</li>
+        </ul>
+      </div>
+      <div class="guide-sec">
+        <h4>8. Chất lượng &amp; xử lý</h4>
+        <ul>
+          <li>App tự chấm <b>DPI</b> của hình in: từ <b>300 DPI</b> trở lên là "Đạt chuẩn in" (sắc nét).</li>
+          <li>Dưới chuẩn, các nút hiện rõ: <b>"Chuyển vector"</b> (hình phẳng, ít màu), <b>"Phóng nét 2×/4×"</b>, <b>"Khử nền trắng"</b>, <b>"Cắt bớt (crop)"</b>. Tick <b>"Phóng nét bằng AI"</b> để dùng AI ngay trên máy (lần đầu cần mạng để tải thư viện).</li>
+          <li>Luôn có cửa sổ <b>so sánh trước/sau</b> để duyệt rồi mới áp dụng.</li>
+        </ul>
+      </div>
+      <div class="guide-sec">
+        <h4>9. Lưu &amp; mở dự án</h4>
+        <ul>
+          <li><b>"Lưu file (.cm)"</b>: tải toàn bộ công việc về máy, mã đơn tự sinh theo tên file.</li>
+          <li><b>"Mở file (.cm)"</b>: nạp lại toàn bộ để làm tiếp.</li>
+          <li>Đổi kiểu áo <b>cổ tròn ↔ polo</b> ngay trên thanh công cụ mà không mất layer, vị trí, kích thước.</li>
+        </ul>
+      </div>
+      <div class="guide-sec">
+        <h4>10. Xuất file</h4>
+        <ul>
+          <li><b>"Xuất mockup"</b>: ảnh PNG áo đã in hình để gửi khách xem.</li>
+          <li><b>"Xuất file in (ZIP)"</b>: PNG 300 DPI nền trong suốt, tách theo vị trí in để nhà in in luôn.</li>
+          <li><b>"Xuất file in SVG (ZIP)"</b>: file vector cho hình đã chuyển vector.</li>
+          <li><b>"Xuất phiếu kỹ thuật"</b>: phiếu thông số in ấn.</li>
+        </ul>
+      </div>
+      <div class="guide-sec">
+        <h4>11. Báo giá</h4>
+        <ul>
+          <li>Chọn <b>Kiểu in</b>, nhập <b>Số lượng × Đơn giá</b> → <b>Thành tiền</b> tự tính theo thời gian thực.</li>
+          <li>Nút <b>"Xuất ảnh báo giá"</b>: tạo ảnh tóm tắt (mockup + chi tiết in + thành tiền) để gửi khách.</li>
+        </ul>
+      </div>
+      <div class="guide-sec">
+        <h4>12. Lịch sử theo khách</h4>
+        <ul>
+          <li>Mỗi lần xuất file hoặc lưu project, app tự ghi 1 mục <b>lịch sử</b> trên trình duyệt này (tối đa <b>30 mục</b>).</li>
+          <li>Bấm nút <b>"Nạp lại"</b> trong mục để mở lại đúng trạng thái làm việc hôm đó.</li>
+        </ul>
+      </div>
+      <div class="guide-sec">
+        <h4>13. Hiện số đo</h4>
+        <ul>
+          <li>Tick <b>"Hiện số đo"</b> trên thanh công cụ để xem <b>kích thước hình in</b> + <b>khung vùng in an toàn</b> ngay trên áo.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261014g"></script>
+<script src="js/app.js?v=20261014h"></script>
 </body>
 </html>
