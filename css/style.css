@@ -30,8 +30,11 @@ body {
 
 /* ---- khu canvas ---- */
 .stage { min-width: 0; }
-.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-bottom: 10px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; margin-bottom: 10px; }
 .fld { display: flex; flex-direction: column; font-size: 13px; color: var(--muted); gap: 4px; }
+.fld-label { font-size: 13px; color: var(--muted); }
+.fld-label b { color: var(--ink); }
+.toolbar .swatches .sw { width: 26px; height: 26px; }
 .fld.inline { margin-top: 8px; }
 .fld input, .fld select {
   font-size: 14px; padding: 7px 9px; border: 1px solid var(--line);
@@ -75,6 +78,8 @@ body {
   background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 8px 12px;
 }
+/* size-row nằm trong panel thì gọn lại, không cần khung card lồng nhau */
+.panel .size-row { background: transparent; border: none; padding: 8px 0 0; margin-top: 8px; }
 .size-row label { display: flex; align-items: center; gap: 6px; font-size: 14px; }
 .size-row input { width: 76px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; font-size: 14px; }
 .size-row .x { color: var(--muted); }
@@ -152,11 +157,18 @@ body {
 .swatches .sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
 .swatches .sw.on { border-color: var(--ink); box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--ink); }
 
-/* ---- chọn màu áo (ngay dưới toolbar) ---- */
-.shirtcolor { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; font-size: 13px; color: var(--muted); }
-.shirtcolor .lbl { font-weight: 600; color: var(--ink); }
-.shirtcolor .swatches .sw { width: 30px; height: 30px; }
-.shirtcolor-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+/* ---- panel Nâng cao (details thu gọn) ---- */
+details.panel.adv summary {
+  cursor: pointer; font-size: 15px; font-weight: 600; list-style: none;
+  display: flex; align-items: center; gap: 6px;
+}
+details.panel.adv summary::-webkit-details-marker { display: none; }
+details.panel.adv summary::before { content: '▸'; color: var(--muted); font-size: 13px; }
+details.panel.adv[open] summary::before { content: '▾'; }
+details.panel.adv .adv-body { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px; }
+details.panel.adv h3 { margin: 10px 0 6px; font-size: 13.5px; }
+details.panel.adv h3:first-child { margin-top: 0; }
+details.panel.adv .colorrow { margin-left: 0; }
 
 .saved-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
 .saved-item { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
