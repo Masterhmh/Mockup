@@ -214,12 +214,13 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 ## Dải tiêu đề đen + thang cỡ chữ (20261014r)
 
 - Mọi panel chức năng (Layers, Layer đang chọn, Lịch sử, Chất lượng & Xử lý, Xuất file,
-  Báo giá) có tiêu đề nằm trên **dải đen #000 chữ trắng** như header (luôn đen ở cả
-  2 theme, 14px/700/viết hoa/giãn chữ, tràn hết chiều ngang panel, bo 2 góc trên).
-  **(20261014s) Theme tối**: dải có đường phân cách sáng ở viền dưới (`inset box-shadow`)
-  để không chìm vào thân panel; hộp modal có thêm viền nhẹ.
-  Nút "Xóa tất cả" nằm trong dải đen của panel Lịch sử (kiểu ghost viền trắng).
-  Tiêu đề các modal (Cắt, So sánh, Xem trước, Hướng dẫn) cũng dùng dải đen đồng bộ.
+  Báo giá) có tiêu đề nằm trên **dải kiểu header** (14px/700/viết hoa/giãn chữ, tràn
+  hết chiều ngang panel, bo 2 góc trên): **theme sáng = đen #000 chữ trắng; theme tối =
+  trắng Coolmate #F8F8F8 chữ đen** (20261014t — đảo ngược dải đen để nổi rõ trên thân
+  panel tối; trước đó bản 20261014s dùng đường phân cách sáng, không đủ nổi).
+  Hộp modal có thêm viền nhẹ ở theme tối. Nút "Xóa tất cả" nằm trong dải của panel
+  Lịch sử (kiểu ghost: sáng viền/chữ trắng, tối viền/chữ đen; hover đảo màu).
+  Tiêu đề các modal (Cắt, So sánh, Xem trước, Hướng dẫn) cũng dùng dải đồng bộ.
 - Thang cỡ chữ thống nhất: tiêu đề dải 14px · **nhãn mục con 12.5px/600** (Thông số áo,
   Màu file in...) · thân chính 13–14px · chữ phụ (.muted/.small/mô tả/ghi chú) 12–12.5px ·
   số THÀNH TIỀN giữ 18px (16px mobile) làm điểm nhấn.
