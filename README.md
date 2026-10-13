@@ -84,11 +84,17 @@ mockups/polo.json    config áo polo   (ảnh Polo.png  3469x1933, nền trong s
 
 ## Bố cục giao diện
 
+- **Header**: logo (`assets/logo.svg`, thay được bằng file cùng tên) + tiêu đề
+  "STUDIO MOCKUP IN ÁO" căn giữa viết hoa. Font **Be Vietnam Pro** (Google Fonts,
+  hỗ trợ tốt tiếng Việt).
 - **Desktop (≥1024px)**: canvas lớn bên trái, sidebar phải (Layers + Layer đang
   chọn), hàng panel ngang **dưới canvas** (Chất lượng & Xử lý, Xuất file,
   File làm việc, Nâng cao) để thao tác realtime trực tiếp trên ảnh.
 - **Mobile**: xếp dọc 1 cột (canvas → Layers → panel đang chọn → các panel dock).
   Khung canvas ôm khít ảnh (không còn dải đen thừa).
+- **Mượt mà**: transition cho nút bấm/theme/panel/toast/modal; micro-interaction
+  (nhấn nút, chọn layer); animation khi thêm layer mới. Tôn trọng
+  `prefers-reduced-motion`.
 
 ## Thêm mockup mới (chỉ cần ảnh + JSON, không sửa code)
 
