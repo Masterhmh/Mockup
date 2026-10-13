@@ -195,15 +195,21 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 
 ## Trạng thái nút bấm
 
+- **Quy tắc (20261014q): CHỈ trạng thái "đang chọn" mới dùng nền đen** — đảo màu theo
+  theme (sáng: nền đen chữ trắng; tối: nền trắng chữ đen). Không nút nào đen sẵn mặc
+  định: nút chính (.primary như Tải file, Xuất mockup...) giờ nền như nút thường,
+  chỉ giữ chữ đậm + bóng để phân biệt. Xanh accent chỉ còn cho viền focus gõ phím,
+  khung layer đang chọn, đường gióng và badge.
 - Mọi nút có hiệu ứng khi di chuột vào (chỉ trên thiết bị có chuột): nhấc nhẹ + bóng đổ;
-  khi nhấn có cảm giác nhấn xuống. Không hiệu ứng thừa trên cảm ứng; tôn trọng
-  chế độ giảm chuyển động của hệ thống.
-- Nút mang tính lựa chọn/trạng thái thì phía **đang chọn "sáng" rõ**: swatch màu áo
-  đang chọn có vòng accent phát sáng + phóng nhẹ; 2 ô chế độ in ("Giữ nguyên màu gốc" /
-  "In 1 màu") thành pill, ô đang chọn nền xanh nhạt viền accent; "Hiện số đo" khi bật
-  thành pill xanh; checkbox "Phóng nét bằng AI" khi tích thì nhãn sáng lên; mức zoom
-  đang chọn trong modal so sánh đảo nền accent; nút Khóa khung khi khóa đảo màu
-  nền/chữ (đã có từ trước).
+  khi nhấn (:active) đảo màu đen như phản hồi "đã bấm/đang chọn". Không hiệu ứng thừa
+  trên cảm ứng; tôn trọng chế độ giảm chuyển động của hệ thống.
+- Các trạng thái "đang chọn" đều dùng đảo màu đen: **nút preset vị trí in** (đen khi
+  layer đang chọn còn đúng vị trí + cỡ lúc áp preset — kéo tay/đổi cỡ/áp preset khác
+  thì tự hết đen); **swatch** màu áo/màu in (vòng đen + phóng nhẹ); 2 ô chế độ in
+  ("Giữ nguyên màu gốc" / "In 1 màu") thành pill đảo màu khi chọn; **"Hiện số đo"**
+  khi bật thành pill đen; checkbox **"Phóng nét bằng AI"** khi tích thành pill đen;
+  **mức zoom đang chọn** trong modal so sánh (.cmp-zoom.on) đảo màu đen; nút
+  **Khóa khung** khi khóa đảo màu (đã có từ trước, cùng quy tắc).
 
 ## Lịch sử theo khách
 
