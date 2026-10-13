@@ -57,10 +57,10 @@ body {
 /* ---- Header: logo + title căn giữa ---- */
 .topbar { padding: 14px 20px 10px; }
 .brand {
-  display: flex; align-items: center; justify-content: center;
-  gap: 14px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; text-align: center; padding: 18px 0 14px;
 }
-.brand-logo { height: 52px; width: auto; max-width: 140px; object-fit: contain; flex: none; }
+.brand-logo { height: 96px; width: auto; max-width: 280px; object-fit: contain; flex: none; }
 .brand-text h1 {
   margin: 0; font-size: 24px; font-weight: 800; letter-spacing: .02em;
   text-transform: uppercase;
