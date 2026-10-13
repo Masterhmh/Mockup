@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261014d">
+<link rel="stylesheet" href="css/style.css?v=20261014e">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -66,12 +66,12 @@
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="stage"></canvas>
       <div id="dropHint" class="drophint">Bấm “Tải file” hoặc kéo-thả file vào đây<br><small>PNG · JPG · WEBP · SVG · AI · EPS — mỗi file là 1 layer</small></div>
-      <div class="canvas-tools" id="canvasTools" title="Hoàn tác / Làm lại / Khóa khung">
-        <button type="button" id="btnUndoOv" class="ctbtn" title="Hoàn tác (Ctrl+Z)" disabled><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-3"/></svg></button>
-        <button type="button" id="btnRedoOv" class="ctbtn" title="Làm lại (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0 0 14h3"/></svg></button>
-        <button type="button" id="btnLockFrame" class="ctbtn" title="Khóa khung canvas" aria-pressed="false">
+      <div class="canvas-tools" id="canvasTools">
+        <button type="button" id="btnUndoOv" class="ctbtn" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác" data-tip="Hoàn tác (Ctrl+Z)" disabled><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-3"/></svg></button>
+        <button type="button" id="btnRedoOv" class="ctbtn" title="Làm lại (Ctrl+Shift+Z)" aria-label="Làm lại" data-tip="Làm lại (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0 0 14h3"/></svg></button>
+        <button type="button" id="btnLockFrame" class="ctbtn" title="Khóa khung canvas — chặn zoom và di chuyển khung" aria-label="Khóa khung canvas — chặn zoom và di chuyển khung" aria-pressed="false" data-tip="Khóa khung canvas — chặn zoom và di chuyển khung">
           <svg viewBox="0 0 24 24" class="lock-open"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0"/></svg>
-          <svg viewBox="0 0 24 24" class="lock-closed" hidden><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <svg viewBox="0 0 24 24" class="lock-closed"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
         </button>
       </div>
       <div class="zoom-ctl" id="zoomCtl">
@@ -277,6 +277,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261014d"></script>
+<script src="js/app.js?v=20261014e"></script>
 </body>
 </html>
