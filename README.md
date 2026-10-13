@@ -5,7 +5,8 @@ tự động đánh giá chất lượng in (DPI), đề xuất chuyển vector 
 xuất mockup PNG gửi khách và xuất file in (PNG 300dpi / SVG) + phiếu kỹ thuật
 cho nhà in. Giao diện **Layers kiểu Photoshop**: mỗi file thiết kế tải lên
 là 1 layer — bấm trực tiếp vào hình trên canvas để chọn, kéo di chuyển tự do,
-kéo góc thu/phóng (luôn khóa tỉ lệ). Panel Layers quản lý ẩn/hiện, thứ tự,
+kéo góc thu/phóng (luôn khóa tỉ lệ). Phím tắt: **Ctrl+C** copy, **Ctrl+V** paste,
+**Del** xóa layer đang chọn. Panel Layers quản lý ẩn/hiện, thứ tự,
 xóa từng layer. Lưu/mở lại file làm việc dạng file **.cm** (tải về máy, tên theo mã đơn).
 Nút **Lưu/Mở file (.cm)** nằm cùng hàng toolbar với nút **Tải file**. Panel **Nâng cao**
 luôn hiển thị. 5 nút **preset vị trí in** (Ngực trái / Ngực phải / Giữa mặt trước /
@@ -123,11 +124,13 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
    và đề xuất giữ nguyên / chuyển vector / phóng nét — bạn chốt tay sau khi so
    sánh trước/sau ở 100%.
 3. **Thao tác trực tiếp trên canvas**: bấm vào hình để chọn layer, kéo di chuyển
-   tự do, kéo 4 góc thu/phóng (luôn khóa tỉ lệ). Bật **"Hiện số đo"** để xem:
-   khung + kích thước từng hình in, **vùng in an toàn** (nét đứt xanh lá, mặt
-   trước + mặt sau). Khi kéo layer tràn ra ngoài vùng an toàn hoặc đè lên vùng
-   cấm (cổ, nẹp nút), cảnh báo hiện ngay trong lúc kéo. Bấm nút tròn đỏ **×**
-   để xóa nhanh.
+   tự do, kéo 4 góc thu/phóng (luôn khóa tỉ lệ). Phím tắt **Ctrl+C / Ctrl+V /
+   Del** để copy / paste / xóa layer. Bật **"Hiện số đo"** để xem:
+   khung + kích thước từng hình in, **vùng in an toàn** (nét đứt xanh lá, full
+   chiều dài thân áo trừ vùng cổ/nẹp/đường may, mặt trước + mặt sau). Khi kéo
+   layer tràn ra ngoài vùng an toàn hoặc đè lên vùng cấm (cổ, nẹp nút), cảnh báo
+   hiện ngay trong lúc kéo. Bấm nút tròn đỏ **×** để xóa nhanh.
+   App cũng **cảnh báo khi màu hình in gần giống màu áo** (lên áo có thể không nổi).
 4. **Xuất mockup PNG** gửi khách duyệt.
 5. Khách chốt thì **lưu file làm việc (.cm)** — tải file về máy, tên file theo **mã đơn hàng** (VD: DH-2026-001.cm). File chứa toàn bộ layers + thông số.
 6. Sau này chỉnh sửa: **mở file .cm** để khôi phục toàn bộ workspace → **xuất file in PNG/SVG** — mỗi layer ra
@@ -161,9 +164,9 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
 - **Hình in trên áo tối** (độ sáng màu áo < 0.45, VD đen/navy): app tự chuyển
   sang vẽ đè trực tiếp (`source-over`, alpha 0.96) thay vì multiply — vì
   multiply trên nền tối làm hình in mất hút.
-- **Hình SÁNG trên áo SÁNG** (độ sáng artwork > 0.75 và độ sáng áo > 0.6, VD
-  logo trắng trên áo trắng): cũng vẽ đè trực tiếp — vì multiply (trắng ×
-  trắng) làm hình tàng hình, mockup phải nhìn thấy hình để còn căn chỉnh.
+- **Hình SÁNG** (độ sáng artwork > 0.7, VD logo trắng): LUÔN vẽ đè trực tiếp
+  (`source-over`, alpha 0.96) — vì multiply (trắng × màu áo) làm hình tàng hình
+  trên áo trắng, xám, cam, be...; mockup phải nhìn thấy hình để còn căn chỉnh.
   Độ sáng artwork được tính trong `analyzeArtwork()` (trung bình luminance
   pixel đục, thumbnail 160px) và lưu theo layer (kể cả khi lưu/mở project).
 - Các trường hợp còn lại (hình tối trên áo sáng): multiply để hình hòa vào
