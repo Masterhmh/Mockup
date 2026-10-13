@@ -162,6 +162,22 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   thấy kết quả realtime trên canvas (không mở modal so sánh).
 - Khử nền trắng và Crop giữ modal riêng (cần kiểm tra trực quan / kéo khung).
 - Nút "Xóa hình in" đã bỏ — xóa layer bằng nút × trên mỗi dòng trong panel Layers.
+- **Phóng nét AI (tùy chọn)**: tick "Phóng nét bằng AI" thì 2×/4× chạy **UpscalerJS + TensorFlow.js**
+  client-side (model 2× gọn ~80KB, tải lười từ CDN khi bấm lần đầu; 4× = 2 pass AI).
+  Thiết bị không chạy được (WebGL lỗi/hết bộ nhớ/CDN bị chặn) thì app tự rơi về
+  nội suy và **ghi nhãn trung thực** ("AI không chạy được — đã dùng nội suy thay thế").
+
+## Lịch sử theo khách
+
+- Panel **"Lịch sử"**: tự ghi 1 mục mỗi lần **xuất mockup / file in (PNG, SVG) / phiếu kỹ thuật /
+  ảnh báo giá** hoặc **lưu file .cm** thành công.
+- Mỗi mục gồm: giờ ghi, tên khách, mã đơn, kiểu áo + màu áo, tóm tắt từng layer
+  (tên + kích thước cm + DPI), **ảnh thu nhỏ 240px** của mockup, và **toàn bộ project**
+  để **nạp lại 1 chạm** (nút "Nạp lại" — hỏi xác nhận trước khi thay thế workspace hiện tại).
+- Lưu trên trình duyệt này (localStorage, key `mockupInAo.history.v1`), **tối đa 30 mục**;
+  đầy quota bộ nhớ thì tự xóa mục cũ nhất, trường hợp xấu nhất thì bỏ ảnh gốc
+  của mục mới (ghi chú "Thiếu ảnh gốc" — mục đó không nạp lại được).
+- Nút "Xóa" từng mục.
 
 ## Bố cục giao diện
 
@@ -317,9 +333,9 @@ ngang ngực đúng, khung in sẽ đúng kích thước thật. Nếu đổi �
   file .ai được lưu mặc định **kèm nhân PDF**. File PostScript thuần không đọc
   được trực tiếp: app báo rõ bằng tiếng Việt, hãy mở bằng Illustrator rồi lưu
   lại dạng PDF/SVG rồi tải lên. (Cần mạng ở lần đầu để tải PDF.js.)
-- **Phóng nét 2×/4×:** là **nội suy nâng độ phân giải trong trình duyệt**,
-  không thêm chi tiết thật — chưa phải AI upscale. Không tích hợp Magnific hay
-  API upscale nào trong bản này (xử lý sau).
+- **Phóng nét 2×/4×:** mặc định là **nội suy nâng độ phân giải trong trình duyệt**,
+  không thêm chi tiết thật. Muốn AI thật thì tick "Phóng nét bằng AI" trong panel
+  Chất lượng (xem mục trên). Không tích hợp Magnific hay API upscale nào trong bản này (xử lý sau).
 - **Chuyển vector:** contour tracing thật (lượng tử màu → marching squares →
   nối đường bao → SVG path), hợp nhất với **hình phẳng ít màu** (logo, chữ,
   graphic). Ảnh chụp/phức tạp tracing sẽ xấu — app tự đề xuất phóng nét thay.
