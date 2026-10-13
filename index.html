@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Mockup In Áo</title>
-<link rel="stylesheet" href="css/style.css?v=20261013g">
+<link rel="stylesheet" href="css/style.css?v=20261013h">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -63,7 +63,7 @@
     <div class="panel" id="panelLayers">
       <h2>Layers</h2>
       <div id="layerList" class="layer-list"></div>
-      <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · kéo góc để thu/phóng.</p>
+      <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · kéo góc để thu/phóng.<br>Phím tắt: Ctrl+C copy · Ctrl+V paste · Del xóa layer đang chọn.</p>
     </div>
 
     <div class="panel" id="panelSel">
@@ -118,9 +118,9 @@
         <label class="fld">Ngày chốt <input type="date" id="inpDate"></label>
       </div>
       <div class="btn-grid">
-        <button class="btn primary" id="btnExpMockup">Xuất mockup PNG</button>
-        <button class="btn" id="btnExpPrint">Xuất file in PNG 300dpi (từng layer)</button>
-        <button class="btn" id="btnExpSVG">Xuất file in SVG (từng layer)</button>
+        <button class="btn primary" id="btnExpMockup">Xuất mockup</button>
+        <button class="btn" id="btnExpPrint">Xuất file in PNG</button>
+        <button class="btn" id="btnExpSVG">Xuất file in SVG</button>
         <button class="btn" id="btnExpSpec">Xuất phiếu kỹ thuật</button>
       </div>
     </div>
@@ -201,6 +201,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013g"></script>
+<script src="js/app.js?v=20261013h"></script>
 </body>
 </html>
