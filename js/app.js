@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013k';
+const APP_V = '20261013l';
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -739,7 +739,8 @@ stage.addEventListener('pointerdown', (e) => {
       } else {
         // Bấm thường: chọn đơn + kéo 1 layer
         if (lay.id !== S.activeLayerId) setActiveLayer(lay.id, true);
-        S.drag = { mode: 'move', layerId: lay.id, ox: p.x - r.x, oy: p.y - r.y };
+        S.drag = { mode: 'move', layerId: lay.id, ox: p.x - r.x, oy: p.y - r.y,
+                   x0: lay.x, y0: lay.y, startPX: p.x, startPY: p.y };
       }
       stage.setPointerCapture(e.pointerId);
       stage.style.cursor = 'grabbing';
@@ -766,7 +767,12 @@ stage.addEventListener('pointermove', (e) => {
   const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
   if (S.drag.mode === 'move-multi') {
     // Kéo cả tập layer cùng lúc (giữ nguyên vị trí tương đối)
-    const dx = (p.x - S.drag.startPX) / W, dy = (p.y - S.drag.startPY) / H;
+    let dx = (p.x - S.drag.startPX) / W, dy = (p.y - S.drag.startPY) / H;
+    if (e.shiftKey) {
+      // Giữ Shift: khóa trục — chỉ di chuyển ngang HOẶC dọc (trục nào đi nhiều hơn từ điểm bắt đầu)
+      if (Math.abs(p.x - S.drag.startPX) >= Math.abs(p.y - S.drag.startPY)) dy = 0;
+      else dx = 0;
+    }
     S.drag.items.forEach((it) => {
       const l = S.layers.find((x) => x.id === it.id);
       if (l && l.art) {
@@ -779,10 +785,23 @@ stage.addEventListener('pointermove', (e) => {
     const lay = dragLayer();
     if (!lay || !lay.art) { S.drag = null; return; }
     const r = layerPxOf(lay);
-    lay.x = clamp((p.x - S.drag.ox + r.w / 2) / W, 0, 1);
-    lay.y = clamp((p.y - S.drag.oy + r.h / 2) / H, 0, 1);
-    // Đường gióng thông minh: hút vào cạnh/giữa layer khác hoặc tâm canvas
-    S.guides = snapGuides(lay);
+    if (e.shiftKey) {
+      // Giữ Shift: khóa trục — chỉ di chuyển ngang HOẶC dọc
+      const dxp = p.x - S.drag.startPX, dyp = p.y - S.drag.startPY;
+      if (Math.abs(dxp) >= Math.abs(dyp)) {
+        lay.x = clamp((p.x - S.drag.ox + r.w / 2) / W, 0, 1);
+        lay.y = S.drag.y0;
+      } else {
+        lay.x = S.drag.x0;
+        lay.y = clamp((p.y - S.drag.oy + r.h / 2) / H, 0, 1);
+      }
+      S.guides = [];
+    } else {
+      lay.x = clamp((p.x - S.drag.ox + r.w / 2) / W, 0, 1);
+      lay.y = clamp((p.y - S.drag.oy + r.h / 2) / H, 0, 1);
+      // Đường gióng thông minh: hút vào cạnh/giữa layer khác hoặc tâm canvas
+      S.guides = snapGuides(lay);
+    }
   } else {
     const lay = dragLayer();
     if (!lay || !lay.art) { S.drag = null; return; }
