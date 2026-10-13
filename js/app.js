@@ -372,13 +372,6 @@ function drawOneDesign(ctx, W, H, pl) {
     ctx.globalAlpha = 0.93;
   }
   ctx.drawImage(tmp, r.x - pad, r.y - pad, tmp.width, tmp.height);
-
-  ctx.beginPath();
-  ctx.rect(r.x - pad, r.y - pad, tmp.width, tmp.height);
-  ctx.clip();
-  ctx.globalCompositeOperation = 'overlay';
-  ctx.globalAlpha = 0.35;
-  ctx.drawImage(getTintedBase(), 0, 0, W, H); // vân vải trên nền áo đã nhuộm
   ctx.restore();
 }
 
