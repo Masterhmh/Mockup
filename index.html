@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Mockup In Áo</title>
-<link rel="stylesheet" href="css/style.css?v=20261013c">
+<link rel="stylesheet" href="css/style.css?v=20261013d">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -21,48 +21,38 @@
       <label class="fld">Mockup
         <select id="selMockup"></select>
       </label>
+      <div class="fld"><span class="fld-label">Màu áo · <b id="shirtColorName">Trắng</b></span>
+        <div class="swatches" id="shirtSwatches">
+          <button type="button" class="sw on" data-c="#ffffff" data-n="Trắng" style="background:#ffffff" title="Trắng"></button>
+          <button type="button" class="sw" data-c="#1b1b1f" data-n="Đen" style="background:#1b1b1f" title="Đen"></button>
+          <button type="button" class="sw" data-c="#1f3a5f" data-n="Navy" style="background:#1f3a5f" title="Navy"></button>
+          <button type="button" class="sw" data-c="#8b1a1a" data-n="Đỏ đô" style="background:#8b1a1a" title="Đỏ đô"></button>
+          <button type="button" class="sw" data-c="#2b6cb0" data-n="Xanh dương" style="background:#2b6cb0" title="Xanh dương"></button>
+          <button type="button" class="sw" data-c="#4a5d43" data-n="Xanh rêu" style="background:#4a5d43" title="Xanh rêu"></button>
+          <button type="button" class="sw" data-c="#8a8f98" data-n="Xám" style="background:#8a8f98" title="Xám"></button>
+          <button type="button" class="sw" data-c="#e8a0b4" data-n="Hồng" style="background:#e8a0b4" title="Hồng"></button>
+          <button type="button" class="sw" data-c="#f2c230" data-n="Vàng" style="background:#f2c230" title="Vàng"></button>
+          <button type="button" class="sw" data-c="#d96c2b" data-n="Cam" style="background:#d96c2b" title="Cam"></button>
+        </div>
+      </div>
       <button id="btnUpload" class="btn primary">Tải file thiết kế</button>
       <label class="chk"><input type="checkbox" id="chkMeasure"> Hiện số đo</label>
       <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.pdf" hidden>
     </div>
 
-    <div class="shirtcolor" id="shirtColorRow">
-      <span class="lbl">Màu áo:</span>
-      <div class="swatches" id="shirtSwatches">
-        <button type="button" class="sw on" data-c="#ffffff" data-n="Trắng" style="background:#ffffff" title="Trắng"></button>
-        <button type="button" class="sw" data-c="#1b1b1f" data-n="Đen" style="background:#1b1b1f" title="Đen"></button>
-        <button type="button" class="sw" data-c="#1f3a5f" data-n="Navy" style="background:#1f3a5f" title="Navy"></button>
-        <button type="button" class="sw" data-c="#8b1a1a" data-n="Đỏ đô" style="background:#8b1a1a" title="Đỏ đô"></button>
-        <button type="button" class="sw" data-c="#2b6cb0" data-n="Xanh dương" style="background:#2b6cb0" title="Xanh dương"></button>
-        <button type="button" class="sw" data-c="#4a5d43" data-n="Xanh rêu" style="background:#4a5d43" title="Xanh rêu"></button>
-        <button type="button" class="sw" data-c="#8a8f98" data-n="Xám" style="background:#8a8f98" title="Xám"></button>
-        <button type="button" class="sw" data-c="#e8a0b4" data-n="Hồng" style="background:#e8a0b4" title="Hồng"></button>
-        <button type="button" class="sw" data-c="#f2c230" data-n="Vàng" style="background:#f2c230" title="Vàng"></button>
-        <button type="button" class="sw" data-c="#d96c2b" data-n="Cam" style="background:#d96c2b" title="Cam"></button>
-      </div>
-      <span class="shirtcolor-name" id="shirtColorName">Trắng</span>
-    </div>
-
     <div class="legend" id="legend">
-      <span class="lg"><i id="lgChest" style="border-color:#b45309"></i>Số đo áo (ngang ngực, dài áo)</span>
       <span class="lg"><i class="sw-box" id="lgFrame" style="border-color:#1d4ed8"></i>Khung + kích thước hình in</span>
+      <span class="lg"><i class="sw-dash" id="lgSafe" style="border-color:#0e7c5b"></i>Vùng in an toàn</span>
     </div>
 
     <div id="warnBar" class="warnbar" hidden></div>
 
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="stage"></canvas>
-      <div id="dropHint" class="drophint">Kéo-thả file thiết kế vào đây<br><small>PNG · JPG · WEBP · SVG · AI · EPS</small></div>
+      <div id="dropHint" class="drophint">Bấm “Tải file thiết kế” hoặc kéo-thả file vào đây<br><small>PNG · JPG · WEBP · SVG · AI · EPS — mỗi file là 1 layer</small></div>
     </div>
 
-    <div class="size-row">
-      <label>Rộng <input type="number" id="inpW" min="1" max="200" step="0.5"> cm</label>
-      <span class="x">×</span>
-      <label>Cao <input type="number" id="inpH" min="1" max="200" step="0.5"> cm</label>
-      <button id="btnLock" class="btn small lock on" title="Khóa/mở tỉ lệ">🔒 <span id="lockRatio">—</span></button>
-      <button id="btnAutoFitNow" class="btn small" title="Fit lại đúng tỉ lệ ảnh, vừa vùng an toàn, đúng vị trí">⚡ Auto fit lại</button>
-    </div>
-    <p class="hint">Kéo hình để di chuyển · kéo tay cầm ở 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc)</p>
+    <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc)</p>
   </section>
 
   <!-- ============ PANEL ĐIỀU KHIỂN ============ -->
@@ -73,9 +63,16 @@
       <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · kéo góc để thu/phóng.</p>
     </div>
 
-    <div class="panel" id="panelFile">
-      <h2>File thiết kế</h2>
-      <div id="fileInfo" class="muted">Chưa có file. Hãy tải file thiết kế lên.</div>
+    <div class="panel" id="panelSel">
+      <h2>Layer đang chọn</h2>
+      <div id="selInfo" class="muted">Chưa chọn layer nào.</div>
+      <div class="size-row">
+        <label>Rộng <input type="number" id="inpW" min="1" max="200" step="0.5"> cm</label>
+        <span class="x">×</span>
+        <label>Cao <input type="number" id="inpH" min="1" max="200" step="0.5"> cm</label>
+        <button id="btnLock" class="btn small lock on" title="Tỉ lệ luôn khóa để không méo hình">🔒 <span id="lockRatio">—</span></button>
+        <button id="btnAutoFitNow" class="btn small" title="Đưa layer về giữa ngực trước với cỡ mặc định">⚡ Auto fit lại</button>
+      </div>
       <div id="dpiBox" class="dpi" hidden>
         <span id="dpiBadge" class="badge">—</span>
         <span id="dpiText">—</span>
@@ -92,7 +89,7 @@
       </div>
     </div>
 
-    <div class="panel" id="panelProc">
+    <div class="panel" id="panelProc" hidden>
       <h2>Xử lý ảnh</h2>
       <div class="btn-grid">
         <button class="btn" id="btnVector">Chuyển vector</button>
@@ -103,21 +100,7 @@
         <button class="btn" id="btnKeep">Giữ nguyên gốc</button>
         <button class="btn" id="btnClearArt">Xóa hình in</button>
       </div>
-      <p class="muted small">Phóng nét = nội suy nâng độ phân giải trong trình duyệt, <b>chưa phải AI upscale</b>. Mọi xử lý đều giữ đúng tỉ lệ ảnh gốc.</p>
-    </div>
-
-    <div class="panel" id="panelShirt">
-      <h2>Thông số áo</h2>
-      <div id="shirtInfo">—</div>
-      <label class="fld inline">Hiệu chuẩn ngang ngực (cm)
-        <input type="number" id="inpChest" min="20" max="120" step="0.5">
-      </label>
-      <p class="muted small">Đo ngang ngực trên ảnh (px) đã có sẵn trong config. Nếu in thử thấy lệch, chỉnh lại số cm tại đây — tỉ lệ px/cm sẽ tự tính lại.</p>
-    </div>
-
-    <div class="panel" id="panelPrint">
-      <h2>Hình in</h2>
-      <div id="printInfo" class="muted">Chưa có file thiết kế.</div>
+      <p class="muted small">Phóng nét = nội suy trong trình duyệt, <b>chưa phải AI upscale</b>.</p>
     </div>
 
     <div class="panel" id="panelExport">
@@ -132,8 +115,23 @@
         </label>
         <label class="fld">Ngày chốt <input type="date" id="inpDate"></label>
       </div>
-      <div class="colorpick">
-        <div class="fld">Màu file in</div>
+      <div class="btn-grid">
+        <button class="btn primary" id="btnExpMockup">Xuất mockup PNG</button>
+        <button class="btn" id="btnExpPrint">Xuất file in PNG 300dpi (từng layer)</button>
+        <button class="btn" id="btnExpSVG">Xuất file in SVG (từng layer)</button>
+        <button class="btn" id="btnExpSpec">Xuất phiếu kỹ thuật</button>
+      </div>
+    </div>
+
+    <details class="panel adv" id="panelAdv">
+      <summary>Nâng cao</summary>
+      <div class="adv-body">
+        <h3>Thông số áo</h3>
+        <div id="shirtInfo">—</div>
+        <label class="fld inline">Hiệu chuẩn ngang ngực (cm)
+          <input type="number" id="inpChest" min="20" max="120" step="0.5">
+        </label>
+        <h3>Màu file in</h3>
         <label class="chk"><input type="radio" name="colorMode" value="orig" checked> Giữ nguyên màu gốc (in ảnh)</label>
         <label class="chk"><input type="radio" name="colorMode" value="single"> In 1 màu (in logo)</label>
         <div class="colorrow" id="colorRow" hidden>
@@ -148,13 +146,7 @@
           </div>
         </div>
       </div>
-      <div class="btn-grid">
-        <button class="btn primary" id="btnExpMockup">Xuất mockup PNG</button>
-        <button class="btn" id="btnExpPrint">Xuất file in PNG 300dpi (từng layer)</button>
-        <button class="btn" id="btnExpSVG">Xuất file in SVG (từng layer)</button>
-        <button class="btn" id="btnExpSpec">Xuất phiếu kỹ thuật</button>
-      </div>
-    </div>
+    </details>
     <div class="panel" id="panelProject">
       <h2>File làm việc</h2>
       <p class="muted small">Lưu theo tên khách + mã đơn để mở lại sau này. Khi khách chốt, mở lại file rồi xuất hàng loạt.</p>
@@ -215,6 +207,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013c"></script>
+<script src="js/app.js?v=20261013d"></script>
 </body>
 </html>
