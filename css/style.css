@@ -227,7 +227,8 @@ details.panel.adv summary {
 details.panel.adv summary::-webkit-details-marker { display: none; }
 details.panel.adv summary::before { content: '▸'; color: var(--muted); font-size: 13px; }
 details.panel.adv[open] summary::before { content: '▾'; }
-details.panel.adv .adv-body { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px; }
+#panelQuality .adv-title { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+#panelQuality .adv-body h3 { margin-top: 10px; }
 details.panel.adv h3 { margin: 10px 0 6px; font-size: 13.5px; }
 details.panel.adv h3:first-child { margin-top: 0; }
 details.panel.adv .colorrow { margin-left: 0; }
@@ -441,8 +442,8 @@ details.panel.adv summary:hover { color: var(--accent); }
 /* Nút undo/redo icon trên toolbar */
 #btnUndo svg, #btnRedo svg { width: 16px; height: 16px; }
 #btnUndo:disabled, #btnRedo:disabled { opacity: .35; cursor: default; }
-/* Zoom chỉ phóng ảnh BÊN TRONG khung: khung giữ nguyên kích thước, không cuộn */
-.canvas-wrap { overflow: hidden; }
+/* Khung canvas cho phép cuộn khi zoom lớn */
+.canvas-wrap { overflow: auto; }
 /* Cụm điều khiển zoom ở góc canvas */
 .zoom-ctl {
   position: absolute; right: 10px; bottom: 10px; z-index: 5;
