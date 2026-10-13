@@ -44,6 +44,16 @@ mockups/tshirt.json  config áo cổ tròn (ảnh Tshirt.png 4052x2283, nền tr
 mockups/polo.json    config áo polo   (ảnh Polo.png  3469x1933, nền trong suốt)
 ```
 
+## Thay logo
+
+Logo hiện tại (nền xanh, chữ XIM) đang được nhúng trực tiếp trong `index.html`
+dưới dạng base64 (`<img class="brand-logo" src="data:image/png;base64,...">`),
+vì công cụ GitHub không upload được file nhị phân (PNG/JPG) đúng cách.
+
+Muốn đổi logo: gửi ảnh PNG mới cho mình, hoặc tự thay chuỗi base64 sau
+`data:image/png;base64,` trong thẻ `<img class="brand-logo">` bằng ảnh PNG
+mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
+
 ## Layers (kiểu Photoshop)
 
 - Tải file **hàng loạt**: chọn nhiều file cùng lúc (hoặc kéo-thả nhiều file vào canvas), mỗi file tạo 1 layer mới,
