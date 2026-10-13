@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261014c">
+<link rel="stylesheet" href="css/style.css?v=20261014b">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -45,8 +45,6 @@
         </div>
       </div>
       <button id="btnUpload" class="btn primary">Tải file</button>
-      <button id="btnUndo" class="btn small icon-btn" title="Hoàn tác (Ctrl+Z)" disabled><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-3"/></svg></button>
-      <button id="btnRedo" class="btn small icon-btn" title="Làm lại (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0 0 14h3"/></svg></button>
       <button id="btnSaveCm" class="btn" title="Tải toàn bộ công việc về máy dưới dạng file .cm (đặt tên theo mã đơn)">Lưu file (.cm)</button>
       <button id="btnOpenCm" class="btn" title="Mở file .cm để khôi phục toàn bộ công việc">Mở file (.cm)</button>
       <input type="file" id="fileCmInput" accept=".cm,.json" hidden>
@@ -68,6 +66,14 @@
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="stage"></canvas>
       <div id="dropHint" class="drophint">Bấm “Tải file” hoặc kéo-thả file vào đây<br><small>PNG · JPG · WEBP · SVG · AI · EPS — mỗi file là 1 layer</small></div>
+      <div class="canvas-tools" id="canvasTools" title="Hoàn tác / Làm lại / Khóa khung">
+        <button type="button" id="btnUndoOv" class="ctbtn" title="Hoàn tác (Ctrl+Z)" disabled><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-3"/></svg></button>
+        <button type="button" id="btnRedoOv" class="ctbtn" title="Làm lại (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0 0 14h3"/></svg></button>
+        <button type="button" id="btnLockFrame" class="ctbtn" title="Khóa khung canvas" aria-pressed="false">
+          <svg viewBox="0 0 24 24" class="lock-open"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0"/></svg>
+          <svg viewBox="0 0 24 24" class="lock-closed" hidden><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        </button>
+      </div>
       <div class="zoom-ctl" id="zoomCtl">
         <button type="button" id="zoomOut" class="zbtn" title="Thu nhỏ">−</button>
         <button type="button" id="zoomPct" class="zbtn zpct" title="Bấm để về 100%">100%</button>
@@ -145,8 +151,7 @@
           <button class="btn" id="btnWhite">Khử nền trắng</button>
           <button class="btn" id="btnCrop">Cắt bớt (crop)</button>
         </div>
-        <p class="muted small" id="aiNote">Phóng nét = nội suy trong trình duyệt, <b>chưa phải AI upscale</b>.</p>
-        <label class="chk" style="margin:2px 0 8px"><input type="checkbox" id="chkAI"> Phóng nét bằng AI (tải model 1 lần ~80KB)</label>
+        <p class="muted small">Phóng nét = nội suy trong trình duyệt, <b>chưa phải AI upscale</b>.</p>
       </div>
       <h3 class="adv-title">Nâng cao</h3>
       <div class="adv-body">
@@ -213,12 +218,6 @@
       <p class="muted small">Thành tiền = Số lượng × Đơn giá. Cấu hình lưu trên máy này.</p>
     </div>
 
-    <div class="panel" id="panelHistory">
-      <h2>Lịch sử</h2>
-      <p class="muted small">Tự lưu trên trình duyệt này (tối đa 30 mục). Bấm "Nạp lại" để mở lại trạng thái.</p>
-      <div id="historyList" class="history-list"></div>
-    </div>
-
   </div><!-- /dock -->
 </main>
 
@@ -271,6 +270,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261014c"></script>
+<script src="js/app.js?v=20261014b"></script>
 </body>
 </html>
