@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Mockup In Áo</title>
-<link rel="stylesheet" href="css/style.css?v=20261013f">
+<link rel="stylesheet" href="css/style.css?v=20261013g">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -35,7 +35,10 @@
           <button type="button" class="sw" data-c="#d96c2b" data-n="Cam" style="background:#d96c2b" title="Cam"></button>
         </div>
       </div>
-      <button id="btnUpload" class="btn primary">Tải file thiết kế</button>
+      <button id="btnUpload" class="btn primary">Tải file</button>
+      <button id="btnSaveCm" class="btn" title="Tải toàn bộ công việc về máy dưới dạng file .cm (đặt tên theo mã đơn)">Lưu file (.cm)</button>
+      <button id="btnOpenCm" class="btn" title="Mở file .cm để khôi phục toàn bộ công việc">Mở file (.cm)</button>
+      <input type="file" id="fileCmInput" accept=".cm,.json" hidden>
       <label class="chk"><input type="checkbox" id="chkMeasure"> Hiện số đo</label>
       <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.webp,.svg,.ai,.eps,.pdf" multiple hidden>
     </div>
@@ -49,7 +52,7 @@
 
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="stage"></canvas>
-      <div id="dropHint" class="drophint">Bấm “Tải file thiết kế” hoặc kéo-thả file vào đây<br><small>PNG · JPG · WEBP · SVG · AI · EPS — mỗi file là 1 layer</small></div>
+      <div id="dropHint" class="drophint">Bấm “Tải file” hoặc kéo-thả file vào đây<br><small>PNG · JPG · WEBP · SVG · AI · EPS — mỗi file là 1 layer</small></div>
     </div>
 
     <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc)</p>
@@ -71,7 +74,16 @@
         <span class="x">×</span>
         <label>Cao <input type="number" id="inpH" min="1" max="200" step="0.5"> cm</label>
         <button id="btnLock" class="btn small lock on" title="Tỉ lệ luôn khóa để không méo hình">🔒 <span id="lockRatio">—</span></button>
-        <button id="btnAutoFitNow" class="btn small" title="Đưa layer về giữa ngực trước với cỡ mặc định">⚡ Auto fit lại</button>
+      </div>
+      <div class="preset-block">
+        <span class="muted small">Vị trí in (bấm để tự căn đúng vị trí + cỡ chuẩn):</span>
+        <div class="btn-grid presets">
+          <button class="btn small" data-preset="nguc-trai" title="Logo ngực trái, cỡ ~9-10cm">Ngực trái</button>
+          <button class="btn small" data-preset="nguc-phai" title="Logo ngực phải (đối xứng ngực trái)">Ngực phải</button>
+          <button class="btn small" data-preset="nguc-giua" title="Giữa mặt trước, cỡ in chuẩn">Giữa mặt trước</button>
+          <button class="btn small" data-preset="lung-tren" title="Lưng trên, hình nhỏ dưới cổ áo">Lưng trên</button>
+          <button class="btn small" data-preset="lung-giua" title="Giữa lưng, cỡ in chuẩn">Lưng giữa</button>
+        </div>
       </div>
     </div>
   </aside>
@@ -113,7 +125,7 @@
       </div>
     </div>
 
-    <details class="panel adv" id="panelAdv">
+    <details class="panel adv" id="panelAdv" open>
       <summary>Nâng cao</summary>
       <div class="adv-body">
         <h3>Thông số áo</h3>
@@ -137,15 +149,6 @@
         </div>
       </div>
     </details>
-    <div class="panel" id="panelProject">
-      <h2>File làm việc</h2>
-      <p class="muted small">Lưu toàn bộ công việc ra file .cm đặt tên theo mã đơn. Mở file .cm để tiếp tục chỉnh sửa.</p>
-      <div class="btn-grid">
-        <button class="btn primary" id="btnSaveCm">Lưu file (.cm)</button>
-        <button class="btn" id="btnOpenCm">Mở file (.cm)</button>
-      </div>
-      <input type="file" id="fileCmInput" accept=".cm,.json" hidden>
-    </div>
   </div><!-- /dock -->
 </main>
 
@@ -198,6 +201,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013f"></script>
+<script src="js/app.js?v=20261013g"></script>
 </body>
 </html>
