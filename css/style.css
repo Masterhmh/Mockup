@@ -634,3 +634,88 @@ details.panel.adv summary:hover { color: var(--accent); }
 .hist-info .hist-title{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hist-btns{display:flex;flex-direction:column;gap:4px;flex:none}
 .hist-btns .btn{padding:4px 10px;font-size:12px}
+
+/* ============================================================
+   UI 20261014p — (1) Trạng thái "đang chọn" SÁNG rõ + hiệu ứng hover/active
+   ============================================================ */
+/* Hover chỉ trên thiết bị có chuột — tránh hover "dính" trên cảm ứng */
+@media (hover: hover) {
+  .btn:hover:not(:disabled) { box-shadow: var(--shadow); }
+  .btn.primary:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(0, 0, 0, .22); }
+  .icon-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .align-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .ctbtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, .16); }
+  .zbtn:hover:not(:disabled) { transform: translateY(-1px); }
+  .guide-toggle:hover { transform: translateY(-1px) scale(1.05); box-shadow: var(--shadow); }
+  .theme-toggle:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .hint-link:hover { color: var(--accent); }
+  .swatches .sw:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
+}
+/* Nhấn xuống: chớp sáng nhẹ cho nút hành động tức thời */
+.btn:not(.primary):active:not(:disabled) { background: var(--accent-soft); }
+.icon-btn:active { background: var(--accent-soft); }
+.align-btn:active { background: var(--accent-soft); }
+
+/* Swatch màu áo đang chọn: vòng accent sáng rõ + phóng nhẹ */
+.swatches .sw.on {
+  border-color: var(--accent);
+  transform: scale(1.16);
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--accent),
+              0 3px 10px rgba(47, 90, 207, .5);
+}
+.swatches .sw.on:hover { transform: scale(1.2); }
+
+/* Checkbox/radio đang tích: nhãn sáng lên (Hiện số đo, Phóng nét AI, chế độ màu in) */
+.chk:has(input:checked) { color: var(--accent); font-weight: 700; }
+/* Ô "Hiện số đo" trên toolbar thành pill khi bật */
+.toolbar .chk { padding: 4px 10px; border-radius: 8px; border: 1px solid transparent; }
+.toolbar .chk:has(input:checked) {
+  background: var(--accent-soft); border-color: var(--accent);
+  color: var(--accent); font-weight: 700; box-shadow: var(--shadow);
+}
+/* 2 lựa chọn chế độ in thành 2 ô pill, ô đang chọn sáng rõ */
+#panelQuality .chk:has(input[type="radio"]) {
+  display: inline-flex; padding: 7px 12px; margin: 0 8px 6px 0;
+  border: 1px solid var(--line); border-radius: 9px;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+#panelQuality .chk:has(input[type="radio"]:checked) {
+  background: var(--accent-soft); border-color: var(--accent);
+  color: var(--accent); font-weight: 700; box-shadow: var(--shadow);
+}
+/* Nút mức zoom trong modal so sánh: mức đang chọn đảo màu sáng rõ */
+.cmp-zoom.on {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+  font-weight: 700; box-shadow: var(--shadow);
+}
+
+/* ============================================================
+   UI 20261014p — (2) Modal so sánh: thanh điều khiển cố định,
+   vùng canvas cuộn riêng, 2 phía đồng bộ
+   ============================================================ */
+.modal-box.cmp-box {
+  display: flex; flex-direction: column;
+  /* Chiều cao CỐ ĐỊNH: zoom canvas to cỡ nào thì hàng nút tùy chọn
+     (zoom-row, Bỏ qua/Áp dụng) cũng đứng yên một chỗ */
+  height: 92vh; max-height: 92vh; overflow: hidden;
+}
+.modal-box.cmp-box h3,
+.modal-box.cmp-box .zoom-row,
+.modal-box.cmp-box #cmpNote,
+.modal-box.cmp-box .modal-actions { flex: none; }
+#modalCompare .cmp-grid {
+  flex: 1 1 auto; min-height: 0; min-width: 0; overflow: hidden;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+#modalCompare .cmp-side {
+  display: flex; flex-direction: column;
+  min-width: 0; min-height: 0;
+}
+#modalCompare .cmp-label { flex: none; }
+#modalCompare .cmp-scroll {
+  flex: 1 1 auto; min-height: 0; max-height: none;
+  overflow: auto; border: 1px solid var(--line);
+}
+@media (max-width: 980px) {
+  #modalCompare .cmp-grid { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+}
