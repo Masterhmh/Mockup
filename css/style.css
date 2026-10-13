@@ -18,6 +18,7 @@
   --hover: #eef0f3;
   --shadow: 0 1px 3px rgba(16, 24, 40, .08);
   --radius: 10px;
+  --font-family: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color-scheme: light;
 }
 /* Chế độ tối */
@@ -44,12 +45,21 @@
 * { box-sizing: border-box; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-family);
   font-size: 15px; line-height: 1.5;
 }
-.topbar { padding: 14px 20px 8px; }
-.topbar h1 { margin: 0; font-size: 22px; }
-.topbar .sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+/* ---- Header: logo + title căn giữa ---- */
+.topbar { padding: 14px 20px 10px; }
+.brand {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; text-align: center;
+}
+.brand-logo { width: 52px; height: 52px; flex: none; }
+.brand-text h1 {
+  margin: 0; font-size: 24px; font-weight: 800; letter-spacing: .02em;
+  text-transform: uppercase;
+}
+.brand-text .sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
 
 .layout {
   display: grid; grid-template-columns: minmax(0, 1fr) 340px;
@@ -346,4 +356,70 @@ details.panel.adv .colorrow { margin-left: 0; }
     linear-gradient(45deg, transparent 75%, var(--line) 75%),
     linear-gradient(-45deg, transparent 75%, var(--line) 75%);
   background-size: 10px 10px; background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+}
+
+/* ============================================================
+   Giao diện mượt (smooth UI) — transitions & micro-interactions
+   ============================================================ */
+/* Nút bấm: hover/active mượt + hiệu ứng nhấn nhẹ */
+.btn {
+  transition: background-color .18s ease, border-color .18s ease,
+              color .18s ease, box-shadow .18s ease, transform .12s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0) scale(.97); }
+.btn.primary:active { transform: translateY(0) scale(.96); }
+/* Nút icon trong dòng layer */
+.icon-btn { transition: background-color .15s ease, transform .12s ease, color .15s ease; }
+.icon-btn:active { transform: scale(.9); }
+/* Swatch màu áo */
+.swatches .sw { transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+.swatches .sw:hover { transform: scale(1.12); }
+/* Toggle theme mượt */
+.theme-toggle svg { transition: transform .3s ease, opacity .2s ease; }
+.theme-toggle:active svg { transform: rotate(25deg) scale(.9); }
+/* Chuyển theme: nền + chữ chuyển mượt */
+body, .panel, .btn, .fld input, .fld select, .size-row input,
+.layer-row, .canvas-wrap, .topbar {
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease;
+}
+/* Panel Nâng cao đóng/mở mượt */
+details.panel.adv summary { transition: color .15s ease; }
+details.panel.adv summary:hover { color: var(--accent); }
+/* Layer được chọn: viền sáng mượt */
+.layer-row {
+  transition: border-color .2s ease, background-color .2s ease,
+              box-shadow .2s ease, transform .15s ease;
+}
+.layer-row.active {
+  box-shadow: 0 0 0 2px var(--accent-soft), 0 2px 8px rgba(14, 124, 91, .18);
+}
+/* Layer mới thêm: fade + slide vào danh sách */
+@keyframes layerIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.layer-row.layer-new { animation: layerIn .25s ease; }
+/* Toast hiện/ẩn mượt */
+.toast {
+  transition: opacity .25s ease, transform .25s ease;
+}
+.toast[hidden] { display: block !important; opacity: 0; transform: translateX(-50%) translateY(10px); pointer-events: none; }
+/* Modal hiện mượt */
+.modal { transition: opacity .2s ease; }
+.modal[hidden] { display: flex !important; opacity: 0; pointer-events: none; }
+.modal-box { transition: transform .22s ease, opacity .22s ease; }
+.modal[hidden] .modal-box { transform: translateY(12px) scale(.98); opacity: 0; }
+/* Canvas active: viền chuyển mượt */
+.canvas-wrap { transition: outline-color .2s ease, box-shadow .2s ease, background-color .25s ease; }
+/* Nút align */
+.align-btn { transition: border-color .15s ease, transform .12s ease, background-color .15s ease; }
+.align-btn:active { transform: scale(.92); }
+/* Tôn trọng người dùng tắt animation */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }
