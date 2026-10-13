@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013f';
+const APP_V = '20261013g';
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -1518,7 +1518,7 @@ function renderLayerList() {
   if (!el) return;
   el.innerHTML = '';
   if (!S.layers.length) {
-    el.innerHTML = '<div class="muted small">Chưa có layer nào.<br>Bấm “Tải file thiết kế” để thêm.</div>';
+    el.innerHTML = '<div class="muted small">Chưa có layer nào.<br>Bấm “Tải file” để thêm.</div>';
     return;
   }
   for (let i = S.layers.length - 1; i >= 0; i--) {
@@ -1793,17 +1793,49 @@ async function init() {
 
   // (Đã bỏ nút "Xóa hình in" — xóa layer bằng nút × trên mỗi dòng trong panel Layers)
 
-  // Nút Auto: đưa layer đang chọn về giữa ngực trước với cỡ in mặc định
-  // (giữ đúng tỉ lệ gốc)
-  $('btnAutoFitNow').onclick = () => {
+  // 5 nút preset vị trí in: bấm là layer tự nhảy đúng vị trí + cỡ chuẩn từ config.
+  // Preset luôn nằm trong vùng an toàn nên KHÔNG gọi checkWarnings (không báo).
+  // Cảnh báo vùng an toàn chỉ hiện khi chỉnh tay (kéo/thu phóng/nhập cỡ).
+  function applyPreset(kind) {
     const L = activeLayer();
     if (!L || !L.art) { toast('Chưa có layer nào để căn.'); return; }
-    const dp = defaultLayerPlacement();
-    L.x = dp.x; L.y = dp.y; L.wCm = dp.wCm;
+    const ps = (S.cfg && S.cfg.positions) || [];
+    const byId = (id) => ps.find((p) => p.id === id);
+    const front = byId('nguc-truoc') || ps[0];
+    const chest = byId('logo-nguc-trai');
+    const back = byId('lung');
+    let x, y, wCm, label;
+    if (kind === 'nguc-trai') {
+      if (!chest) { toast('Không có vị trí ngực trái trong cấu hình.'); return; }
+      x = chest.center.x; y = chest.center.y;
+      wCm = chest.khoInMacDinhCm || 10; label = 'Ngực trái';
+    } else if (kind === 'nguc-phai') {
+      if (!chest || !front) { toast('Không có vị trí ngực phải trong cấu hình.'); return; }
+      x = 2 * front.center.x - chest.center.x; // đối xứng ngực trái qua trục giữa mặt trước
+      y = chest.center.y;
+      wCm = chest.khoInMacDinhCm || 10; label = 'Ngực phải';
+    } else if (kind === 'nguc-giua') {
+      if (!front) { toast('Không có vị trí mặt trước trong cấu hình.'); return; }
+      x = front.center.x; y = front.center.y;
+      wCm = front.khoInMacDinhCm || 28; label = 'Giữa mặt trước';
+    } else if (kind === 'lung-tren') {
+      if (!back) { toast('Không có vị trí lưng trong cấu hình.'); return; }
+      x = back.center.x; y = 0.35; // dưới cổ áo
+      wCm = 20; label = 'Lưng trên';
+    } else if (kind === 'lung-giua') {
+      if (!back) { toast('Không có vị trí lưng trong cấu hình.'); return; }
+      x = back.center.x; y = back.center.y;
+      wCm = back.khoInMacDinhCm || 30; label = 'Lưng giữa';
+    } else { return; }
+    L.x = x; L.y = y; L.wCm = wCm;
     syncSizeInputs();
-    render(); updateSelPanel(); checkWarnings(); assess();
-    toast('Đã đưa layer về giữa ngực trước.');
-  };
+    render(); updateSelPanel(); assess();
+    $('warnBar').hidden = true; // preset tự động hoàn toàn, không báo
+    toast(`Đã đặt layer vào “${label}” (${fmt(wCm)} cm).`);
+  }
+  document.querySelectorAll('[data-preset]').forEach((b) => {
+    b.onclick = () => applyPreset(b.dataset.preset);
+  });
 
   // Tùy chọn màu file in: áp dụng cho mockup + mọi file xuất
   document.querySelectorAll('input[name="colorMode"]').forEach((r) => {
