@@ -97,11 +97,14 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - Chụp snapshot toàn workspace (layers + vị trí/kích thước/group/ẩn-hiện + màu áo + kiểu áo + tùy chọn màu in)
   **trước** mỗi thao tác: thêm/xóa/dán layer, kéo thả xong, thu/phóng xong, group/ungroup,
   căn chỉnh, preset vị trí, đổi cỡ ô nhập, đổi màu áo/kiểu áo, ẩn/hiện/đổi thứ tự layer,
-  xử lý ảnh (vector/phóng nét/khử nền trắng/crop). Bỏ qua nếu trạng thái giống hệt
-  snapshot trên cùng (tránh bước undo rỗng — bấm undo mà không thấy gì thay đổi).
-- An toàn khi bấm dồn dập: khôi phục snapshot là bất đồng bộ nên có **khóa chống chạy đua** —
-  yêu cầu undo/redo trong lúc đang khôi phục sẽ bị bỏ qua; push snapshot trong lúc
-  khôi phục bị chặn; snapshot hỏng (JSON lỗi/thiếu layers) tự động bị loại bỏ.
+  xử lý ảnh (vector/phóng nét/khử nền trắng/crop). Mỗi lần bấm hoàn tác lùi đúng **1 bước thật**:
+  snapshot trùng trạng thái hiện tại (bước rỗng) tự bị bỏ qua.
+- Snapshot giữ **tham chiếu canvas trong bộ nhớ** (không chụp qua `toDataURL()`) nên khôi phục
+  tức thì và không mất layer kể cả với artwork rất lớn trên iPhone (nơi `toDataURL()` có thể lỗi
+  vì giới hạn bộ nhớ canvas — lỗi cũ khiến hoàn tác 1 lần mất hết hình).
+- Kéo layer ghi bước qua `beginDragSnap/commitDragSnap`; handler kết thúc pinch (capture) chỉ
+  dọn drag khi vừa pinch thật — không được xóa drag của lần kéo thường, nếu không kéo xong
+  sẽ không có bước hoàn tác và lần Ctrl+Z kế tiếp nhảy thẳng về trạng thái cũ nhất.
   Ảnh layer sau khôi phục được chuyển thành canvas nên snapshot tiếp theo vẫn đầy đủ dữ liệu
   (không bị mất ảnh khi undo lần 2-3 như bản cũ).
 - Kéo thả chỉ ghi 1 bước undo khi thả ra (không ghi liên tục trong lúc kéo).
