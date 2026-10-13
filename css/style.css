@@ -330,6 +330,45 @@ details.panel.adv .colorrow { margin-left: 0; }
   margin-left: auto; padding: 8px 10px; line-height: 0;
   display: inline-flex; align-items: center; justify-content: center;
 }
+/* Nút hướng dẫn sử dụng: tròn, icon "?" flat */
+.guide-toggle {
+  width: 36px; height: 36px; padding: 0; line-height: 0;
+  border-radius: 50%; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.guide-toggle svg { width: 19px; height: 19px; }
+.guide-toggle svg circle, .guide-toggle svg path {
+  fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round;
+}
+.guide-toggle svg .dot { fill: currentColor; stroke: none; }
+/* Link mở hướng dẫn trong dòng gợi ý dưới canvas */
+.hint-link {
+  border: none; background: none; padding: 0; cursor: pointer;
+  color: inherit; font: inherit; font-weight: 600; text-decoration: underline;
+  display: inline-flex; align-items: center; gap: 3px; vertical-align: baseline;
+}
+.hint-link svg { width: 14px; height: 14px; }
+.hint-link svg circle, .hint-link svg path {
+  fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round;
+}
+.hint-link svg .dot { fill: currentColor; stroke: none; }
+/* Cửa sổ hướng dẫn: thân cuộn, tối đa 85vh */
+.guide-box { max-width: 640px; max-height: 85vh; display: flex; flex-direction: column; }
+.guide-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.guide-head h3 { margin: 0; }
+.guide-close { flex: 0 0 auto; }
+.guide-body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.guide-sec { margin: 0 0 14px; }
+.guide-sec h4 {
+  margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--ink);
+}
+.guide-sec ul { margin: 4px 0 0; padding-left: 18px; }
+.guide-sec li { margin: 3px 0; font-size: 13.5px; line-height: 1.55; color: var(--ink); }
+.guide-quote {
+  margin: 6px 0; font-size: 13.5px; line-height: 1.6; color: var(--ink);
+  border-left: 3px solid var(--accent, #2F5ACF); padding-left: 10px;
+}
 
 /* ---- Polish: panel + canvas chuyên nghiệp ---- */
 .panel { box-shadow: var(--shadow); }
