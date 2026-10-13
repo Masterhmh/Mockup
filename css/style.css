@@ -523,3 +523,12 @@ details.panel.adv summary:hover { color: var(--accent); }
   /* Không tràn ngang */
   body { overflow-x: hidden; }
 }
+
+/* ---- Lịch sử theo khách ---- */
+.history-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto}
+.hist-row{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--card)}
+.hist-thumb{width:56px;height:56px;object-fit:contain;border-radius:6px;background:var(--hover);flex:none}
+.hist-info{flex:1;min-width:0;font-size:12.5px;line-height:1.45}
+.hist-info .hist-title{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-btns{display:flex;flex-direction:column;gap:4px;flex:none}
+.hist-btns .btn{padding:4px 10px;font-size:12px}
