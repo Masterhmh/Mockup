@@ -466,3 +466,60 @@ details.panel.adv summary:hover { color: var(--accent); }
 #quoteTotal { margin-top: 10px; }
 .quote-total { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px 12px; background: var(--ink); color: var(--bg); border-radius: 10px; font-size: 14px; }
 .quote-sum { font-size: 18px; font-weight: 800; }
+
+/* ============================================================
+   Giao diện điện thoại (≤768px) — gọn gàng, không tràn
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Header thu nhỏ vừa 1 hàng */
+  .brand { padding: 6px 12px; gap: 8px; }
+  .brand-logo { height: 30px; max-width: 110px; }
+  .brand-text h1 { font-size: 19px; letter-spacing: .03em; }
+
+  .layout { padding: 8px 10px 20px; gap: 12px; }
+
+  /* Toolbar: sắp xếp lại thành các hàng rõ ràng */
+  .toolbar { gap: 8px; align-items: center; }
+  /* Hàng 1 (Mockup) + hàng 2 (Màu áo + swatch): rộng hết hàng */
+  .toolbar > .fld { flex: 1 1 100%; width: 100%; min-width: 0; }
+  /* Hàng 3: Tải file / Lưu file / Mở file chia đều 1 hàng riêng */
+  .toolbar #btnUpload, .toolbar #btnSaveCm, .toolbar #btnOpenCm {
+    order: 3; flex: 1 1 calc(33.333% - 6px); min-width: 0; padding: 10px 2px;
+    font-size: 12px; white-space: nowrap;
+  }
+  /* Hàng 4: nút undo/redo nhỏ gọn + checkbox + theme (theme đẩy sang phải) */
+  .toolbar #btnUndo, .toolbar #btnRedo, .toolbar .chk, .toolbar .theme-toggle { order: 4; }
+  .toolbar #btnUndo, .toolbar #btnRedo {
+    flex: 0 0 auto; width: 42px; height: 42px; padding: 0;
+  }
+  .toolbar #btnUndo svg, .toolbar #btnRedo svg { width: 18px; height: 18px; }
+  /* Hàng 4: checkbox + nút theme (theme đẩy sang phải) */
+  .toolbar .chk { margin-right: auto; font-size: 13px; }
+  .theme-toggle { margin-left: auto; padding: 9px 10px; }
+  /* Swatch nhỏ gọn */
+  .toolbar .swatches { gap: 5px; }
+  .toolbar .swatches .sw { width: 28px; height: 28px; }
+  .swatches .sw { width: 28px; height: 28px; }
+
+  /* Thanh zoom thu gọn, không che canvas */
+  .zoom-ctl { right: 6px; bottom: 6px; padding: 2px; gap: 2px; }
+  .zbtn { padding: 3px 6px; font-size: 13px; }
+  .zpct { min-width: 42px; font-size: 11px; }
+  .zfit { font-size: 11px; }
+
+  /* Chữ hint ngắn gọn hơn */
+  .hint { font-size: 12px; margin-top: 6px; }
+
+  /* Panel: gọn, nút dễ bấm */
+  .panel { padding: 10px; }
+  .dock .btn, .panels .btn { min-height: 40px; }
+  .fld input, .fld select { max-width: 100%; min-width: 0; }
+  .size-row input { width: 56px; }
+  .row2 { grid-template-columns: 1fr; }
+  .quote-total { font-size: 13px; }
+  .quote-sum { font-size: 16px; }
+  /* Modal vừa màn hình điện thoại */
+  .modal-box { max-width: calc(100vw - 24px); }
+  /* Không tràn ngang */
+  body { overflow-x: hidden; }
+}
