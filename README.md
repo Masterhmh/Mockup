@@ -86,13 +86,23 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - **Ctrl+Z** hoàn tác, **Ctrl+Shift+Z** / **Ctrl+Y** làm lại — hoạt động **toàn trang**,
   không cần click vào canvas trước. Khi đang gõ chữ trong ô nhập liệu (tên khách,
   đơn giá...) thì trình duyệt xử lý mặc định (chỉ hoàn tác văn bản trong ô).
-- 2 nút icon mũi tên cong trên thanh toolbar (bên cạnh nút "Tải file"), tự mờ đi
-  khi không có gì để undo/redo; trạng thái nút khớp stack thực tế sau mọi thao tác.
+- Cụm 3 nút **overlay cố định ở góc trên-trái trong khung canvas** (không bị zoom ảnh hưởng):
+  Hoàn tác, Làm lại, và **Khóa/Mở khung canvas**. Nền đặc theo theme, icon tương phản cao
+  ở cả 2 chế độ sáng/tối; nút tự mờ khi không có gì để undo/redo; trong lúc đang khôi
+  phục thì tạm khóa để chống bấm dồn.
+- **Khóa khung canvas**: khi BẬT thì chặn zoom (cuộn chuột/chụm ngón/nút zoom) và kéo-pan
+  vùng nhìn — tránh lỡ tay làm lệch khung khi đang căn chỉnh; kéo/sửa layer vẫn bình thường.
+  Nút có trạng thái active rõ + tooltip tiếng Việt.
 - Chụp snapshot toàn workspace (layers + vị trí/kích thước/group/ẩn-hiện + màu áo + kiểu áo + tùy chọn màu in)
   **trước** mỗi thao tác: thêm/xóa/dán layer, kéo thả xong, thu/phóng xong, group/ungroup,
   căn chỉnh, preset vị trí, đổi cỡ ô nhập, đổi màu áo/kiểu áo, ẩn/hiện/đổi thứ tự layer,
   xử lý ảnh (vector/phóng nét/khử nền trắng/crop). Bỏ qua nếu trạng thái giống hệt
   snapshot trên cùng (tránh bước undo rỗng — bấm undo mà không thấy gì thay đổi).
+- An toàn khi bấm dồn dập: khôi phục snapshot là bất đồng bộ nên có **khóa chống chạy đua** —
+  yêu cầu undo/redo trong lúc đang khôi phục sẽ bị bỏ qua; push snapshot trong lúc
+  khôi phục bị chặn; snapshot hỏng (JSON lỗi/thiếu layers) tự động bị loại bỏ.
+  Ảnh layer sau khôi phục được chuyển thành canvas nên snapshot tiếp theo vẫn đầy đủ dữ liệu
+  (không bị mất ảnh khi undo lần 2-3 như bản cũ).
 - Kéo thả chỉ ghi 1 bước undo khi thả ra (không ghi liên tục trong lúc kéo).
 - Giới hạn 50 bước. Mở file .cm mới → lịch sử undo reset sạch.
 
