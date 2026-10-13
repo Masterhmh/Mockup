@@ -80,6 +80,40 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - Cảnh báo trùng màu: hình có độ sáng gần giống màu áo (chênh < 0.3, cả sáng-trên-sáng
   và tối-trên-tối) hiện trong thanh cảnh báo + toast khi thêm/đổi màu áo.
 
+## Hoàn tác / Làm lại (Undo/Redo)
+
+- **Ctrl+Z** hoàn tác, **Ctrl+Shift+Z** / **Ctrl+Y** làm lại (chỉ khi đã click vào canvas).
+- 2 nút icon mũi tên cong trên thanh toolbar (bên cạnh nút "Tải file"), tự mờ đi khi không có gì để undo/redo.
+- Chụp snapshot toàn workspace (layers + vị trí/kích thước/group/ẩn-hiện + màu áo + kiểu áo + tùy chọn màu in)
+  **trước** mỗi thao tác: thêm/xóa/dán layer, kéo thả xong, thu/phóng xong, group/ungroup,
+  căn chỉnh, preset vị trí, đổi cỡ ô nhập, đổi màu áo/kiểu áo, ẩn/hiện/đổi thứ tự layer,
+  xử lý ảnh (vector/phóng nét/khử nền trắng/crop), mở file .cm.
+- Kéo thả chỉ ghi 1 bước undo khi thả ra (không ghi liên tục trong lúc kéo).
+- Giới hạn 50 bước.
+
+## Zoom canvas
+
+- **Cuộn chuột** trên canvas = zoom quanh vị trí con trỏ; **chụm 2 ngón** trên cảm ứng = zoom.
+- Cụm nút ở góc dưới-phải canvas: **−** / **% hiện tại** (bấm để về 100%) / **+** / **"Vừa khung"**.
+- Phạm vi 25%–400%. Zoom chỉ là chế độ xem — kéo/resize/chạm vẫn chính xác ở mọi mức zoom,
+  file xuất (mockup/file in) luôn full-size gốc không bị ảnh hưởng.
+- Khi zoom lớn hơn khung nhìn, khung canvas cho phép cuộn (scroll) bình thường.
+
+## Báo giá tự động (panel "BÁO GIÁ")
+
+- Nằm trong dock dưới canvas, cạnh panel "Xuất file".
+- Chọn **kỹ thuật in** cho cả đơn: In lụa / DTF / Decal / Thêu.
+- **Bảng đơn giá theo cỡ hình** (VNĐ, sửa được, mặc định 0):
+  Nhỏ (cạnh lớn nhất ≤ 15cm), Vừa (≤ 25cm), Lớn (≤ 35cm), Rất lớn (> 35cm).
+- **Hệ số theo kỹ thuật** (sửa được): In lụa ×1, DTF ×1.5, Decal ×1.2, Thêu ×3.
+- Tự tính cho từng hình in **đang hiện**: giá = đơn giá theo cỡ × hệ số kỹ thuật.
+  Hiển thị chi tiết từng hình + **TỔNG CỘNG** (định dạng 150.000đ), cập nhật realtime
+  khi đổi cỡ/di chuyển layer.
+- Cấu hình giá lưu trên máy (localStorage, key `mockupQuoteCfg`); kỹ thuật đã chọn
+  được lưu vào file .cm.
+- **Phiếu kỹ thuật** và **thong-tin.txt** trong ZIP tự thêm mục "BÁO GIÁ"
+  (kỹ thuật in + chi tiết từng hình + tổng tiền) khi tổng tiền > 0.
+
 ## Panel "Chất lượng & Xử lý" (gộp đánh giá + xử lý)
 
 - Trên cùng: huy hiệu DPI (Đạt chuẩn in / Nên xử lý thêm / Không nên in) + dòng
