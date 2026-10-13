@@ -79,7 +79,9 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   **mockup.png** + từng file in **300dpi** nền trong suốt đúng khổ cm (tên theo layer)
   + **thong-tin.txt** (tên KH, mã đơn, vị trí mặt trước/lưng, kích thước từng hình);
   "Xuất file in SVG (ZIP)" tải gói ZIP gồm **mockup.png** + từng file **SVG** đúng khổ cm
-  + **thong-tin.txt**.
+  + **thong-tin.txt**. Khi xuất ZIP hiện **chỉ báo tiến trình ở lại màn hình**:
+  "Đang tạo file in i/N…" từng file, rồi "Đang nén ZIP… x%" (theo callback của JSZip);
+  xong mới ẩn + hiện toast thành công; lỗi giữa chừng ẩn chỉ báo + toast lỗi rõ ràng.
 - Cảnh báo trùng màu: hình có độ sáng gần giống màu áo (chênh < 0.3, cả sáng-trên-sáng
   và tối-trên-tối) hiện trong thanh cảnh báo + toast khi thêm/đổi màu áo.
 
@@ -168,7 +170,9 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - **DPI < 300**: đề xuất hiện rõ, nút được gợi ý tô đậm (vector cho hình phẳng
   ít màu, phóng nét 4× cho ảnh phức tạp). Bấm là **áp dụng ngay lên layer**,
   thấy kết quả realtime trên canvas (không mở modal so sánh).
-- Khử nền trắng và Crop giữ modal riêng (cần kiểm tra trực quan / kéo khung).
+- **Phím Escape đóng modal**: So sánh (= "Bỏ qua", không áp dụng), Cắt (= "Hủy"),
+  Xem trước (= Đóng), Hướng dẫn (= Đóng). Nhiều modal chồng nhau thì đóng modal trên cùng.
+  Không đóng khi đang gõ trong ô nhập liệu hoặc đang sửa tên layer.
 - Nút "Xóa hình in" đã bỏ — xóa layer bằng nút × trên mỗi dòng trong panel Layers.
 - **Phóng nét AI (tùy chọn)**: tick "Phóng nét bằng AI" thì 2×/4× chạy **UpscalerJS + TensorFlow.js**
   client-side (model 2× gọn ~80KB, tải lười từ CDN khi bấm lần đầu; 4× = 2 pass AI).
@@ -178,6 +182,10 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   (toast cũ của nội suy bị ghi đè là có chủ ý). Dòng cảnh báo tự ẩn khi chạy xử lý
   khác thành công hoặc đổi layer. Trong lúc AI chạy, panel hiện "Đang tải model AI…" /
   "Đang phóng nét bằng AI…"; chạy AI thành công thì thông báo ghi rõ "Đã phóng nét AI 2×".
+- Nút **"Tải trước model AI"** cạnh checkbox: tải model ngay (đúng cơ chế tải lười
+  aiEnsure, dùng chung instance) để lần phóng nét sau chạy ngay không chờ; đang tải
+  nút hiện "Đang tải model AI…" và khóa; xong → "Model AI đã sẵn sàng ✓" (giữ trạng thái
+  trong phiên); lỗi → dòng cảnh báo + nút cho thử lại. Đã sẵn sàng rồi thì không tải lại.
 - **Modal so sánh trước/sau** (khử nền trắng, vector): mặc định ở chế độ **"Vừa khung"** —
   ảnh co theo đúng tỉ lệ gốc, vừa khung modal (không tràn/phóng to), nền caro hiển thị
   phần trong suốt. Nút 100%/200%/400% để soi chi tiết pixel khi cần.
@@ -194,8 +202,11 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   localStorage sang rồi xóa key cũ. Trình duyệt chặn IndexedDB thì tự rơi về
   localStorage (giữ hành vi cũ).
 - Đầy quota thật (hiếm gặp): tự xóa mục cũ nhất; trường hợp xấu nhất thì lưu mục mới
-  thiếu ảnh gốc (ghi chú "Thiếu ảnh gốc" — mục đó không nạp lại được).
-- Nút "Xóa" từng mục.
+  thiếu ảnh gốc (ghi chú "Thiếu ảnh gốc" — mục đó chỉ nạp được thông tin + cấu hình,
+  không có hình in).
+- Nút "Xóa" từng mục + nút **"Xóa tất cả"** (chỉ hiện khi có ít nhất 1 mục, có hỏi xác nhận).
+- Bấm "Nạp lại" xong có toast xác nhận; mục thiếu ảnh gốc sẽ hỏi riêng và nạp
+  ở chế độ chỉ thông tin/cấu hình.
 
 ## Bố cục giao diện
 
@@ -270,7 +281,8 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
    sánh trước/sau ở 100%.
 3. **Thao tác trực tiếp trên canvas**: bấm vào hình để chọn layer, kéo di chuyển
    tự do, kéo 4 góc thu/phóng (luôn khóa tỉ lệ). Phím tắt **Ctrl+C / Ctrl+V /
-   Del** để copy / paste / xóa layer. Bật **"Hiện số đo"** để xem:
+   Del** để copy / paste / xóa layer (**Del hỏi xác nhận trước khi xóa**; nút × trên
+   khung chọn và trong panel xóa ngay như cũ). Bật **"Hiện số đo"** để xem:
    khung + kích thước từng hình in, **vùng in an toàn** (nét đứt xanh lá, full
    chiều dài thân áo trừ vùng cổ/nẹp/đường may, mặt trước + mặt sau). Khi kéo
    layer tràn ra ngoài vùng an toàn hoặc đè lên vùng cấm (cổ, nẹp nút), cảnh báo
