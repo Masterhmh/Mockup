@@ -62,11 +62,15 @@ body {
 .brand {
   display: flex; flex-direction: row; align-items: center; justify-content: flex-start;
   gap: 12px; text-align: left; padding: 10px 20px;
-  max-width: 1400px; margin: 0 auto;
+  max-width: 1400px; margin: 0 auto; position: relative;
 }
 .brand-logo { height: 40px; width: auto; max-width: 160px; object-fit: contain; flex: none; mix-blend-mode: screen; }
+.brand-text {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  white-space: nowrap;
+}
 .brand-text h1 {
-  margin: 0; font-size: 22px; font-weight: 800; letter-spacing: .04em;
+  margin: 0; font-size: 30px; font-weight: 800; letter-spacing: .04em;
   text-transform: uppercase; color: #ffffff;
 }
 
