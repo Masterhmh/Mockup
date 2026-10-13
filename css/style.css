@@ -8,9 +8,6 @@
   --accent: #2F5ACF;
   --accent-d: #23479f;
   --accent-soft: #e9eefb;
-  --btn-bg: #000000;
-  --btn-ink: #F8F8F8;
-  --btn-h: #2b2b2b;
   --warn: #b45309;
   --warn-bg: #fef3c7;
   --danger: #b91c1c;
@@ -34,9 +31,6 @@
   --accent: #5B7FE8;
   --accent-d: #7d97ec;
   --accent-soft: #141f3a;
-  --btn-bg: #F8F8F8;
-  --btn-ink: #000000;
-  --btn-h: #d9d9d9;
   --warn: #e8a33d;
   --warn-bg: #3a2f1a;
   --danger: #e86a6a;
@@ -108,8 +102,14 @@ body {
   border: 1px solid var(--line); background: var(--card); color: var(--ink);
 }
 .btn:hover { background: var(--hover); }
-.btn.primary { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-ink); }
-.btn.primary:hover { background: var(--btn-h); border-color: var(--btn-h); }
+.btn.primary {
+  /* QUY TẮC 20261014q: CHỈ trạng thái "đang chọn" mới dùng nền đen
+     (đảo màu theo theme: sáng = nền đen chữ trắng, tối = nền trắng chữ đen).
+     Nút chính mặc định như nút thường, chỉ giữ chữ đậm + bóng để phân biệt. */
+  background: var(--card); border-color: var(--line); color: var(--ink);
+  font-weight: 700; box-shadow: var(--shadow);
+}
+.btn.primary:hover { background: var(--hover); border-color: var(--ink); }
 .btn.small { font-size: 13px; padding: 6px 10px; }
 .btn.lock.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
@@ -406,8 +406,7 @@ details.panel.adv .colorrow { margin-left: 0; }
 /* Viền canvas tinh tế hơn khi có nội dung */
 .canvas-wrap.fitted { border-color: var(--line); }
 .topbar h1 { font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
-/* Nút primary nổi bật hơn */
-.btn.primary { font-weight: 600; box-shadow: var(--shadow); }
+/* Nút primary: quy tắc 20261014q ở trên (.btn.primary) — giữ chữ đậm + bóng */
 /* Input focus rõ ràng */
 .fld input:focus, .fld select:focus, .size-row input:focus {
   outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent);
@@ -651,42 +650,54 @@ details.panel.adv summary:hover { color: var(--accent); }
   .hint-link:hover { color: var(--accent); }
   .swatches .sw:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, .25); }
 }
-/* Nhấn xuống: chớp sáng nhẹ cho nút hành động tức thời */
-.btn:not(.primary):active:not(:disabled) { background: var(--accent-soft); }
-.icon-btn:active { background: var(--accent-soft); }
-.align-btn:active { background: var(--accent-soft); }
+/* Nhấn (:active) = phản hồi "đã bấm/đang chọn": đảo màu đen theo theme */
+.btn:active:not(:disabled) { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.icon-btn:active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.align-btn:active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.zbtn:active:not(:disabled) { background: var(--ink); color: var(--bg); }
+.ctbtn:active:not(:disabled) { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
-/* Swatch màu áo đang chọn: vòng accent sáng rõ + phóng nhẹ */
+/* Swatch đang chọn: vòng đen (trắng ở theme tối) + phóng nhẹ — không dùng xanh accent */
 .swatches .sw.on {
-  border-color: var(--accent);
+  border-color: var(--ink);
   transform: scale(1.16);
-  box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--accent),
-              0 3px 10px rgba(47, 90, 207, .5);
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ink);
 }
 .swatches .sw.on:hover { transform: scale(1.2); }
 
-/* Checkbox/radio đang tích: nhãn sáng lên (Hiện số đo, Phóng nét AI, chế độ màu in) */
-.chk:has(input:checked) { color: var(--accent); font-weight: 700; }
-/* Ô "Hiện số đo" trên toolbar thành pill khi bật */
+/* Checkbox/radio đang tích: nhãn chữ đậm; trạng thái "đang chọn" của từng vị trí
+   (pill toolbar, pill chế độ in, pill AI, pill zoom) = đảo màu đen theo theme */
+.chk:has(input:checked) { font-weight: 700; }
+/* Ô "Hiện số đo" trên toolbar thành pill đảo màu đen khi bật */
 .toolbar .chk { padding: 4px 10px; border-radius: 8px; border: 1px solid transparent; }
 .toolbar .chk:has(input:checked) {
-  background: var(--accent-soft); border-color: var(--accent);
-  color: var(--accent); font-weight: 700; box-shadow: var(--shadow);
+  background: var(--ink); color: var(--bg); border-color: var(--ink);
+  font-weight: 700; box-shadow: var(--shadow);
 }
-/* 2 lựa chọn chế độ in thành 2 ô pill, ô đang chọn sáng rõ */
+/* Checkbox "Phóng nét bằng AI" khi tích: nhãn pill đảo màu đen */
+.chk:has(#chkAI:checked) {
+  display: inline-flex; align-items: center; padding: 6px 12px;
+  border: 1px solid var(--ink); border-radius: 9px;
+  background: var(--ink); color: var(--bg); font-weight: 700; box-shadow: var(--shadow);
+}
+/* 2 lựa chọn chế độ in thành 2 ô pill, ô đang chọn đảo màu đen */
 #panelQuality .chk:has(input[type="radio"]) {
   display: inline-flex; padding: 7px 12px; margin: 0 8px 6px 0;
   border: 1px solid var(--line); border-radius: 9px;
   transition: background-color .15s ease, border-color .15s ease, color .15s ease;
 }
 #panelQuality .chk:has(input[type="radio"]:checked) {
-  background: var(--accent-soft); border-color: var(--accent);
-  color: var(--accent); font-weight: 700; box-shadow: var(--shadow);
-}
-/* Nút mức zoom trong modal so sánh: mức đang chọn đảo màu sáng rõ */
-.cmp-zoom.on {
-  background: var(--accent); border-color: var(--accent); color: #fff;
+  background: var(--ink); color: var(--bg); border-color: var(--ink);
   font-weight: 700; box-shadow: var(--shadow);
+}
+/* Nút mức zoom trong modal so sánh: mức đang chọn đảo màu đen */
+.cmp-zoom.on {
+  background: var(--ink); color: var(--bg); border-color: var(--ink);
+  font-weight: 700; box-shadow: var(--shadow);
+}
+/* Nút preset vị trí in đang "chọn" (layer còn đúng vị trí + cỡ của preset): đảo màu đen */
+.preset-block .presets .btn.on {
+  background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 700;
 }
 
 /* ============================================================
