@@ -1,13 +1,13 @@
 /* Studio Mockup In Áo — giao diện gọn, tiếng Việt, ưu tiên desktop */
 :root {
-  --bg: #f4f5f7;
+  --bg: #F8F8F8;
   --card: #ffffff;
-  --ink: #1c2333;
-  --muted: #6b7280;
-  --line: #e2e5ea;
-  --accent: #0e7c5b;
-  --accent-d: #0a5f46;
-  --accent-soft: #eef7f3;
+  --ink: #000000;
+  --muted: #5a5a5a;
+  --line: #e0e0e0;
+  --accent: #2F5ACF;
+  --accent-d: #23479f;
+  --accent-soft: #e9eefb;
   --warn: #b45309;
   --warn-bg: #fef3c7;
   --danger: #b91c1c;
@@ -23,14 +23,14 @@
 }
 /* Chế độ tối */
 [data-theme="dark"] {
-  --bg: #1a1d21;
-  --card: #24282e;
-  --ink: #e8eaed;
-  --muted: #9aa1ad;
-  --line: #3a3f46;
-  --accent: #34b183;
-  --accent-d: #2a9a70;
-  --accent-soft: #1d2f28;
+  --bg: #000000;
+  --card: #161616;
+  --ink: #F8F8F8;
+  --muted: #a8a8a8;
+  --line: #2c2c2c;
+  --accent: #5B7FE8;
+  --accent-d: #7d97ec;
+  --accent-soft: #141f3a;
   --warn: #e8a33d;
   --warn-bg: #3a2f1a;
   --danger: #e86a6a;
@@ -241,7 +241,7 @@ details.panel.adv .colorrow { margin-left: 0; }
   cursor: pointer; background: var(--card);
 }
 .layer-row:hover { background: var(--hover); }
-.layer-row.active { border-color: var(--accent); background: #eef7f3; }
+.layer-row.active { border-color: var(--accent); background: var(--accent-soft); }
 /* Layer được chọn thêm (multi-select): viền hồng để phân biệt với layer chính */
 .layer-row.multisel { border-color: #ec4899; background: #fdf2f8; }
 .layer-row.hidden-layer { opacity: .55; }
@@ -392,7 +392,7 @@ details.panel.adv summary:hover { color: var(--accent); }
               box-shadow .2s ease, transform .15s ease;
 }
 .layer-row.active {
-  box-shadow: 0 0 0 2px var(--accent-soft), 0 2px 8px rgba(14, 124, 91, .18);
+  box-shadow: 0 0 0 2px var(--accent-soft), 0 2px 8px rgba(47, 90, 207, .18);
 }
 /* Layer mới thêm: fade + slide vào danh sách */
 @keyframes layerIn {
