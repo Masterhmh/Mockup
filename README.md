@@ -96,6 +96,8 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - **Khóa khung canvas**: khi BẬT thì chặn zoom (cuộn chuột/chụm ngón/nút zoom) và kéo-pan
   vùng nhìn — tránh lỡ tay làm lệch khung khi đang căn chỉnh; kéo/sửa layer vẫn bình thường.
   Nút chỉ hiện 1 icon theo trạng thái (mở/đóng), khi BẬT có style đảo màu nền/chữ rõ ràng.
+  **Mặc định BẬT mỗi khi mở app** (không lưu lựa chọn qua các lần mở); người dùng bấm để
+  tắt/bật. Fit khung lúc khởi động là thao tác nội bộ, không bị khóa chặn.
 - Chụp snapshot toàn workspace (layers + vị trí/kích thước/group/ẩn-hiện + màu áo + kiểu áo + tùy chọn màu in)
   **trước** mỗi thao tác: thêm/xóa/dán layer, kéo thả xong, thu/phóng xong, group/ungroup,
   căn chỉnh, preset vị trí, đổi cỡ ô nhập, đổi màu áo/kiểu áo, ẩn/hiện/đổi thứ tự layer,
@@ -171,7 +173,14 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - **Phóng nét AI (tùy chọn)**: tick "Phóng nét bằng AI" thì 2×/4× chạy **UpscalerJS + TensorFlow.js**
   client-side (model 2× gọn ~80KB, tải lười từ CDN khi bấm lần đầu; 4× = 2 pass AI).
   Thiết bị không chạy được (WebGL lỗi/hết bộ nhớ/CDN bị chặn) thì app tự rơi về
-  nội suy và **ghi nhãn trung thực** ("AI không chạy được — đã dùng nội suy thay thế").
+  nội suy và **báo rõ, ở lại**: dòng cảnh báo trong panel ("⚠ Thiết bị này không chạy
+  được AI — đã dùng phóng nét thường (nội suy) thay thế.") + toast cùng nội dung
+  (toast cũ của nội suy bị ghi đè là có chủ ý). Dòng cảnh báo tự ẩn khi chạy xử lý
+  khác thành công hoặc đổi layer. Trong lúc AI chạy, panel hiện "Đang tải model AI…" /
+  "Đang phóng nét bằng AI…"; chạy AI thành công thì thông báo ghi rõ "Đã phóng nét AI 2×".
+- **Modal so sánh trước/sau** (khử nền trắng, vector): mặc định ở chế độ **"Vừa khung"** —
+  ảnh co theo đúng tỉ lệ gốc, vừa khung modal (không tràn/phóng to), nền caro hiển thị
+  phần trong suốt. Nút 100%/200%/400% để soi chi tiết pixel khi cần.
 
 ## Lịch sử theo khách
 
@@ -195,7 +204,8 @@ màu accent/nút chính), `#F8F8F8` (Alabaster, nền sáng), `#000000` (đen, c
 Dark mode: nền đen, chữ trắng, accent xanh sáng `#5B7FE8`.
 - **Header**: logo PNG nhúng trực tiếp (data URL) + tiêu đề
   "XƯỞNG IN MẪU" căn giữa viết hoa. Font **Be Vietnam Pro** (Google Fonts,
-  hỗ trợ tốt tiếng Việt).
+  hỗ trợ tốt tiếng Việt). **Bấm vào logo = làm mới app** (nếu đang có layer thì hỏi
+  xác nhận trước khi tải lại trang).
 - **Desktop (≥1024px)**: canvas lớn bên trái, sidebar phải (Layers + Layer đang
   chọn), hàng panel ngang **dưới canvas** (Chất lượng & Xử lý, Xuất file,
   File làm việc, Nâng cao) để thao tác realtime trực tiếp trên ảnh.
