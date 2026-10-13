@@ -7,6 +7,10 @@ cho nhà in. Giao diện **Layers kiểu Photoshop**: mỗi file thiết kế t�
 là 1 layer — bấm trực tiếp vào hình trên canvas để chọn, kéo di chuyển tự do,
 kéo góc thu/phóng (luôn khóa tỉ lệ). Panel Layers quản lý ẩn/hiện, thứ tự,
 xóa từng layer. Lưu/mở lại file làm việc dạng file **.cm** (tải về máy, tên theo mã đơn).
+Nút **Lưu/Mở file (.cm)** nằm cùng hàng toolbar với nút **Tải file**. Panel **Nâng cao**
+luôn hiển thị. 5 nút **preset vị trí in** (Ngực trái / Ngực phải / Giữa mặt trước /
+Lưng trên / Lưng giữa) trong panel Layer đang chọn: bấm là tự căn đúng vị trí +
+cỡ chuẩn từ config, không hiện cảnh báo vùng an toàn (cảnh báo chỉ khi chỉnh tay).
 Giao diện tiếng Việt.
 
 ## Cách mở
