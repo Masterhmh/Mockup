@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261012e';
+const APP_V = '20261013a';
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -80,15 +80,14 @@ Object.defineProperty(S, 'design', {
 // preview, mockup PNG, file in PNG (thường + theo vị trí), SVG.
 S.printColor = { mode: 'orig', color: '#1a1a1a' };
 
-// Màu áo mockup: nhuộm ảnh áo thật qua mask (multiply), giữ nếp vải/bóng đổ.
-// S.maskImg = ảnh mask RGBA (alpha = vùng áo), tải trong loadMockup (URL hoặc data URL).
+// Màu áo mockup: phủ lớp màu lên ảnh PNG áo (blend multiply), giữ nguyên
+// nếp vải/chi tiết vì ảnh PNG mới có vân vải tương phản mạnh.
+// Alpha của chính file PNG là mask (vùng trong suốt không bị nhuộm).
 // S._tintBase = cache nền đã nhuộm theo key (mockupId + màu áo).
-// S._detail = cache chi tiết vải high-pass theo key (mockupId).
 S.shirtColor = '#ffffff';
 S.shirtColorName = 'Trắng';
-S.maskImg = null;
+S.maskImg = null; // giữ cho tương thích, không dùng nữa (alpha PNG chính là mask)
 S._tintBase = null;
-S._detail = null;
 
 // Raster dùng cho mọi đầu ra (đã áp dụng tùy chọn màu). Xử lý ảnh
 // (vector/upscale/crop/khử nền) luôn chạy trên bản gốc, không qua đây.
@@ -155,8 +154,8 @@ const MOCKUPS = [
 
 // Config dự phòng khi mở file:// trực tiếp (fetch JSON bị chặn CORS)
 const FALLBACK_CFG = {
-  tshirt: {"ao": {"daiAoCm": 72, "kieu": "Áo cổ tròn", "ngangNgucCm": 52, "ngangNgucPx": 1260, "size": "L"}, "fileAnh": "Tshirt.jpg", "kichThuocAnh": {"h": 3242, "w": 4864}, "positions": [{"center": {"x": 0.294, "y": 0.44}, "exportZone": {"x0": 0.17, "x1": 0.42, "y0": 0.3, "y1": 0.72}, "id": "nguc-truoc", "khoInMacDinhCm": 28, "ten": "Ngực trước", "zone": {"x0": 0.17, "x1": 0.42, "y0": 0.33, "y1": 0.58}}, {"center": {"x": 0.215, "y": 0.36}, "exportZone": {"x0": 0.17, "x1": 0.42, "y0": 0.3, "y1": 0.72}, "id": "logo-nguc-trai", "khoInMacDinhCm": 10, "ten": "Logo ngực trái", "zone": {"x0": 0.16, "x1": 0.27, "y0": 0.3, "y1": 0.42}}, {"center": {"x": 0.72, "y": 0.43}, "exportZone": {"x0": 0.6, "x1": 0.84, "y0": 0.3, "y1": 0.72}, "id": "lung", "khoInMacDinhCm": 30, "ten": "Lưng", "zone": {"x0": 0.6, "x1": 0.84, "y0": 0.31, "y1": 0.58}}], "ten": "Áo cổ tròn", "warnZones": [{"loai": "tron", "r": 0.05, "ten": "Cổ trước", "x": 0.294, "y": 0.215}, {"loai": "tron", "r": 0.045, "ten": "Cổ sau", "x": 0.72, "y": 0.2}]},
-  polo: {"ao": {"daiAoCm": 72, "kieu": "Áo polo", "ngangNgucCm": 52, "ngangNgucPx": 1040, "size": "L"}, "fileAnh": "Polo.jpg", "kichThuocAnh": {"h": 3000, "w": 4000}, "positions": [{"center": {"x": 0.285, "y": 0.47}, "exportZone": {"x0": 0.16, "x1": 0.41, "y0": 0.3, "y1": 0.7}, "id": "nguc-truoc", "khoInMacDinhCm": 26, "ten": "Ngực trước", "zone": {"x0": 0.16, "x1": 0.41, "y0": 0.37, "y1": 0.6}}, {"center": {"x": 0.205, "y": 0.375}, "exportZone": {"x0": 0.16, "x1": 0.41, "y0": 0.3, "y1": 0.7}, "id": "logo-nguc-trai", "khoInMacDinhCm": 9, "ten": "Logo ngực trái", "zone": {"x0": 0.15, "x1": 0.26, "y0": 0.32, "y1": 0.43}}, {"center": {"x": 0.715, "y": 0.42}, "exportZone": {"x0": 0.59, "x1": 0.84, "y0": 0.3, "y1": 0.68}, "id": "lung", "khoInMacDinhCm": 28, "ten": "Lưng", "zone": {"x0": 0.59, "x1": 0.84, "y0": 0.3, "y1": 0.56}}], "ten": "Áo polo", "warnZones": [{"loai": "chunhat", "ten": "Nẹp nút", "x0": 0.262, "x1": 0.308, "y0": 0.2, "y1": 0.345}, {"loai": "tron", "r": 0.045, "ten": "Cổ trước", "x": 0.285, "y": 0.2}, {"loai": "tron", "r": 0.04, "ten": "Cổ sau", "x": 0.715, "y": 0.19}]}
+  tshirt: {"ten": "Áo cổ tròn", "fileAnh": "Tshirt.png", "kichThuocAnh": {"w": 4052, "h": 2283}, "ao": {"kieu": "Áo cổ tròn", "size": "L", "ngangNgucCm": 52, "daiAoCm": 72, "ngangNgucPx": 1190}, "positions": [{"id": "nguc-truoc", "ten": "Ngực trước", "center": {"x": 0.254, "y": 0.47}, "zone": {"x0": 0.14, "x1": 0.37, "y0": 0.3, "y1": 0.68}, "exportZone": {"x0": 0.1, "x1": 0.41, "y0": 0.25, "y1": 0.75}, "khoInMacDinhCm": 28}, {"id": "logo-nguc-trai", "ten": "Logo ngực trái", "center": {"x": 0.185, "y": 0.33}, "zone": {"x0": 0.14, "x1": 0.24, "y0": 0.28, "y1": 0.4}, "exportZone": {"x0": 0.1, "x1": 0.41, "y0": 0.25, "y1": 0.75}, "khoInMacDinhCm": 10}, {"id": "lung", "ten": "Lưng", "center": {"x": 0.752, "y": 0.47}, "zone": {"x0": 0.64, "x1": 0.87, "y0": 0.28, "y1": 0.68}, "exportZone": {"x0": 0.6, "x1": 0.9, "y0": 0.25, "y1": 0.75}, "khoInMacDinhCm": 30}], "warnZones": [{"loai": "tron", "ten": "Cổ trước", "x": 0.254, "y": 0.055, "r": 0.035}, {"loai": "tron", "ten": "Cổ sau", "x": 0.752, "y": 0.045, "r": 0.03}]},
+  polo: {"ten": "Áo polo", "fileAnh": "Polo.png", "kichThuocAnh": {"w": 3469, "h": 1933}, "ao": {"kieu": "Áo polo", "size": "L", "ngangNgucCm": 52, "daiAoCm": 72, "ngangNgucPx": 935}, "positions": [{"id": "nguc-truoc", "ten": "Ngực trước", "center": {"x": 0.244, "y": 0.48}, "zone": {"x0": 0.13, "x1": 0.36, "y0": 0.32, "y1": 0.68}, "exportZone": {"x0": 0.1, "x1": 0.39, "y0": 0.25, "y1": 0.75}, "khoInMacDinhCm": 26}, {"id": "logo-nguc-trai", "ten": "Logo ngực trái", "center": {"x": 0.175, "y": 0.34}, "zone": {"x0": 0.13, "x1": 0.23, "y0": 0.3, "y1": 0.42}, "exportZone": {"x0": 0.1, "x1": 0.39, "y0": 0.25, "y1": 0.75}, "khoInMacDinhCm": 9}, {"id": "lung", "ten": "Lưng", "center": {"x": 0.754, "y": 0.48}, "zone": {"x0": 0.64, "x1": 0.87, "y0": 0.3, "y1": 0.68}, "exportZone": {"x0": 0.6, "x1": 0.9, "y0": 0.25, "y1": 0.75}, "khoInMacDinhCm": 28}], "warnZones": [{"loai": "chunhat", "ten": "Nẹp nút", "x0": 0.228, "x1": 0.262, "y0": 0.06, "y1": 0.28}, {"loai": "tron", "ten": "Cổ trước", "x": 0.244, "y": 0.06, "r": 0.035}, {"loai": "tron", "ten": "Cổ sau", "x": 0.754, "y": 0.05, "r": 0.03}]}
 };
 
 // ---------- Bảng màu chú thích (line số đo, khung, vùng in) ----------
@@ -182,13 +181,8 @@ async function loadMockup(id) {
   S.cfg = cfg;
   S.places = {}; // mockup mới -> placements mới
   S.baseImg = await loadImage(cfg.fileAnh);
-  S.maskImg = null; // mask tách áo khỏi nền (nếu có) — dùng để nhuộm màu áo
   S._tintBase = null; // đổi mockup -> tính lại nền nhuộm
-  S._detail = null; // đổi mockup -> tính lại chi tiết vải
-  if (cfg.maskSrc) {
-    try { S.maskImg = await loadImage(cfg.maskSrc); }
-    catch (e) { S.maskImg = null; } // lỗi thì bỏ qua tint, dùng ảnh gốc
-  }
+  // PNG nền trong suốt: alpha của ảnh chính là mask vùng áo, không cần mask riêng
   S.off.width = cfg.kichThuocAnh.w;
   S.off.height = cfg.kichThuocAnh.h;
 
@@ -289,54 +283,13 @@ function shirtLum(hex) {
   return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 }
 
-// Canvas chi tiết vải (high-pass luminance) ở 1/8 độ phân giải — cache theo mockupId.
-// Dùng với blend 'overlay' sau bước nhuộm multiply để nếp vải hiện lại trên áo tối
-// (multiply nhân màu tối nghiền nát chi tiết vải: vùng sáng 240-255 thành 25-27).
-function getDetailCanvas(W, H) {
-  const key = S.mockupId;
-  if (S._detail && S._detail.key === key) return S._detail.cv;
-  if (!S.maskImg) return null;
-  const lw = Math.max(64, W >> 3), lh = Math.max(64, H >> 3);
-  const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
-  try {
-  // ảnh xám (khử bão hòa bằng blend 'saturation')
-  const gc = mk(lw, lh), g = gc.getContext('2d');
-  g.drawImage(S.baseImg, 0, 0, lw, lh);
-  g.globalCompositeOperation = 'saturation';
-  g.fillStyle = '#808080'; g.fillRect(0, 0, lw, lh);
-  g.globalCompositeOperation = 'source-over';
-  const gray = g.getImageData(0, 0, lw, lh).data;
-  // bản mờ (vẽ thu nhỏ rồi phóng lên = blur nhanh)
-  const bc = mk(lw >> 1, lh >> 1), b = bc.getContext('2d');
-  b.drawImage(gc, 0, 0, lw >> 1, lh >> 1);
-  const b2 = mk(lw, lh), b2x = b2.getContext('2d');
-  b2x.drawImage(bc, 0, 0, lw, lh);
-  const blur = b2x.getImageData(0, 0, lw, lh).data;
-  // alpha mask ở độ phân giải thấp
-  const mc = mk(lw, lh), m = mc.getContext('2d');
-  m.drawImage(S.maskImg, 0, 0, lw, lh);
-  const ma = m.getImageData(0, 0, lw, lh).data;
-  // detail = 128 + (gray - blur) * STRENGTH, alpha = mask
-  const out = b2x.createImageData(lw, lh), od = out.data;
-  const STRENGTH = 6.0; // đã tune bằng mô phỏng: đủ hiện nếp vải trên áo tối mà không gắt
-  for (let i = 0; i < od.length; i += 4) {
-    let v = 128 + (gray[i] - blur[i]) * STRENGTH;
-    v = v > 255 ? 255 : v < 0 ? 0 : v;
-    od[i] = od[i+1] = od[i+2] = v;
-    od[i+3] = ma[i+3];
-  }
-  b2x.putImageData(out, 0, 0);
-  S._detail = { key, cv: b2 };
-  return b2;
-  } catch (e) {
-    // canvas bị taint (VD mở file:// trực tiếp) -> bỏ qua khôi phục vân vải, vẫn nhuộm được
-    return null;
-  }
-}
 
 // Nền áo đã nhuộm màu (full-res), CACHE theo key = mockupId + màu áo.
-// Màu trắng hoặc thiếu mask -> trả thẳng canvas ảnh gốc (không tính toán).
-// Toàn bộ bằng lệnh canvas (multiply qua mask), KHÔNG lặp pixel JS.
+// Màu trắng -> trả thẳng canvas ảnh gốc (không tính toán).
+// Phủ lớp màu lên áo với blend multiply; alpha của chính PNG giữ vùng trong
+// suốt (destination-in bằng ảnh gốc). Ảnh PNG mới có vân vải tương phản mạnh
+// nên multiply thuần đã giữ đúng chi tiết, không cần khôi phục thêm.
+// Toàn bộ bằng lệnh canvas, KHÔNG lặp pixel JS.
 function getTintedBase() {
   const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
   const key = S.mockupId + '|' + S.shirtColor;
@@ -345,33 +298,38 @@ function getTintedBase() {
   cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
   ctx.drawImage(S.baseImg, 0, 0, W, H);
-  if (S.shirtColor.toLowerCase() !== '#ffffff' && S.maskImg) {
+  if (S.shirtColor.toLowerCase() !== '#ffffff') {
     const lay = document.createElement('canvas');
     lay.width = W; lay.height = H;
     const l = lay.getContext('2d');
     l.drawImage(S.baseImg, 0, 0, W, H);
-    l.globalCompositeOperation = 'multiply'; // nhuộm màu, giữ nếp vải/bóng đổ
+    l.globalCompositeOperation = 'multiply'; // phủ màu, giữ nếp vải/chi tiết
     l.fillStyle = S.shirtColor;
     l.fillRect(0, 0, W, H);
-    l.globalCompositeOperation = 'destination-in'; // cắt đúng vùng áo theo mask
-    l.drawImage(S.maskImg, 0, 0, W, H);
+    // giữ lại alpha gốc của PNG (vùng trong suốt không bị nhuộm thành đục)
+    l.globalCompositeOperation = 'destination-in';
+    l.drawImage(S.baseImg, 0, 0, W, H);
     ctx.drawImage(lay, 0, 0);
-    // Khôi phục vân vải: vẽ chi tiết high-pass bằng overlay để nếp vải hiện lại trên áo tối
-    const det = getDetailCanvas(W, H);
-    if (det) {
-      ctx.globalCompositeOperation = 'overlay';
-      ctx.drawImage(det, 0, 0, W, H);
-      ctx.globalCompositeOperation = 'source-over';
-    }
   }
   S._tintBase = { key, cv };
   return cv;
+}
+
+// Nền studio cho ảnh PNG trong suốt (gradient xám nhạt).
+function drawBackdrop(ctx, W, H) {
+  const gr = ctx.createLinearGradient(0, 0, 0, H);
+  gr.addColorStop(0, '#f2f2f2');
+  gr.addColorStop(0.7, '#e2e2e2');
+  gr.addColorStop(1, '#d4d4d4');
+  ctx.fillStyle = gr;
+  ctx.fillRect(0, 0, W, H);
 }
 
 function composite(ctx, W, H) {
   ctx.save();
   ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = 1;
+  drawBackdrop(ctx, W, H); // PNG trong suốt -> cần nền studio
   ctx.drawImage(getTintedBase(), 0, 0, W, H);
   Object.values(S.places).forEach((pl) => {
     if (pl.art && pl.design) drawOneDesign(ctx, W, H, pl);
