@@ -83,14 +83,18 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 
 ## Hoàn tác / Làm lại (Undo/Redo)
 
-- **Ctrl+Z** hoàn tác, **Ctrl+Shift+Z** / **Ctrl+Y** làm lại (chỉ khi đã click vào canvas).
-- 2 nút icon mũi tên cong trên thanh toolbar (bên cạnh nút "Tải file"), tự mờ đi khi không có gì để undo/redo.
+- **Ctrl+Z** hoàn tác, **Ctrl+Shift+Z** / **Ctrl+Y** làm lại — hoạt động **toàn trang**,
+  không cần click vào canvas trước. Khi đang gõ chữ trong ô nhập liệu (tên khách,
+  đơn giá...) thì trình duyệt xử lý mặc định (chỉ hoàn tác văn bản trong ô).
+- 2 nút icon mũi tên cong trên thanh toolbar (bên cạnh nút "Tải file"), tự mờ đi
+  khi không có gì để undo/redo; trạng thái nút khớp stack thực tế sau mọi thao tác.
 - Chụp snapshot toàn workspace (layers + vị trí/kích thước/group/ẩn-hiện + màu áo + kiểu áo + tùy chọn màu in)
   **trước** mỗi thao tác: thêm/xóa/dán layer, kéo thả xong, thu/phóng xong, group/ungroup,
   căn chỉnh, preset vị trí, đổi cỡ ô nhập, đổi màu áo/kiểu áo, ẩn/hiện/đổi thứ tự layer,
-  xử lý ảnh (vector/phóng nét/khử nền trắng/crop), mở file .cm.
+  xử lý ảnh (vector/phóng nét/khử nền trắng/crop). Bỏ qua nếu trạng thái giống hệt
+  snapshot trên cùng (tránh bước undo rỗng — bấm undo mà không thấy gì thay đổi).
 - Kéo thả chỉ ghi 1 bước undo khi thả ra (không ghi liên tục trong lúc kéo).
-- Giới hạn 50 bước.
+- Giới hạn 50 bước. Mở file .cm mới → lịch sử undo reset sạch.
 
 ## Zoom canvas (phóng cả khung canvas)
 
@@ -114,6 +118,9 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - Nằm trong dock dưới canvas, cạnh panel "Xuất file".
 - Chỉ 3 ô nhập: **Kiểu in** (DTF / DTG / In lụa / Decal / Thêu),
   **Số lượng** (mặc định 1), **Đơn giá** (VNĐ, mặc định 0).
+- Ô **Đơn giá** tự định dạng dấu chấm nghìn khi gõ (gõ `45000` → hiện `45.000`);
+  tính toán dùng giá trị số đã bóc dấu chấm; khi nạp cấu hình đã lưu cũng hiển thị
+  dạng có dấu chấm.
 - **Thành tiền** = Số lượng × Đơn giá, hiển thị to (định dạng 150.000đ),
   cập nhật realtime khi gõ.
 - Cấu hình (kiểu in, số lượng, đơn giá) lưu trên máy (localStorage, key
@@ -128,6 +135,8 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   số màu in ("1 màu (tên màu)" khi bật in 1 màu, "Đa màu (in full màu)" khi
   giữ màu gốc), kiểu áo + màu áo; phần tiền (Kiểu in / Số lượng / Đơn giá /
   **THÀNH TIỀN** to đậm xanh #2F5ACF); dòng ghi chú hiệu lực 7 ngày.
+  Logo xưởng (`assets/Logo.png`) ở **góc trên bên phải** của phiếu (cao 64px,
+  giữ đúng tỉ lệ; lỗi/không tải được thì bỏ qua, không hỏng ảnh).
   Ảnh hiện qua modal xem trước tái dùng (có nút "Tải PNG về máy", chạm-giữ
   để lưu trên iOS/app chat). Vẫn xuất được khi chưa có layer (ghi
   "Chưa có hình in").
@@ -155,8 +164,12 @@ Dark mode: nền đen, chữ trắng, accent xanh sáng `#5B7FE8`.
 - **Desktop (≥1024px)**: canvas lớn bên trái, sidebar phải (Layers + Layer đang
   chọn), hàng panel ngang **dưới canvas** (Chất lượng & Xử lý, Xuất file,
   File làm việc, Nâng cao) để thao tác realtime trực tiếp trên ảnh.
-- **Mobile**: xếp dọc 1 cột (canvas → Layers → panel đang chọn → các panel dock).
-  Khung canvas ôm khít ảnh (không còn dải đen thừa).
+- **Mobile (≤768px)**: xếp dọc 1 cột (canvas → Layers → panel đang chọn → các panel dock).
+  Khung canvas ôm khít ảnh (không còn dải đen thừa). Header thu nhỏ (logo 30px +
+  tên 19px vừa 1 hàng). Toolbar chia thành các hàng rõ ràng: Mockup (hết hàng) →
+  Màu áo + swatch 28px → Tải file / Lưu / Mở file chia đều → nút hoàn tác/làm lại
+  + "Hiện số đo" + nút theme (đẩy sang phải). Thanh zoom thu gọn. Nút trong panel
+  cao ≥40px để dễ bấm. Không tràn ngang ở màn hình 390px.
 - **Mượt mà**: transition cho nút bấm/theme/panel/toast/modal; micro-interaction
   (nhấn nút, chọn layer); animation khi thêm layer mới. Tôn trọng
   `prefers-reduced-motion`.
