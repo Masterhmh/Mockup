@@ -103,6 +103,11 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - Phạm vi 25%–400%. Độ phân giải nội bộ tăng theo zoom nên không mờ.
   Tọa độ chuột/chạm quy đổi theo tỉ lệ khung nên kéo/resize/chạm layer vẫn
   chính xác ở mọi mức zoom; file xuất (mockup/file in) luôn full-size gốc.
+- **Kéo để di chuyển vùng nhìn khi zoom > 100%**: giữ **Space** + kéo ở bất cứ
+  đâu trên canvas, hoặc kéo ở **vùng canvas trống** (không trúng layer) —
+  vùng nhìn cuộn theo hướng kéo. Click vùng trống mà không di chuyển thì vẫn
+  bỏ chọn như cũ; kéo trúng layer vẫn di chuyển layer; pan không ghi undo.
+  Trên cảm ứng: 1 ngón kéo vùng trống = pan (canvas đã `touch-action: none`).
 
 ## Báo giá (panel "BÁO GIÁ")
 
@@ -115,6 +120,17 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   `mockupQuoteCfg`) và trong file .cm.
 - **Phiếu kỹ thuật** và **thong-tin.txt** trong ZIP tự thêm mục "BÁO GIÁ"
   (Kiểu in / Số lượng / Đơn giá + Thành tiền) khi thành tiền > 0.
+- Nút **"Xuất ảnh báo giá"**: tạo 1 ảnh PNG khổ dọc (1240px rộng, cao tự
+  động theo nội dung) gồm: tiêu đề "BÁO GIÁ IN ÁO" + tên xưởng + ngày báo
+  giá; tên khách hàng + mã đơn; ảnh mockup hiện tại (render từ luồng xuất
+  mockup, giữ đúng tỉ lệ); **chi tiết in** — số mặt in, số vị trí in, từng
+  vị trí (tên vị trí/mặt + kích thước cm, tự nhận diện theo 5 điểm preset),
+  số màu in ("1 màu (tên màu)" khi bật in 1 màu, "Đa màu (in full màu)" khi
+  giữ màu gốc), kiểu áo + màu áo; phần tiền (Kiểu in / Số lượng / Đơn giá /
+  **THÀNH TIỀN** to đậm xanh #2F5ACF); dòng ghi chú hiệu lực 7 ngày.
+  Ảnh hiện qua modal xem trước tái dùng (có nút "Tải PNG về máy", chạm-giữ
+  để lưu trên iOS/app chat). Vẫn xuất được khi chưa có layer (ghi
+  "Chưa có hình in").
 
 ## Panel "Chất lượng & Xử lý" (gộp đánh giá + xử lý)
 
