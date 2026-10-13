@@ -53,8 +53,9 @@ mockups/polo.json    config áo polo   (ảnh Polo.png  3469x1933, nền trong s
   ↑↓ đổi thứ tự chồng lớp, × xóa. Badge "⧉ Nhóm" cho layer thuộc group.
 - **Group/Ungroup**: chọn ≥2 layer rồi `Ctrl+G` để group (kéo/xóa 1 layer sẽ áp dụng
   cả group), `Ctrl+Shift+G` để bỏ group.
-- **Căn chỉnh kiểu Photoshop**: thanh Align/Distribute với icon SVG (6 căn + 6 giãn đều),
-  giữ Ctrl/Shift + click để chọn nhiều layer, kéo có đường gióng magenta + hút.
+- **Căn chỉnh kiểu Photoshop**: thanh "Căn chỉnh / Giãn đều" với 12 icon SVG theo đúng
+  mẫu Photoshop (đường trục + chữ nhật), giữ Ctrl/Shift + click để chọn nhiều layer,
+  kéo có đường gióng magenta + hút, **giữ Shift khi kéo** để di chuyển thẳng ngang/dọc.
 - Mọi nút xử lý ảnh (vector, phóng nét, khử nền, crop), đánh giá DPI, ô kích thước
   cm đều áp dụng cho **layer đang chọn**.
 - **Mã đơn tự sinh**: `CM_POD_` + 7 chữ số (hiện ở ô readonly khi lưu/xuất).
