@@ -11,8 +11,9 @@ Chọn nhiều layer: giữ **Ctrl** (hoặc **Shift**) + click vào từng hìn
 cả tập; nút **căn chỉnh** trong panel Layers (trái/phải/trên/dưới/giữa + giãn đều);
 kéo 1 layer có **đường gióng thông minh** (hút vào cạnh/giữa các layer khác).
 Panel Layers quản lý ẩn/hiện, thứ tự, xóa từng layer. Lưu/mở lại file làm việc dạng file **.cm** (tải về máy, tên theo mã đơn).
-Nút **Lưu/Mở file (.cm)** nằm cùng hàng toolbar với nút **Tải file**. Panel **Nâng cao**
-luôn hiển thị. 5 nút **preset vị trí in** (Ngực trái / Ngực phải / Giữa mặt trước /
+Nút **Lưu/Mở file (.cm)** nằm cùng hàng toolbar với nút **Tải file**. Mục **Nâng cao**
+(Thông số áo, Hiệu chuẩn ngang ngực, Màu file in) nằm trong panel **Chất lượng
+& Xử lý**, luôn hiển thị. 5 nút **preset vị trí in** (Ngực trái / Ngực phải / Giữa mặt trước /
 Lưng trên / Lưng giữa) trong panel Layer đang chọn: bấm là tự căn đúng vị trí +
 cỡ chuẩn từ config, không hiện cảnh báo vùng an toàn (cảnh báo chỉ khi chỉnh tay).
 Giao diện tiếng Việt. **Chế độ sáng/tối**: nút toggle trên toolbar (góc phải),
@@ -91,19 +92,17 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
 - Kéo thả chỉ ghi 1 bước undo khi thả ra (không ghi liên tục trong lúc kéo).
 - Giới hạn 50 bước.
 
-## Zoom canvas (chỉ zoom ẢNH BÊN TRONG khung)
+## Zoom canvas (phóng cả khung canvas)
 
-- Khung canvas **giữ nguyên kích thước** hiển thị — chỉ ảnh bên trong được
-  phóng to/thu nhỏ (view transform: scale + pan), không cuộn khung.
+- Zoom nhân vào **kích thước hiển thị** của canvas: khung canvas phình to/thu
+  nhỏ theo, khung chứa cho phép **cuộn** khi canvas lớn hơn.
 - **Cuộn chuột** trên canvas = zoom quanh vị trí con trỏ (điểm ảnh dưới con trỏ
-  đứng yên); **chụm 2 ngón** trên cảm ứng = zoom quanh điểm giữa + di chuyển
-  theo điểm giữa.
-- **Di chuyển khung nhìn (pan)**: giữ phím **Space** rồi kéo chuột/chạm (con trỏ
-  đổi grab/grabbing, kể cả khi đang ở trên layer), hoặc **kéo ở vùng canvas
-  trống**. Chạm/click vùng trống mà không kéo vẫn bỏ chọn như cũ.
-- Cụm nút ở góc dưới-phải canvas: **−** / **% hiện tại** (bấm để về 100%) / **+** / **"Vừa khung"** (zoom 1, pan 0).
-- Phạm vi 25%–400%. Zoom/pan chỉ là chế độ xem — kéo/resize/chạm layer vẫn
-  chính xác ở mọi mức zoom, file xuất (mockup/file in) luôn full-size gốc.
+  đứng yên nhờ bù scroll); **chụm 2 ngón** trên cảm ứng = zoom theo tỉ lệ
+  khoảng cách 2 ngón.
+- Cụm nút ở góc dưới-phải canvas: **−** / **% hiện tại** (bấm để về 100%) / **+** / **"Vừa khung"** (về 100%).
+- Phạm vi 25%–400%. Độ phân giải nội bộ tăng theo zoom nên không mờ.
+  Tọa độ chuột/chạm quy đổi theo tỉ lệ khung nên kéo/resize/chạm layer vẫn
+  chính xác ở mọi mức zoom; file xuất (mockup/file in) luôn full-size gốc.
 
 ## Báo giá (panel "BÁO GIÁ")
 
