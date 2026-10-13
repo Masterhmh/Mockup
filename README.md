@@ -93,32 +93,22 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
 
 ## Luồng làm việc với khách hàng
 
-1. Chọn mockup (áo cổ tròn / polo), chọn **vị trí in** (ngực trước, logo ngực
-   trái, lưng). Mỗi vị trí giữ artwork + hình in **riêng** — chuyển dropdown
-   vị trí là chuyển sang placement đang làm dở, không mất gì.
-2. Tải file thiết kế lên (kéo-thả hoặc nút "Tải file thiết kế"). Nếu bật
-   **"Tự động fit theo vị trí in"** (mặc định bật, trong panel "File thiết
-   kế"), ảnh sẽ **tự thu vừa khít trong vùng in an toàn** (giữ đúng tỉ lệ gốc,
-   căn giữa) rồi app mới tính DPI theo đúng khổ đã fit và đề xuất giữ nguyên /
-   chuyển vector / phóng nét — bạn chốt tay sau khi so sánh trước/sau ở 100%.
-   Tắt toggle thì app dùng cỡ mặc định `khoInMacDinhCm` như trước.
-3. Kéo thả / nhập tay kích thước (cm) / crop / khử nền trắng. Bật **"Hiện số
-   đo"** để xem: số đo áo (ngang ngực, dài áo), số đo hình in, **vùng an
-   toàn** (nét đứt xanh lá), **phạm vi vùng in** (nét liền xám). Chú thích màu
-   các đường kẻ nằm ngay dưới toolbar. Khi kéo hình in, cảnh báo **tràn vùng
-   an toàn / đè lên vùng cấm** (cổ, nẹp, đường may) hiện **ngay trong lúc kéo**,
-   không chờ thả tay. Bấm nút tròn đỏ **×** ở góc trên-phải khung chọn để xóa
-   hình in nhanh (ngoài nút "Xóa hình in" trên panel).
+1. Chọn mockup (áo cổ tròn / polo), chọn **màu áo** (swatch trên toolbar).
+2. Tải file thiết kế lên (kéo-thả hoặc nút "Tải file thiết kế") — mỗi file là
+   **1 layer**, đặt ở giữa ngực trước với cỡ in mặc định. App tự đánh giá DPI
+   và đề xuất giữ nguyên / chuyển vector / phóng nét — bạn chốt tay sau khi so
+   sánh trước/sau ở 100%.
+3. **Thao tác trực tiếp trên canvas**: bấm vào hình để chọn layer, kéo di chuyển
+   tự do, kéo 4 góc thu/phóng (luôn khóa tỉ lệ). Bật **"Hiện số đo"** để xem:
+   khung + kích thước từng hình in, **vùng in an toàn** (nét đứt xanh lá, mặt
+   trước + mặt sau). Khi kéo layer tràn ra ngoài vùng an toàn hoặc đè lên vùng
+   cấm (cổ, nẹp nút), cảnh báo hiện ngay trong lúc kéo. Bấm nút tròn đỏ **×**
+   để xóa nhanh.
 4. **Xuất mockup PNG** gửi khách duyệt.
-5. Khách chốt từng vị trí thì **lưu file làm việc** (panel "File làm việc",
-   tên file = tên khách + mã đơn, lưu trong trình duyệt). Làm nhiều đơn thì
-   mỗi đơn một file, mở lại bất cứ lúc nào. Lựa chọn màu file in (giữ nguyên /
-   1 màu) cũng được lưu theo.
-6. Khi khách chốt hết: mở lại file → **"Xuất hàng loạt file in"** — mỗi vị trí
-   in ra một file PNG 300dpi đúng bằng khung vùng thân áo (`exportZone`),
-   hình in nằm đúng vị trí tương đối, nền trong suốt. Tên file:
-   `in-<tenkhach>-<madon>-<tenvitri>-<w>x<h>cm-300dpi.png`.
-   Nếu đã vector hóa thì có thêm "Xuất file in theo vị trí (SVG)".
+5. Khách chốt thì **lưu file làm việc** (tên = tên khách + mã đơn, lưu trong
+   trình duyệt). Lựa chọn màu file in cũng được lưu theo.
+6. Khi khách chốt hết: mở lại file → **xuất file in PNG/SVG** — mỗi layer ra
+   một file riêng, 300dpi, đúng khổ cm, nền trong suốt, tên file theo tên layer.
 
 ## Màu file in (panel "Xuất file")
 
@@ -131,11 +121,11 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
   SVG: thay mọi `fill="..."` thành màu đã chọn, giữ `fill-rule="evenodd"`.
 - Tùy chọn màu được lưu vào file làm việc và in ra phiếu kỹ thuật.
 
-## Màu áo (ngay dưới toolbar)
+## Màu áo (trên toolbar)
 
-- Hàng swatch tròn ngay dưới dropdown chọn Mockup: Trắng (mặc định), Đen,
-  Navy, Đỏ đô, Xanh dương, Xanh rêu, Xám, Hồng, Vàng, Cam. Bấm là đổi màu áo
-  ngay trên mockup (kèm tên màu).
+- Hàng swatch tròn trên toolbar (cùng hàng với dropdown Mockup và nút tải file):
+  Trắng (mặc định), Đen, Navy, Đỏ đô, Xanh dương, Xanh rêu, Xám, Hồng, Vàng,
+  Cam. Bấm là đổi màu áo ngay trên mockup (kèm tên màu).
 - Cách nhuộm: phủ một lớp màu lên ảnh áo với blend **multiply** — đúng ý
   tưởng "phủ màu lên áo". Ảnh PNG mới có vân vải tương phản mạnh nên multiply
   thuần đã giữ đúng chi tiết vải, không cần xử lý thêm. Vùng trong suốt được
@@ -147,16 +137,27 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
   tính lại. Màu trắng = dùng thẳng ảnh gốc, không tính toán gì thêm.
 - **Hình in trên áo tối** (độ sáng màu áo < 0.45, VD đen/navy): app tự chuyển
   sang vẽ đè trực tiếp (`source-over`, alpha 0.96) thay vì multiply — vì
-  multiply trên nền tối làm hình in mất hút. Áo sáng vẫn dùng multiply để
-  hình hòa vào chất vải.
+  multiply trên nền tối làm hình in mất hút.
+- **Hình SÁNG trên áo SÁNG** (độ sáng artwork > 0.75 và độ sáng áo > 0.6, VD
+  logo trắng trên áo trắng): cũng vẽ đè trực tiếp — vì multiply (trắng ×
+  trắng) làm hình tàng hình, mockup phải nhìn thấy hình để còn căn chỉnh.
+  Độ sáng artwork được tính trong `analyzeArtwork()` (trung bình luminance
+  pixel đục, thumbnail 160px) và lưu theo layer (kể cả khi lưu/mở project).
+- Các trường hợp còn lại (hình tối trên áo sáng): multiply để hình hòa vào
+  chất vải như ảnh chụp thật.
 - Màu áo được **lưu vào file làm việc** (mở lại là giữ nguyên) và in ra
   **phiếu kỹ thuật** gửi nhà in.
-- **Chú thích tương phản:** line số đo, khung hình in, vùng an toàn, phạm vi
-  vùng in tự đổi sang bảng màu sáng khi áo tối (độ sáng < 0.45): số đo
-  `#fbbf24`, khung `#60a5fa`, vùng an toàn `#34d399`, phạm vi `#d1d5db` — thay
-  vì bảng màu đậm dùng cho áo sáng (`#b45309`, `#1d4ed8`, `#0e7c5b`,
-  `#6b7280`). Nhãn pill giữ nền trắng nên luôn đọc được. Hàng chú thích
-  (legend) ngoài canvas đổi màu chip theo cùng bảng màu.
+- **Chú thích tương phản:** khung hình in và vùng in an toàn tự đổi sang bảng
+  màu sáng khi áo tối (độ sáng < 0.45): khung `#60a5fa`, vùng an toàn `#34d399`
+  — thay vì bảng màu đậm dùng cho áo sáng (`#1d4ed8`, `#0e7c5b`). Nhãn pill
+  giữ nền trắng nên luôn đọc được. Hàng chú thích (legend) ngoài canvas đổi
+  màu chip theo cùng bảng màu.
+- **"Hiện số đo"** chỉ hiện kích thước **hình in** (khung + line + nhãn
+  "tên · R × C cm" cho từng layer) và 2 khung **vùng in an toàn** (nét đứt,
+  mặt trước + mặt sau) — không hiện số đo áo cho đỡ rối.
+- **Cảnh báo vùng in an toàn:** khi layer đang chọn tràn ra ngoài cả 2 vùng an
+  toàn (lấy từ `exportZone` trong config) hoặc đè lên vùng cấm (cổ áo, nẹp nút
+  trong `warnZones`), thanh cảnh báo đỏ hiện ngay trong lúc kéo.
 
 ## Chống cache (quan trọng với Safari)
 
