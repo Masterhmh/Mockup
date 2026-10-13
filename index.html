@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261014e">
+<link rel="stylesheet" href="css/style.css?v=20261014f">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -63,9 +63,11 @@
 
     <div id="warnBar" class="warnbar" hidden></div>
 
+    <div class="canvas-frame">
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="stage"></canvas>
       <div id="dropHint" class="drophint">Bấm “Tải file” hoặc kéo-thả file vào đây<br><small>PNG · JPG · WEBP · SVG · AI · EPS — mỗi file là 1 layer</small></div>
+    </div>
       <div class="canvas-tools" id="canvasTools">
         <button type="button" id="btnUndoOv" class="ctbtn" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác" data-tip="Hoàn tác (Ctrl+Z)" disabled><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-3"/></svg></button>
         <button type="button" id="btnRedoOv" class="ctbtn" title="Làm lại (Ctrl+Shift+Z)" aria-label="Làm lại" data-tip="Làm lại (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0 0 14h3"/></svg></button>
@@ -81,6 +83,7 @@
         <button type="button" id="zoomFit" class="zbtn zfit" title="Vừa khung (100%)">Vừa khung</button>
       </div>
     </div>
+    <!-- /canvas-frame -->
 
     <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc) · <b>cuộn chuột / chụm 2 ngón để zoom canvas</b> · giữ <b>Space</b> + kéo hoặc kéo vùng trống (khi zoom &gt; 100%) để di chuyển vùng nhìn</p>
   </section>
@@ -277,6 +280,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261014e"></script>
+<script src="js/app.js?v=20261014f"></script>
 </body>
 </html>
