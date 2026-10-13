@@ -5,9 +5,12 @@ tự động đánh giá chất lượng in (DPI), đề xuất chuyển vector 
 xuất mockup PNG gửi khách và xuất file in (PNG 300dpi / SVG) + phiếu kỹ thuật
 cho nhà in. Giao diện **Layers kiểu Photoshop**: mỗi file thiết kế tải lên
 là 1 layer — bấm trực tiếp vào hình trên canvas để chọn, kéo di chuyển tự do,
-kéo góc thu/phóng (luôn khóa tỉ lệ). Phím tắt: **Ctrl+C** copy, **Ctrl+V** paste,
-**Del** xóa layer đang chọn. Panel Layers quản lý ẩn/hiện, thứ tự,
-xóa từng layer. Lưu/mở lại file làm việc dạng file **.cm** (tải về máy, tên theo mã đơn).
+kéo góc thu/phóng (luôn khóa tỉ lệ). Phím tắt (sau khi **click vào canvas**):
+**Ctrl+C** copy, **Ctrl+V** paste, **Del** xóa layer đang chọn.
+Chọn nhiều layer: giữ **Ctrl** (hoặc **Shift**) + click vào từng hình; kéo để di chuyển
+cả tập; nút **căn chỉnh** trong panel Layers (trái/phải/trên/dưới/giữa + giãn đều);
+kéo 1 layer có **đường gióng thông minh** (hút vào cạnh/giữa các layer khác).
+Panel Layers quản lý ẩn/hiện, thứ tự, xóa từng layer. Lưu/mở lại file làm việc dạng file **.cm** (tải về máy, tên theo mã đơn).
 Nút **Lưu/Mở file (.cm)** nằm cùng hàng toolbar với nút **Tải file**. Panel **Nâng cao**
 luôn hiển thị. 5 nút **preset vị trí in** (Ngực trái / Ngực phải / Giữa mặt trước /
 Lưng trên / Lưng giữa) trong panel Layer đang chọn: bấm là tự căn đúng vị trí +
@@ -50,9 +53,12 @@ mockups/polo.json    config áo polo   (ảnh Polo.png  3469x1933, nền trong s
   ↑↓ đổi thứ tự chồng lớp, × xóa.
 - Mọi nút xử lý ảnh (vector, phóng nét, khử nền, crop), đánh giá DPI, ô kích thước
   cm đều áp dụng cho **layer đang chọn**.
-- Xuất file: "Xuất mockup PNG" vẽ tất cả layer hiện; "Xuất file in PNG/SVG"
-  xuất **từng layer** thành file riêng (nền trong suốt, 300dpi, đúng khổ cm,
-  tên file theo tên layer).
+- Xuất file: "Xuất mockup" vẽ tất cả layer hiện; "Xuất file in (ZIP)" tải gói ZIP gồm
+  **mockup.png** + từng file in **300dpi** nền trong suốt đúng khổ cm (tên theo layer)
+  + **thong-tin.txt** (vị trí mặt trước/lưng, kích thước từng hình cho nhà in đặt đúng chỗ),
+  tên file ZIP theo mã đơn; "Xuất file in SVG" xuất từng layer vector riêng.
+- Cảnh báo trùng màu: hình có độ sáng gần giống màu áo (chênh < 0.3, cả sáng-trên-sáng
+  và tối-trên-tối) hiện trong thanh cảnh báo + toast khi thêm/đổi màu áo.
 
 ## Panel "Chất lượng & Xử lý" (gộp đánh giá + xử lý)
 
