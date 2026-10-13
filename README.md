@@ -15,7 +15,9 @@ Nút **Lưu/Mở file (.cm)** nằm cùng hàng toolbar với nút **Tải file*
 luôn hiển thị. 5 nút **preset vị trí in** (Ngực trái / Ngực phải / Giữa mặt trước /
 Lưng trên / Lưng giữa) trong panel Layer đang chọn: bấm là tự căn đúng vị trí +
 cỡ chuẩn từ config, không hiện cảnh báo vùng an toàn (cảnh báo chỉ khi chỉnh tay).
-Giao diện tiếng Việt.
+Giao diện tiếng Việt. **Chế độ sáng/tối**: nút toggle trên toolbar (góc phải),
+lưu lựa chọn vào trình duyệt, icon flat tự đổi theo theme. Tất cả icon dạng
+**flat hiện đại** (SVG đơn sắc, không 3D).
 
 ## Cách mở
 
