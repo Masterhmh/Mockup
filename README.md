@@ -279,6 +279,8 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
 
 ## Màu áo (trên toolbar)
 
+- Cuối toolbar có nút tròn **"?"** (cạnh nút sáng/tối) mở cửa sổ **Hướng dẫn sử dụng** đầy đủ 13 mục (bắt đầu, thao tác canvas, phím tắt, zoom, Layers, vị trí in, màu áo/in, chất lượng & xử lý, lưu/mở .cm, xuất file, báo giá, lịch sử, số đo). Link "Xem hướng dẫn đầy đủ" ở dòng gợi ý dưới canvas mở cùng cửa sổ. Modal đóng bằng nút ×, bấm ra ngoài hoặc Esc; nội dung cuộn trong thân, tối đa 85vh.
+
 - Hàng swatch tròn trên toolbar (cùng hàng với dropdown Mockup và nút tải file):
   Trắng (mặc định), Đen, Navy, Đỏ đô, Xanh dương, Xanh rêu, Xám, Hồng, Vàng,
   Cam. Bấm là đổi màu áo ngay trên mockup (kèm tên màu).
