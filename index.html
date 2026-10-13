@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261013x">
+<link rel="stylesheet" href="css/style.css?v=20261013y">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -76,7 +76,7 @@
       </div>
     </div>
 
-    <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc) · cuộn chuột/chụm 2 ngón để zoom ảnh trong khung · <b>giữ Space + kéo</b> (hoặc kéo ở vùng trống) để di chuyển khung nhìn</p>
+    <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc) · <b>cuộn chuột / chụm 2 ngón để zoom canvas</b></p>
   </section>
 
   <!-- ============ PANEL ĐIỀU KHIỂN ============ -->
@@ -131,19 +131,44 @@
 
   <!-- ============ DOCK: PANEL DƯỚI CANVAS (desktop) ============ -->
   <div class="dock">
-    <div class="panel" id="panelQuality" hidden>
+    <div class="panel" id="panelQuality">
       <h2>Chất lượng & Xử lý</h2>
-      <div class="dpi">
-        <span id="dpiBadge" class="badge">—</span>
-        <span id="dpiText">—</span>
+      <div id="qualityEmpty" class="muted small">Chọn 1 layer để xem chất lượng & xử lý hình in.</div>
+      <div id="qualityBody">
+        <div class="dpi">
+          <span id="dpiBadge" class="badge">—</span>
+          <span id="dpiText">—</span>
+        </div>
+        <div id="qualityNote" class="muted small" style="margin-bottom:8px"></div>
+        <div class="btn-grid" id="qualityActions"></div>
+        <div class="btn-grid" style="margin-top:8px">
+          <button class="btn" id="btnWhite">Khử nền trắng</button>
+          <button class="btn" id="btnCrop">Cắt bớt (crop)</button>
+        </div>
+        <p class="muted small">Phóng nét = nội suy trong trình duyệt, <b>chưa phải AI upscale</b>.</p>
       </div>
-      <div id="qualityNote" class="muted small" style="margin-bottom:8px"></div>
-      <div class="btn-grid" id="qualityActions"></div>
-      <div class="btn-grid" style="margin-top:8px">
-        <button class="btn" id="btnWhite">Khử nền trắng</button>
-        <button class="btn" id="btnCrop">Cắt bớt (crop)</button>
+      <h3 class="adv-title">Nâng cao</h3>
+      <div class="adv-body">
+        <h3>Thông số áo</h3>
+        <div id="shirtInfo">—</div>
+        <label class="fld inline">Hiệu chuẩn ngang ngực (cm)
+          <input type="number" id="inpChest" min="20" max="120" step="0.5">
+        </label>
+        <h3>Màu file in</h3>
+        <label class="chk"><input type="radio" name="colorMode" value="orig" checked> Giữ nguyên màu gốc (in ảnh)</label>
+        <label class="chk"><input type="radio" name="colorMode" value="single"> In 1 màu (in logo)</label>
+        <div class="colorrow" id="colorRow" hidden>
+          <input type="color" id="inpPrintColor" value="#1a1a1a" title="Chọn màu">
+          <div class="swatches" id="swatches">
+            <button type="button" class="sw" data-c="#1a1a1a" style="background:#1a1a1a" title="Đen"></button>
+            <button type="button" class="sw" data-c="#ffffff" style="background:#ffffff" title="Trắng"></button>
+            <button type="button" class="sw" data-c="#c81e1e" style="background:#c81e1e" title="Đỏ"></button>
+            <button type="button" class="sw" data-c="#1f3a5f" style="background:#1f3a5f" title="Xanh navy"></button>
+            <button type="button" class="sw" data-c="#f5c518" style="background:#f5c518" title="Vàng"></button>
+            <button type="button" class="sw" data-c="#1e7a34" style="background:#1e7a34" title="Xanh lá"></button>
+          </div>
+        </div>
       </div>
-      <p class="muted small">Phóng nét = nội suy trong trình duyệt, <b>chưa phải AI upscale</b>.</p>
     </div>
 
     <div class="panel" id="panelExport">
@@ -186,30 +211,6 @@
       <p class="muted small">Thành tiền = Số lượng × Đơn giá. Cấu hình lưu trên máy này.</p>
     </div>
 
-    <details class="panel adv" id="panelAdv" open>
-      <summary>NÂNG CAO</summary>
-      <div class="adv-body">
-        <h3>Thông số áo</h3>
-        <div id="shirtInfo">—</div>
-        <label class="fld inline">Hiệu chuẩn ngang ngực (cm)
-          <input type="number" id="inpChest" min="20" max="120" step="0.5">
-        </label>
-        <h3>Màu file in</h3>
-        <label class="chk"><input type="radio" name="colorMode" value="orig" checked> Giữ nguyên màu gốc (in ảnh)</label>
-        <label class="chk"><input type="radio" name="colorMode" value="single"> In 1 màu (in logo)</label>
-        <div class="colorrow" id="colorRow" hidden>
-          <input type="color" id="inpPrintColor" value="#1a1a1a" title="Chọn màu">
-          <div class="swatches" id="swatches">
-            <button type="button" class="sw" data-c="#1a1a1a" style="background:#1a1a1a" title="Đen"></button>
-            <button type="button" class="sw" data-c="#ffffff" style="background:#ffffff" title="Trắng"></button>
-            <button type="button" class="sw" data-c="#c81e1e" style="background:#c81e1e" title="Đỏ"></button>
-            <button type="button" class="sw" data-c="#1f3a5f" style="background:#1f3a5f" title="Xanh navy"></button>
-            <button type="button" class="sw" data-c="#f5c518" style="background:#f5c518" title="Vàng"></button>
-            <button type="button" class="sw" data-c="#1e7a34" style="background:#1e7a34" title="Xanh lá"></button>
-          </div>
-        </div>
-      </div>
-    </details>
   </div><!-- /dock -->
 </main>
 
@@ -262,6 +263,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013x"></script>
+<script src="js/app.js?v=20261013y"></script>
 </body>
 </html>
