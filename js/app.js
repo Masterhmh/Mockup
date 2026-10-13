@@ -1,13 +1,13 @@
 'use strict';
 /* =====================================================================
-   Studio Mockup In Áo — chạy hoàn toàn phía trình duyệt, không backend.
+   Xưởng In Mẫu — chạy hoàn toàn phía trình duyệt, không backend.
    Kiến trúc config-driven: mỗi mockup = 1 ảnh thật + 1 file JSON trong
    mockups/. Thêm mockup mới chỉ cần thêm ảnh + JSON, không sửa code.
    ===================================================================== */
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013n';
+const APP_V = '20261013o';
 
 // ---------- Chế độ sáng/tối ----------
 const THEME_KEY = 'mockupTheme';
@@ -283,7 +283,7 @@ const FALLBACK_CFG = {
 // Áo sáng dùng bảng SÁNG; áo tối (lum < 0.45) dùng bảng TỐI cho tương phản,
 // vì các màu đậm bị chìm trên nền áo đen/navy. Nhãn pill giữ nền trắng nên
 // vẫn đọc được — chỉ đổi màu chữ/viền theo bảng đang dùng.
-const PALETTE_SANG = { chest: '#b45309', frame: '#1d4ed8', safe: '#0e7c5b', zone: '#6b7280' };
+const PALETTE_SANG = { chest: '#b45309', frame: '#1d4ed8', safe: '#2F5ACF', zone: '#6b7280' };
 const PALETTE_TOI  = { chest: '#fbbf24', frame: '#60a5fa', safe: '#34d399', zone: '#d1d5db' };
 // Bảng màu chú thích đang dùng — tính lại mỗi lần vẽ theo màu áo hiện tại.
 function pal() { return shirtLum(S.shirtColor) < 0.45 ? PALETTE_TOI : PALETTE_SANG; }
@@ -1143,7 +1143,7 @@ function drawCrop() {
     ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, y1 - y0); ctx.clip();
     ctx.drawImage(src, 0, 0, cv.width, cv.height);
     ctx.restore();
-    ctx.strokeStyle = '#0e7c5b'; ctx.lineWidth = 2;
+    ctx.strokeStyle = '#2F5ACF'; ctx.lineWidth = 2;
     ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
   }
 }
