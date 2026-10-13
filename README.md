@@ -6,7 +6,7 @@ xuất mockup PNG gửi khách và xuất file in (PNG 300dpi / SVG) + phiếu k
 cho nhà in. Giao diện **Layers kiểu Photoshop**: mỗi file thiết kế tải lên
 là 1 layer — bấm trực tiếp vào hình trên canvas để chọn, kéo di chuyển tự do,
 kéo góc thu/phóng (luôn khóa tỉ lệ). Panel Layers quản lý ẩn/hiện, thứ tự,
-xóa từng layer. Lưu/mở lại file làm việc theo tên khách + mã đơn (localStorage).
+xóa từng layer. Lưu/mở lại file làm việc dạng file **.cm** (tải về máy, tên theo mã đơn).
 Giao diện tiếng Việt.
 
 ## Cách mở
@@ -36,7 +36,7 @@ mockups/polo.json    config áo polo   (ảnh Polo.png  3469x1933, nền trong s
 
 ## Layers (kiểu Photoshop)
 
-- Mỗi file tải lên ("Tải file thiết kế" hoặc kéo-thả vào canvas) tạo 1 layer mới,
+- Tải file **hàng loạt**: chọn nhiều file cùng lúc (hoặc kéo-thả nhiều file vào canvas), mỗi file tạo 1 layer mới,
   đặt ở giữa ngực trước với cỡ in mặc định.
 - **Thao tác trực tiếp trên canvas**: bấm vào hình để chọn layer, kéo để di chuyển
   tự do (không giới hạn vị trí), kéo 4 tay cầm góc để thu/phóng (luôn giữ đúng
@@ -125,9 +125,8 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
    cấm (cổ, nẹp nút), cảnh báo hiện ngay trong lúc kéo. Bấm nút tròn đỏ **×**
    để xóa nhanh.
 4. **Xuất mockup PNG** gửi khách duyệt.
-5. Khách chốt thì **lưu file làm việc** (tên = tên khách + mã đơn, lưu trong
-   trình duyệt). Lựa chọn màu file in cũng được lưu theo.
-6. Khi khách chốt hết: mở lại file → **xuất file in PNG/SVG** — mỗi layer ra
+5. Khách chốt thì **lưu file làm việc (.cm)** — tải file về máy, tên file theo **mã đơn hàng** (VD: DH-2026-001.cm). File chứa toàn bộ layers + thông số.
+6. Sau này chỉnh sửa: **mở file .cm** để khôi phục toàn bộ workspace → **xuất file in PNG/SVG** — mỗi layer ra
    một file riêng, 300dpi, đúng khổ cm, nền trong suốt, tên file theo tên layer.
 
 ## Màu file in (panel "Xuất file")
