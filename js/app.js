@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013m';
+const APP_V = '20261013n';
 
 // ---------- Chế độ sáng/tối ----------
 const THEME_KEY = 'mockupTheme';
@@ -924,7 +924,7 @@ function syncSizeInputs() {
   }
   $('inpW').value = fmt(L.wCm);
   $('inpH').value = fmt(L.wCm / L.art.aspect);
-  $('lockRatio').textContent = 'tỉ lệ ' + ratioText(L.art.aspect);
+  $('lockRatio').textContent = 'Tỉ lệ ' + ratioText(L.art.aspect);
 }
 // Hiển thị tỉ lệ dạng "16:9" gần đúng
 function ratioText(a) {
@@ -1078,6 +1078,7 @@ async function setArtwork(rasterCanvas, name, kind, svgText, quiet) {
   };
   S.layers.push(layer);
   S.activeLayerId = layer.id;
+  S.lastAddedId = layer.id; // để animation "layer mới" trong danh sách
   syncSingleSelect();
   syncProcVisibility();
   assess();
@@ -1969,6 +1970,7 @@ function pasteLayer() {
   };
   S.layers.push(layer);
   S.activeLayerId = layer.id;
+  S.lastAddedId = layer.id; // để animation "layer mới" trong danh sách
   syncSingleSelect();
   syncProcVisibility(); assess();
   render(); renderLayerList(); updateSelPanel(); checkWarnings(); checkColorClash();
@@ -2071,6 +2073,7 @@ function renderLayerList() {
     const row = document.createElement('div');
     const sel = S.selectedIds.includes(layer.id);
     row.className = 'layer-row' + (sel ? ' active' : '') + (isMultiSelect() && sel ? ' multisel' : '');
+    if (S.lastAddedId === layer.id) row.classList.add('layer-new');
     row.dataset.id = layer.id;
     const thumb = document.createElement('canvas');
     thumb.className = 'layer-thumb'; thumb.width = 44; thumb.height = 44;
@@ -2129,6 +2132,7 @@ function renderLayerList() {
       b.disabled = (m.indexOf('dist') === 0) ? n < 3 : n < 2;
     });
   }
+  S.lastAddedId = null; // animation "layer mới" chỉ chạy 1 lần
 }
 
 // Xử lý click trên các nút của từng dòng layer (dùng event delegation)
