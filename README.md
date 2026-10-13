@@ -19,8 +19,8 @@ python3 -m http.server 8000
 **Cách 2 — double-click `index.html`:** chạy được, app tự dùng config dự phòng
 nhúng sẵn trong `js/app.js` (vì trình duyệt chặn `fetch` file JSON qua `file://`).
 
-> Ảnh `Tshirt.jpg` / `Polo.jpg` nằm ở **root repo**, `index.html` tham chiếu
-> bằng đường dẫn tương đối.
+> Ảnh `Tshirt.png` / `Polo.png` (PNG **nền trong suốt**, áo đã tách nền sẵn)
+> nằm ở **root repo**, `index.html` tham chiếu bằng đường dẫn tương đối.
 
 ## Cấu trúc
 
@@ -28,21 +28,21 @@ nhúng sẵn trong `js/app.js` (vì trình duyệt chặn `fetch` file JSON qua 
 index.html          trang chính
 css/style.css       giao diện
 js/app.js           toàn bộ logic (có comment tiếng Việt ở các hàm chính)
-mockups/tshirt.json  config áo cổ tròn (ảnh Tshirt.jpg 4864x3242)
-mockups/polo.json    config áo polo   (ảnh Polo.jpg  4000x3000)
+mockups/tshirt.json  config áo cổ tròn (ảnh Tshirt.png 4052x2283, nền trong suốt)
+mockups/polo.json    config áo polo   (ảnh Polo.png  3469x1933, nền trong suốt)
 ```
 
 ## Thêm mockup mới (chỉ cần ảnh + JSON, không sửa code)
 
-1. Chụp/Render ảnh áo: **mặt trước bên trái, mặt sau bên phải**, nền trơn,
-   áo trắng hoặc sáng màu (để chế độ multiply hòa hình in vào vải).
+1. Chụp/Render ảnh áo: **mặt trước bên trái, mặt sau bên phải**, áo trắng
+   hoặc sáng màu, **tách nền thành PNG trong suốt** (alpha = vùng áo).
+   Vân vải càng tương phản mạnh thì đổi màu áo càng đẹp (multiply giữ nguyên
+   chi tiết).
 2. Copy file JSON mẫu trong `mockups/`, đặt tên ví dụ `mockups/hoodie.json`.
 3. Điền các trường:
-   - `ten`, `fileAnh` (đường dẫn tương đối từ root, VD `"Hoodie.jpg"`),
-     `maskSrc` (URL ảnh RGBA tách áo khỏi nền, alpha = vùng áo — dùng để nhuộm
-     màu áo; hoặc data URL `data:image/png;base64,...` nhúng trực tiếp để khỏi
-     lo lỗi upload file nhị phân. Không có thì app vẫn chạy nhưng không đổi
-     được màu áo),
+   - `ten`, `fileAnh` (đường dẫn tương đối từ root, VD `"Hoodie.png"` —
+     ảnh PNG **nền trong suốt**, áo trắng/sáng màu tách nền sẵn; alpha của
+     ảnh chính là vùng áo để nhuộm màu, không cần file mask riêng),
      `kichThuocAnh` {w,h} đúng pixel ảnh.
    - `ao`: `kieu` (tên hiển thị), `size`, `ngangNgucCm` (số đo thật của áo),
      `daiAoCm`, `ngangNgucPx` (đo bằng pixel trên ảnh).
@@ -119,14 +119,13 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
 - Hàng swatch tròn ngay dưới dropdown chọn Mockup: Trắng (mặc định), Đen,
   Navy, Đỏ đô, Xanh dương, Xanh rêu, Xám, Hồng, Vàng, Cam. Bấm là đổi màu áo
   ngay trên mockup (kèm tên màu).
-- Cách nhuộm: ảnh áo gốc `multiply` với màu đã chọn, rồi cắt đúng vùng áo
-  bằng **mask** (`destination-in`) — nền xung quanh không bị lem. Nếp vải và
-  bóng đổ được giữ nguyên vì multiply giữ lại độ sáng tương đối của vải.
-- **Khôi phục vân vải:** multiply nhân màu tối nghiền nát chi tiết vải (vùng
-  sáng 240-255 thành 25-27) nên áo đen trông như mảng phẳng/mờ. Sau bước
-  multiply, app vẽ thêm một lớp chi tiết high-pass của độ sáng ảnh gốc
-  (`luminance - luminance làm mờ`, tính ở 1/8 độ phân giải bằng blend
-  `overlay`) để nếp vải hiện lại trên áo màu tối.
+- Cách nhuộm: phủ một lớp màu lên ảnh áo với blend **multiply** — đúng ý
+  tưởng "phủ màu lên áo". Ảnh PNG mới có vân vải tương phản mạnh nên multiply
+  thuần đã giữ đúng chi tiết vải, không cần xử lý thêm. Vùng trong suốt được
+  giữ nguyên bằng `destination-in` với chính ảnh gốc (alpha của PNG là mask).
+- Vì PNG nền trong suốt, canvas vẽ thêm **nền studio** (gradient xám nhạt
+  `#f2f2f2 → #e2e2e2 → #d4d4d4`) bên dưới áo — cả preview lẫn file mockup PNG
+  xuất ra đều có nền này.
 - Nền đã nhuộm được **cache theo (mẫu áo + màu)** nên đổi qua lại không phải
   tính lại. Màu trắng = dùng thẳng ảnh gốc, không tính toán gì thêm.
 - **Hình in trên áo tối** (độ sáng màu áo < 0.45, VD đen/navy): app tự chuyển
@@ -148,8 +147,8 @@ theo tỉ lệ, nút 🔒 luôn bật và hiển thị tỉ lệ đang khóa.
   sửa code là **phải tăng mã** rồi push, nếu không Safari giữ bản cũ.
 - JSON config (`mockups/*.json`) được `fetch` kèm `?v=` + hằng `APP_V` trong
   `js/app.js` — **mỗi lần sửa JSON cũng phải tăng `APP_V`** rồi push, nếu
-  không Safari giữ JSON cũ (VD thiếu `maskSrc` mới thêm → đổi màu áo không
-  có tác dụng dù JS đã mới). Ảnh áo (`.jpg`) không cần chống cache.
+  không Safari giữ JSON cũ (VD thiếu trường mới thêm → tính năng không chạy
+  dù JS đã mới). Ảnh áo (`.png`) không cần chống cache.
 
 ## Hiệu chuẩn exportZone
 
