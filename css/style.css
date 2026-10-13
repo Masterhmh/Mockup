@@ -175,3 +175,30 @@ body {
   .btn-grid { gap: 6px; }
   .panel { padding: 10px 12px; }
 }
+
+/* ---- Panel Layers (kiểu Photoshop) ---- */
+.layer-list { display: flex; flex-direction: column; gap: 6px; }
+.layer-row {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px;
+  cursor: pointer; background: #fff;
+}
+.layer-row:hover { background: #f6f7f9; }
+.layer-row.active { border-color: var(--accent); background: #eef7f3; }
+.layer-row.hidden-layer { opacity: .55; }
+.layer-thumb {
+  width: 44px; height: 44px; flex: none;
+  border: 1px solid var(--line); border-radius: 6px; background: #f4f5f7;
+}
+.layer-name {
+  flex: 1; min-width: 0; font-size: 13px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.icon-btn {
+  flex: none; width: 30px; height: 30px; border-radius: 7px;
+  border: 1px solid var(--line); background: #fff; cursor: pointer;
+  font-size: 14px; line-height: 1; color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+}
+.icon-btn:hover { background: #eef0f3; }
+.icon-btn.ly-del { color: var(--danger); font-size: 17px; font-weight: 700; }
