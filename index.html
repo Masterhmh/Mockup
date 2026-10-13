@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261013v">
+<link rel="stylesheet" href="css/style.css?v=20261013w">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -45,6 +45,8 @@
         </div>
       </div>
       <button id="btnUpload" class="btn primary">Tải file</button>
+      <button id="btnUndo" class="btn small icon-btn" title="Hoàn tác (Ctrl+Z)" disabled><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-3"/></svg></button>
+      <button id="btnRedo" class="btn small icon-btn" title="Làm lại (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0 0 14h3"/></svg></button>
       <button id="btnSaveCm" class="btn" title="Tải toàn bộ công việc về máy dưới dạng file .cm (đặt tên theo mã đơn)">Lưu file (.cm)</button>
       <button id="btnOpenCm" class="btn" title="Mở file .cm để khôi phục toàn bộ công việc">Mở file (.cm)</button>
       <input type="file" id="fileCmInput" accept=".cm,.json" hidden>
@@ -66,9 +68,15 @@
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="stage"></canvas>
       <div id="dropHint" class="drophint">Bấm “Tải file” hoặc kéo-thả file vào đây<br><small>PNG · JPG · WEBP · SVG · AI · EPS — mỗi file là 1 layer</small></div>
+      <div class="zoom-ctl" id="zoomCtl">
+        <button type="button" id="zoomOut" class="zbtn" title="Thu nhỏ">−</button>
+        <button type="button" id="zoomPct" class="zbtn zpct" title="Bấm để về 100%">100%</button>
+        <button type="button" id="zoomIn" class="zbtn" title="Phóng to">+</button>
+        <button type="button" id="zoomFit" class="zbtn zfit" title="Vừa khung (100%)">Vừa khung</button>
+      </div>
     </div>
 
-    <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc)</p>
+    <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc) · <b>cuộn chuột / chụm 2 ngón để zoom canvas</b></p>
   </section>
 
   <!-- ============ PANEL ĐIỀU KHIỂN ============ -->
@@ -96,7 +104,7 @@
           <button class="btn small align-btn" data-align="distR" title="Gi&#227;n &#273;&#7873;u c&#7841;nh ph&#7843;i (c&#7847;n &#8805;3 layer)"><svg viewBox="0 0 24 24"><path d="M20 3v18" class="ax"/><rect x="3" y="4" width="4" height="5" rx="1"/><rect x="10" y="9.5" width="4" height="5" rx="1"/><rect x="13" y="15" width="4" height="5" rx="1"/></svg></button>
         </div>
       </div>
-      <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · <b>giữ Shift khi kéo</b> để đi thẳng ngang/dọc · kéo góc để thu/phóng.<br>Giữ <b>Ctrl</b> (hoặc <b>Shift</b>) + click để chọn nhiều layer.<br>Phím tắt (sau khi click vào canvas): Ctrl+C copy · Ctrl+V paste · Del xóa · Ctrl+G group · Ctrl+Shift+G bỏ group.</p>
+      <p class="muted small" style="margin:6px 0 0">Bấm vào hình trên canvas để chọn layer · kéo để di chuyển · <b>giữ Shift khi kéo</b> để đi thẳng ngang/dọc · kéo góc để thu/phóng.<br>Giữ <b>Ctrl</b> (hoặc <b>Shift</b>) + click để chọn nhiều layer.<br>Phím tắt (sau khi click vào canvas): Ctrl+C copy · Ctrl+V paste · Del xóa · Ctrl+G group · Ctrl+Shift+G bỏ group · <b>Ctrl+Z hoàn tác</b> · <b>Ctrl+Shift+Z làm lại</b>.</p>
     </div>
 
     <div class="panel" id="panelSel">
@@ -156,6 +164,35 @@
         <button class="btn" id="btnExpSVG" title="Tải gói ZIP: ảnh mockup + từng file in SVG + thông tin vị trí cho nhà in">Xuất file in SVG (ZIP)</button>
         <button class="btn" id="btnExpSpec">Xuất phiếu kỹ thuật</button>
       </div>
+    </div>
+
+    <div class="panel" id="panelQuote">
+      <h2>Báo giá</h2>
+      <label class="fld">Kỹ thuật in
+        <select id="selPrintTech">
+          <option value="inlua">In lụa</option>
+          <option value="dtf" selected>DTF</option>
+          <option value="decal">Decal</option>
+          <option value="theu">Thêu</option>
+        </select>
+      </label>
+      <h3>Đơn giá theo cỡ hình (VNĐ)</h3>
+      <div class="quote-grid">
+        <label>Nhỏ (≤15cm)<input type="number" id="qpNho" min="0" step="1000" placeholder="0"></label>
+        <label>Vừa (≤25cm)<input type="number" id="qpVua" min="0" step="1000" placeholder="0"></label>
+        <label>Lớn (≤35cm)<input type="number" id="qpLon" min="0" step="1000" placeholder="0"></label>
+        <label>Rất lớn (>35cm)<input type="number" id="qpRatlon" min="0" step="1000" placeholder="0"></label>
+      </div>
+      <h3>Hệ số kỹ thuật</h3>
+      <div class="quote-grid">
+        <label>In lụa ×<input type="number" id="qfInlua" min="0" step="0.1"></label>
+        <label>DTF ×<input type="number" id="qfDtf" min="0" step="0.1"></label>
+        <label>Decal ×<input type="number" id="qfDecal" min="0" step="0.1"></label>
+        <label>Thêu ×<input type="number" id="qfTheu" min="0" step="0.1"></label>
+      </div>
+      <div id="quoteDetail" class="quote-detail"></div>
+      <div id="quoteTotal" class="quote-total"></div>
+      <p class="muted small">Giá = đơn giá theo cỡ (cạnh lớn hơn của hình) × hệ số kỹ thuật. Cấu hình giá lưu trên máy này.</p>
     </div>
 
     <details class="panel adv" id="panelAdv" open>
@@ -234,6 +271,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013v"></script>
+<script src="js/app.js?v=20261013w"></script>
 </body>
 </html>
