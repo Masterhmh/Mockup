@@ -211,6 +211,17 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   **mức zoom đang chọn** trong modal so sánh (.cmp-zoom.on) đảo màu đen; nút
   **Khóa khung** khi khóa đảo màu (đã có từ trước, cùng quy tắc).
 
+## Dải tiêu đề đen + thang cỡ chữ (20261014r)
+
+- Mọi panel chức năng (Layers, Layer đang chọn, Lịch sử, Chất lượng & Xử lý, Xuất file,
+  Báo giá) có tiêu đề nằm trên **dải đen #000 chữ trắng** như header (luôn đen ở cả
+  2 theme, 14px/700/viết hoa/giãn chữ, tràn hết chiều ngang panel, bo 2 góc trên).
+  Nút "Xóa tất cả" nằm trong dải đen của panel Lịch sử (kiểu ghost viền trắng).
+  Tiêu đề các modal (Cắt, So sánh, Xem trước, Hướng dẫn) cũng dùng dải đen đồng bộ.
+- Thang cỡ chữ thống nhất: tiêu đề dải 14px · **nhãn mục con 12.5px/600** (Thông số áo,
+  Màu file in...) · thân chính 13–14px · chữ phụ (.muted/.small/mô tả/ghi chú) 12–12.5px ·
+  số THÀNH TIỀN giữ 18px (16px mobile) làm điểm nhấn.
+
 ## Lịch sử theo khách
 
 - Panel **"Lịch sử"**: tự ghi 1 mục mỗi lần **xuất mockup / file in (PNG, SVG) / phiếu kỹ thuật /
