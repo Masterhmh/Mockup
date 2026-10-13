@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013c';
+const APP_V = '20261013d';
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -145,7 +145,7 @@ function syncShirtColorUI() {
   $('shirtColorName').textContent = S.shirtColorName;
   // Legend ngoài canvas phải dùng đúng bảng màu đang vẽ trên canvas
   const P = pal();
-  const chips = { lgChest: P.chest, lgFrame: P.frame };
+  const chips = { lgFrame: P.frame, lgSafe: P.safe };
   Object.keys(chips).forEach((id) => { const el = $(id); if (el) el.style.borderColor = chips[id]; });
 }
 
@@ -183,6 +183,7 @@ async function loadMockup(id) {
   S.cfg = cfg;
   S.layers = []; // mockup mới -> layers mới
   S.activeLayerId = null;
+  syncProcVisibility();
   S.baseImg = await loadImage(cfg.fileAnh);
   S._tintBase = null; // đổi mockup -> tính lại nền nhuộm
   // PNG nền trong suốt: alpha của ảnh chính là mask vùng áo, không cần mask riêng
@@ -193,8 +194,7 @@ async function loadMockup(id) {
 
   fitStage();
   renderLayerList();
-  $('fileInfo').innerHTML = 'Chưa có file. Hãy tải file thiết kế lên.';
-  updateShirtPanel(); updatePrintPanel(); checkWarnings(); assess();
+  updateShirtPanel(); updateSelPanel(); checkWarnings(); assess();
 }
 
 function loadImage(src) {
@@ -316,9 +316,15 @@ function drawOneDesign(ctx, W, H, layer) {
   }
 
   ctx.save();
-  // Áo tối: vẽ đè trực tiếp (source-over) vì multiply làm hình mất hút.
-  // Áo sáng: multiply để hình hòa vào chất vải như ảnh chụp thật.
-  if (shirtLum(S.shirtColor) < 0.45) {
+  // Chọn cách hòa hình in vào áo:
+  // - Áo tối: vẽ đè trực tiếp (source-over) vì multiply làm hình mất hút.
+  // - Hình SÁNG trên áo SÁNG: cũng vẽ đè trực tiếp — multiply (trắng × trắng)
+  //   sẽ làm hình tàng hình, mockup phải NHÌN THẤY hình để còn căn chỉnh.
+  // - Còn lại (hình tối trên áo sáng): multiply để hình hòa vào chất vải.
+  const artBright = (layer.art && typeof layer.art.brightness === 'number')
+    ? layer.art.brightness : 0.5;
+  const sLum = shirtLum(S.shirtColor);
+  if (sLum < 0.45 || (artBright > 0.75 && sLum > 0.6)) {
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 0.96;
   } else {
@@ -443,48 +449,41 @@ function drawMeasureOverlays() {
   if (!S.cfg || !$('chkMeasure') || !$('chkMeasure').checked) return;
   const P = pal(); // bảng màu chú thích tương phản với màu áo hiện tại
   const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
-  const ppc = pxPerCm();
-  const a = S.cfg.ao;
   const labels = []; // gom nhãn, vẽ SAU khi vẽ xong line để không bị line đè
 
-  // 1) Số đo áo — neo theo thân trước (vị trí "nguc-truoc")
-  const front = S.cfg.positions.find((p) => p.id === 'nguc-truoc') || S.cfg.positions[0];
-  const cxF = front.center.x * W;
-  const chestPx = a.ngangNgucCm * ppc;
-  const chestY = front.zone.y0 * H;
-  const c1 = toCss(cxF - chestPx / 2, chestY), c2 = toCss(cxF + chestPx / 2, chestY);
-  dimLine(c1[0], c1[1], c2[0], c2[1], P.chest);
-  // Nhãn 52cm ở đầu PHẢI line ngang, ngoài áo
-  labels.push({ x: c2[0] + 44, y: c2[1], text: fmt(a.ngangNgucCm) + 'cm', color: P.chest });
+  // 1) Vùng in an toàn: 2 khung nét đứt xanh lá (mặt trước + mặt sau).
+  // Lấy từ exportZone trong config; không vẽ nhãn cho đỡ rối.
+  sctx.save();
+  sctx.strokeStyle = P.safe; sctx.lineWidth = 1.5;
+  sctx.setLineDash([8, 6]);
+  safeZones().forEach((z) => {
+    const [x1, y1] = toCss(z.x0 * W, z.y0 * H);
+    const [x2, y2] = toCss(z.x1 * W, z.y1 * H);
+    sctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+  });
+  sctx.restore();
 
-  const collar = (S.cfg.warnZones || []).find((w) => /cổ trước/i.test(w.ten || ''));
-  const yTop = ((collar ? collar.y - (collar.r || 0) : 0.2)) * H;
-  const xSide = cxF - chestPx / 2 - 60;
-  const yBot = yTop + a.daiAoCm * ppc;
-  const v1 = toCss(xSide, yTop), v2 = toCss(xSide, yBot);
-  dimLine(v1[0], v1[1], v2[0], v2[1], P.chest);
-  // Nhãn 72cm ở đầu DƯỚI line dọc
-  labels.push({ x: v1[0], y: v2[1] + 20, text: fmt(a.daiAoCm) + 'cm', color: P.chest });
-
-  // 2) Số đo hình in đang chọn: khung xanh dương + line kích thước DƯỚI bbox, nhãn căn giữa
-  const AL = activeLayer();
-  if (AL && AL.art) {
-    const r = layerPxOf(AL);
+  // 2) Khung + kích thước TỪNG layer visible (không hiện số đo áo).
+  S.layers.forEach((L) => {
+    if (!L.visible || !L.art) return;
+    const r = layerPxOf(L);
     const d1 = toCss(r.x, r.y), d2 = toCss(r.x + r.w, r.y + r.h);
     sctx.save();
     sctx.strokeStyle = P.frame; sctx.lineWidth = 1.5;
     sctx.strokeRect(d1[0], d1[1], d2[0] - d1[0], d2[1] - d1[1]);
     sctx.restore();
     dimLine(d1[0], d2[1] + 30, d2[0], d2[1] + 30, P.frame);
-    dimLine(d2[0] + 22, d1[1], d2[0] + 22, d2[1], P.frame); // line dọc phụ, không nhãn
+    const wCm = L.wCm, hCm = L.wCm / L.art.aspect;
+    let nm = L.name || 'layer';
+    if (nm.length > 22) nm = nm.slice(0, 21) + '…';
     labels.push({
       x: (d1[0] + d2[0]) / 2, y: d2[1] + 30,
-      text: `${fmt(AL.wCm)} × ${fmt(AL.wCm / AL.art.aspect)} cm`, color: P.frame,
+      text: `${nm} · ${fmt(wCm)} × ${fmt(hCm)} cm`, color: P.frame,
     });
-  }
+  });
 
-  // Vẽ nhãn sau cùng — pill trắng 11px, tự kẹp trong canvas, vị trí tách xa nhau
-  labels.forEach((L) => pillLabel(L.x, L.y, L.text, L.color, L.align || 'center'));
+  // Vẽ nhãn sau cùng — pill trắng 11px, tự kẹp trong canvas
+  labels.forEach((L) => pillLabel(L.x, L.y, L.text, L.color, 'center'));
 }
 
 // Line đo kích thước: đường thẳng + mũi tên 2 đầu (KHÔNG vẽ nhãn ở đây —
@@ -621,7 +620,7 @@ stage.addEventListener('pointermove', (e) => {
     const d = Math.hypot(p.x - S.drag.cx, p.y - S.drag.cy);
     if (d > 4 && S.drag.d0 > 4) setLayerWidth(lay, (S.drag.w0 * d) / S.drag.d0);
   }
-  render(); updatePrintPanel(); checkWarnings();
+  render(); updateSelPanel(); checkWarnings();
 });
 
 const endDrag = () => { S.drag = null; stage.style.cursor = 'grab'; };
@@ -779,9 +778,10 @@ async function rasterFromPDF(file) {
 async function setArtwork(rasterCanvas, name, kind, svgText) {
   const w = rasterCanvas.width, h = rasterCanvas.height;
   if (!w || !h) throw new Error('EMPTY');
-  const art = { raster: rasterCanvas, svgText, w, h, aspect: w / h, name, kind, colorCount: 0, typeLabel: '' };
+  const art = { raster: rasterCanvas, svgText, w, h, aspect: w / h, name, kind, colorCount: 0, typeLabel: '', brightness: 1 };
   const an = analyzeArtwork(rasterCanvas);
   art.colorCount = an.colors;
+  art.brightness = an.brightness;
   art.typeLabel = an.kind === 'flat' ? 'Hình phẳng, ít màu' : 'Ảnh phức tạp';
   const dp = defaultLayerPlacement();
   const layer = {
@@ -790,9 +790,10 @@ async function setArtwork(rasterCanvas, name, kind, svgText) {
   };
   S.layers.push(layer);
   S.activeLayerId = layer.id;
+  syncProcVisibility();
   assess();
-  render(); renderLayerList(); updatePrintPanel(); checkWarnings();
-  $('fileInfo').innerHTML = `<b>${esc(name)}</b><br>${w} × ${h} px · ${art.typeLabel}`;
+  render(); renderLayerList(); updateSelPanel(); checkWarnings();
+  updateSelPanel();
   toast('Đã thêm layer mới — kéo để di chuyển tự do.');
 }
 
@@ -912,8 +913,10 @@ function artworkDPI() {
   return Math.min(dpiW, dpiH);
 }
 
-// Phân loại artwork: đếm số màu (lượng tử 4 bit/kênh) trên ảnh thu nhỏ.
-// Ít màu -> "flat" (hợp vector); nhiều màu -> "photo" (hợp phóng nét).
+// Phân loại artwork: đếm số màu (lượng tử 4 bit/kênh) + độ sáng trung bình
+// trên ảnh thu nhỏ. Ít màu -> "flat" (hợp vector); nhiều màu -> "photo"
+// (hợp phóng nét). brightness 0-1 dùng để chọn cách hòa hình vào áo
+// (hình trắng trên áo trắng dùng multiply sẽ tàng hình).
 function analyzeArtwork(canvas) {
   const MAX = 160;
   const sc = Math.min(1, MAX / Math.max(canvas.width, canvas.height));
@@ -925,13 +928,17 @@ function analyzeArtwork(canvas) {
   ctx.drawImage(canvas, 0, 0, w, h);
   const d = ctx.getImageData(0, 0, w, h).data;
   const set = new Set();
+  let lumSum = 0, lumN = 0;
   for (let i = 0; i < d.length; i += 4) {
     if (d[i + 3] < 128) continue;
     set.add(((d[i] >> 4) << 8) | ((d[i + 1] >> 4) << 4) | (d[i + 2] >> 4));
+    lumSum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+    lumN++;
     if (set.size > 200) break;
   }
   const colors = set.size;
-  return { colors, kind: colors <= 40 ? 'flat' : 'photo' };
+  const brightness = lumN ? lumSum / lumN / 255 : 1;
+  return { colors, kind: colors <= 40 ? 'flat' : 'photo', brightness };
 }
 
 // Tự động đánh giá mỗi khi thêm artwork hoặc đổi khổ in.
@@ -1249,19 +1256,31 @@ function afterProcess(msg) {
   if (!a) return;
   const an = analyzeArtwork(a.raster);
   if (!a.svgText) a.colorCount = an.colors;
-  assess(); render(); renderLayerList(); updatePrintPanel(); checkWarnings();
-  $('fileInfo').innerHTML =
-    `<b>${esc(a.name)}</b><br>${a.w} × ${a.h} px · ` +
-    (a.svgText ? 'Đã vector hóa' : a.typeLabel);
+  a.brightness = an.brightness;
+  assess(); render(); renderLayerList(); updateSelPanel(); checkWarnings();
   toast(msg);
 }
 
 // =====================================================================
-// PHẦN 4: Cảnh báo vùng in, panel số đo, xuất file, khởi động app
+// PHẦN 4: Vùng in an toàn, cảnh báo, panel số đo, xuất file, khởi động app
 // =====================================================================
 
-// Cảnh báo khi layer đang chọn đè lên vùng cấm
-// (cổ áo, nẹp nút trong warnZones của config)
+// Vùng in an toàn của mockup: lấy exportZone của vị trí "nguc-truoc"
+// (mặt trước) và "lung" (mặt sau) trong config; fallback cứng nếu thiếu.
+// Layer nên nằm GỌN trong ít nhất 1 trong 2 vùng này.
+function safeZones() {
+  const ps = (S.cfg && S.cfg.positions) || [];
+  const front = ps.find((p) => p.id === 'nguc-truoc');
+  const back = ps.find((p) => p.id === 'lung');
+  return [
+    (front && front.exportZone) || { x0: 0.10, x1: 0.41, y0: 0.25, y1: 0.75 },
+    (back && back.exportZone) || { x0: 0.60, x1: 0.90, y0: 0.25, y1: 0.75 },
+  ];
+}
+
+// Cảnh báo khi layer đang chọn: (1) tràn ra ngoài vùng in an toàn,
+// (2) đè lên vùng cấm (cổ áo, nẹp nút trong warnZones của config).
+// Gọi sau mỗi lần di chuyển/thu phóng/đổi cỡ.
 function checkWarnings() {
   const bar = $('warnBar');
   const L = activeLayer();
@@ -1270,7 +1289,14 @@ function checkWarnings() {
   const r = layerPxOf(L);
   const bx0 = r.x / W, by0 = r.y / H;
   const bx1 = (r.x + r.w) / W, by1 = (r.y + r.h) / H;
-  const danger = [];
+  const msgs = [];
+  // 1) Vùng in an toàn: bbox phải nằm gọn trong ít nhất 1 vùng (trước/sau)
+  const TOL = 0.005;
+  const inside = safeZones().some((z) =>
+    bx0 >= z.x0 - TOL && by0 >= z.y0 - TOL &&
+    bx1 <= z.x1 + TOL && by1 <= z.y1 + TOL);
+  if (!inside) msgs.push(`Layer “${L.name}” đang tràn ra ngoài vùng in an toàn — nhà in có thể cắt mất hình.`);
+  // 2) Vùng cấm: cổ áo / nẹp nút
   (S.cfg.warnZones || []).forEach((wz) => {
     let hit = false;
     if (wz.loai === 'tron') {
@@ -1280,11 +1306,11 @@ function checkWarnings() {
     } else { // chunhat
       hit = !(bx1 < wz.x0 || bx0 > wz.x1 || by1 < wz.y0 || by0 > wz.y1);
     }
-    if (hit) danger.push(`Hình in đè lên vùng “${wz.ten}” — nên dời ra.`);
+    if (hit) msgs.push(`Hình in đè lên vùng “${wz.ten}” — nên dời ra.`);
   });
-  bar.hidden = !danger.length;
-  bar.className = 'warnbar' + (danger.length ? ' danger' : '');
-  bar.innerHTML = danger.map((m) => '• ' + esc(m)).join('<br>');
+  bar.hidden = !msgs.length;
+  bar.className = 'warnbar' + (msgs.length ? ' danger' : '');
+  bar.innerHTML = msgs.map((m) => '• ' + esc(m)).join('<br>');
 }
 
 // Panel thông số áo + tỉ lệ px/cm hiện tại
@@ -1297,29 +1323,24 @@ function updateShirtPanel() {
     `<br><span class="muted small">Tỉ lệ ảnh: ${fmt(pxPerCm(), 2)} px/cm</span>`;
 }
 
-// Panel số đo hình in đang chọn: rộng × cao (cm), px @300dpi, DPI thực tế
-function updatePrintPanel() {
-  const el = $('printInfo');
-  const L = activeLayer();
-  if (!L || !L.art) {
-    el.innerHTML = '<span class="muted">Chưa có file thiết kế.</span>';
-    return;
-  }
-  const wCm = L.wCm, hCm = L.wCm / L.art.aspect;
-  const pxW = Math.round((wCm / 2.54) * 300);
-  const pxH = Math.round((hCm / 2.54) * 300);
-  const colInfo = S.printColor.mode === 'single'
-    ? `<br>Màu file in: <b>${esc(S.printColor.color)}</b> (in 1 màu)`
-    : '<br>Màu file in: <b>giữ nguyên màu gốc</b>';
-  el.innerHTML =
-    `Layer “<b>${esc(L.name)}</b>”: <b>${fmt(wCm)} × ${fmt(hCm)} cm</b> — ` +
-    `${pxW} × ${pxH} px @300dpi` +
-    `<br>DPI thực tế: <b>${Math.round(artworkDPI())}</b>` +
-    colInfo +
-    (L.art.svgText ? '<br><span class="muted small">Đã vector hóa — xuất được file SVG.</span>' : '');
-}
-
 // ---------- Xuất file ----------
+
+// Tên file an toàn: bỏ dấu tiếng Việt, chỉ giữ chữ/số/gạch nối
+function cleanName(s, fallback) {
+  const t = String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+  return t || fallback || 'file';
+}
+// Lấy viewBox từ SVG, fallback theo kích thước raster
+function svgViewBox(svgText, w, h) {
+  const m = String(svgText || '').match(/viewBox\s*=\s*["']([^"']+)["']/i);
+  return m ? m[1] : `0 0 ${w || 100} ${h || 100}`;
+}
+// Lấy phần ruột bên trong thẻ <svg>...</svg>
+function svgInner(svgText) {
+  const m = String(svgText || '').match(/<svg[^>]*>([\s\S]*)<\/svg\s*>/i);
+  return m ? m[1] : '';
+}
 
 // (a) Xuất mockup PNG full-res: hiện preview + nút tải rõ ràng
 function exportMockup() {
@@ -1430,9 +1451,8 @@ function deleteLayer(id) {
   if (S.activeLayerId === id) {
     S.activeLayerId = S.layers.length ? S.layers[S.layers.length - 1].id : null;
   }
-  syncSizeInputs();
-  assess(); render(); renderLayerList(); updatePrintPanel(); checkWarnings();
-  updateFileInfo();
+  syncSizeInputs(); syncProcVisibility();
+  assess(); render(); renderLayerList(); updateSelPanel(); checkWarnings();
   toast(`Đã xóa layer “${rm.name}”.`);
 }
 // Nút "Xóa hình in": xóa layer đang chọn
@@ -1442,13 +1462,30 @@ function clearArt() {
   deleteLayer(L.id);
 }
 
-// Cập nhật panel File thiết kế theo layer đang chọn
-function updateFileInfo() {
+// Cập nhật panel "Layer đang chọn": tên + kích thước in + thông số file.
+function updateSelPanel() {
+  const el = $('selInfo');
+  if (!el) return;
   const L = activeLayer();
-  $('fileInfo').innerHTML = (L && L.art)
-    ? `<b>${esc(L.art.name)}</b><br>${L.art.w} × ${L.art.h} px · ` +
-      (L.art.svgText ? 'Đã vector hóa' : L.art.typeLabel)
-    : 'Chưa có file. Hãy tải file thiết kế lên.';
+  if (!L || !L.art) {
+    el.innerHTML = '<span class="muted">Chưa chọn layer nào. Tải file hoặc bấm vào hình trên canvas.</span>';
+    return;
+  }
+  const wCm = L.wCm, hCm = L.wCm / L.art.aspect;
+  const colInfo = S.printColor.mode === 'single'
+    ? ` · in 1 màu <b>${esc(S.printColor.color)}</b>`
+    : '';
+  el.innerHTML =
+    `<b>${esc(L.name)}</b> — <b>${fmt(wCm)} × ${fmt(hCm)} cm</b><br>` +
+    `<span class="muted small">${L.art.w} × ${L.art.h} px · DPI thực tế ` +
+    `<b>${Math.round(artworkDPI())}</b>` +
+    (L.art.svgText ? ' · đã vector hóa' : '') + colInfo + '</span>';
+}
+
+// Ẩn panel "Xử lý ảnh" khi chưa có layer nào đang chọn (đỡ rối)
+function syncProcVisibility() {
+  const p = $('panelProc');
+  if (p) p.hidden = !activeLayer();
 }
 
 // ---------- Panel Layers (kiểu Photoshop) ----------
@@ -1527,9 +1564,9 @@ function initLayerList() {
 // Chọn layer đang thao tác + refresh UI liên quan
 function setActiveLayer(id, silent) {
   S.activeLayerId = id;
-  syncSizeInputs();
-  assess(); render(); renderLayerList(); updatePrintPanel(); checkWarnings();
-  updateFileInfo();
+  syncSizeInputs(); syncProcVisibility();
+  assess(); render(); renderLayerList(); updateSelPanel(); checkWarnings();
+  updateSelPanel();
   if (!silent) {
     const L = activeLayer();
     if (L) toast(`Đang chọn layer “${L.name}”.`);
@@ -1571,6 +1608,7 @@ function saveProject() {
       w: l.art.w, h: l.art.h, aspect: l.art.aspect,
       kind: l.art.kind,
       colorCount: l.art.colorCount, typeLabel: l.art.typeLabel,
+      brightness: (typeof l.art.brightness === 'number') ? l.art.brightness : 1,
       x: l.x, y: l.y, wCm: l.wCm,
     });
   }
@@ -1638,6 +1676,7 @@ async function openProject(name) {
           raster, svgText: sl.svgText || null,
           w: sl.w, h: sl.h, aspect: sl.aspect, name: sl.name,
           kind: sl.kind, colorCount: sl.colorCount, typeLabel: sl.typeLabel,
+          brightness: (typeof sl.brightness === 'number') ? sl.brightness : 1,
         },
         x: sl.x, y: sl.y, wCm: sl.wCm,
       });
@@ -1662,9 +1701,9 @@ async function openProject(name) {
       S.shirtColorName = proj.shirtColorName || proj.shirtColor;
       syncShirtColorUI();
     }
-    updateFileInfo();
-    syncSizeInputs(); assess();
-    render(); renderLayerList(); updateShirtPanel(); updatePrintPanel(); checkWarnings();
+    updateSelPanel();
+    syncSizeInputs(); syncProcVisibility(); assess();
+    render(); renderLayerList(); updateShirtPanel(); updateSelPanel(); checkWarnings();
     toast(`Đã mở file "${name}".`);
   } catch (e) {
     console.error(e);
@@ -1723,13 +1762,13 @@ async function init() {
     if (!activeLayer()) return;
     const v = parseFloat($('inpW').value);
     if (v > 0) setPrintWidth(v);
-    render(); updatePrintPanel(); checkWarnings(); assess();
+    render(); updateSelPanel(); checkWarnings(); assess();
   });
   $('inpH').addEventListener('change', () => {
     if (!activeLayer()) return;
     const v = parseFloat($('inpH').value);
     if (v > 0) setPrintHeight(v);
-    render(); updatePrintPanel(); checkWarnings(); assess();
+    render(); updateSelPanel(); checkWarnings(); assess();
   });
 
   // Quy tắc cứng: tỉ lệ luôn khóa — bấm vào chỉ để xem giải thích
@@ -1741,7 +1780,7 @@ async function init() {
     if (v > 0 && S.cfg) {
       S.cfg.ao.ngangNgucCm = v; // hiệu chuẩn lại -> pxPerCm() tự tính lại
       updateShirtPanel();
-      render(); updatePrintPanel(); checkWarnings(); assess();
+      render(); updateSelPanel(); checkWarnings(); assess();
     }
   });
 
@@ -1781,7 +1820,7 @@ async function init() {
     const dp = defaultLayerPlacement();
     L.x = dp.x; L.y = dp.y; L.wCm = dp.wCm;
     syncSizeInputs();
-    render(); updatePrintPanel(); checkWarnings(); assess();
+    render(); updateSelPanel(); checkWarnings(); assess();
     toast('Đã đưa layer về giữa ngực trước.');
   };
 
@@ -1790,7 +1829,7 @@ async function init() {
     r.addEventListener('change', () => {
       S.printColor.mode = document.querySelector('input[name="colorMode"]:checked').value;
       $('colorRow').hidden = S.printColor.mode !== 'single';
-      render(); updatePrintPanel();
+      render(); updateSelPanel();
       toast(S.printColor.mode === 'single'
         ? 'Đã bật in 1 màu — mockup và mọi file xuất sẽ dùng màu đã chọn.'
         : 'Đã về chế độ giữ nguyên màu gốc.');
