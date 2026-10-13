@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Mockup In Áo</title>
-<link rel="stylesheet" href="css/style.css?v=20261013d">
+<link rel="stylesheet" href="css/style.css?v=20261013e">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -73,32 +73,22 @@
         <button id="btnLock" class="btn small lock on" title="Tỉ lệ luôn khóa để không méo hình">🔒 <span id="lockRatio">—</span></button>
         <button id="btnAutoFitNow" class="btn small" title="Đưa layer về giữa ngực trước với cỡ mặc định">⚡ Auto fit lại</button>
       </div>
-      <div id="dpiBox" class="dpi" hidden>
+    </div>
+  </aside>
+
+  <!-- ============ DOCK: PANEL DƯỚI CANVAS (desktop) ============ -->
+  <div class="dock">
+    <div class="panel" id="panelQuality" hidden>
+      <h2>Chất lượng & Xử lý</h2>
+      <div class="dpi">
         <span id="dpiBadge" class="badge">—</span>
         <span id="dpiText">—</span>
       </div>
-      <div id="suggestBox" class="suggest" hidden>
-        <div class="suggest-title">Đề xuất xử lý <small>(gợi ý — bạn là người chốt)</small></div>
-        <div class="suggest-row">
-          <button class="btn small" id="sgKeep">Giữ nguyên</button>
-          <button class="btn small" id="sgVector">Chuyển vector</button>
-          <button class="btn small" id="sgUp2">Phóng nét 2×</button>
-          <button class="btn small" id="sgUp4">Phóng nét 4×</button>
-        </div>
-        <div id="suggestNote" class="muted small"></div>
-      </div>
-    </div>
-
-    <div class="panel" id="panelProc" hidden>
-      <h2>Xử lý ảnh</h2>
-      <div class="btn-grid">
-        <button class="btn" id="btnVector">Chuyển vector</button>
-        <button class="btn" id="btnUp2">Phóng nét 2×</button>
-        <button class="btn" id="btnUp4">Phóng nét 4×</button>
+      <div id="qualityNote" class="muted small" style="margin-bottom:8px"></div>
+      <div class="btn-grid" id="qualityActions"></div>
+      <div class="btn-grid" style="margin-top:8px">
         <button class="btn" id="btnWhite">Khử nền trắng</button>
         <button class="btn" id="btnCrop">Cắt bớt (crop)</button>
-        <button class="btn" id="btnKeep">Giữ nguyên gốc</button>
-        <button class="btn" id="btnClearArt">Xóa hình in</button>
       </div>
       <p class="muted small">Phóng nét = nội suy trong trình duyệt, <b>chưa phải AI upscale</b>.</p>
     </div>
@@ -155,7 +145,7 @@
       </div>
       <div id="savedList" class="saved-list"></div>
     </div>
-  </aside>
+  </div><!-- /dock -->
 </main>
 
 <!-- ============ MODAL CROP ============ -->
@@ -207,6 +197,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013d"></script>
+<script src="js/app.js?v=20261013e"></script>
 </body>
 </html>
