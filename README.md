@@ -186,9 +186,24 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   aiEnsure, dùng chung instance) để lần phóng nét sau chạy ngay không chờ; đang tải
   nút hiện "Đang tải model AI…" và khóa; xong → "Model AI đã sẵn sàng ✓" (giữ trạng thái
   trong phiên); lỗi → dòng cảnh báo + nút cho thử lại. Đã sẵn sàng rồi thì không tải lại.
-- **Modal so sánh trước/sau** (khử nền trắng, vector): mặc định ở chế độ **"Vừa khung"** —
+- **Modal so sánh trước/sau** (khử nền trắng, vector): mở lên **luôn ở chế độ "Vừa khung"** —
   ảnh co theo đúng tỉ lệ gốc, vừa khung modal (không tràn/phóng to), nền caro hiển thị
-  phần trong suốt. Nút 100%/200%/400% để soi chi tiết pixel khi cần.
+  phần trong suốt. Chọn 100%/200%/400% thì **chỉ canvas phóng to** (cuộn ngang/dọc trong
+  khung chứa nó, 2 phía cuộn đồng bộ để so sánh đúng vị trí); hàng nút mức zoom,
+  tiêu đề, ghi chú và nút **"Bỏ qua"/"Áp dụng" đứng yên**, không bị zoom ảnh hưởng.
+  Trên mobile 2 phía xếp dọc, mỗi phía cuộn trong khung riêng.
+
+## Trạng thái nút bấm
+
+- Mọi nút có hiệu ứng khi di chuột vào (chỉ trên thiết bị có chuột): nhấc nhẹ + bóng đổ;
+  khi nhấn có cảm giác nhấn xuống. Không hiệu ứng thừa trên cảm ứng; tôn trọng
+  chế độ giảm chuyển động của hệ thống.
+- Nút mang tính lựa chọn/trạng thái thì phía **đang chọn "sáng" rõ**: swatch màu áo
+  đang chọn có vòng accent phát sáng + phóng nhẹ; 2 ô chế độ in ("Giữ nguyên màu gốc" /
+  "In 1 màu") thành pill, ô đang chọn nền xanh nhạt viền accent; "Hiện số đo" khi bật
+  thành pill xanh; checkbox "Phóng nét bằng AI" khi tích thì nhãn sáng lên; mức zoom
+  đang chọn trong modal so sánh đảo nền accent; nút Khóa khung khi khóa đảo màu
+  nền/chữ (đã có từ trước).
 
 ## Lịch sử theo khách
 
