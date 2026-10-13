@@ -7,7 +7,25 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013l';
+const APP_V = '20261013m';
+
+// ---------- Chế độ sáng/tối ----------
+const THEME_KEY = 'mockupTheme';
+function applyTheme(t) {
+  const theme = (t === 'dark') ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* bỏ qua */ }
+}
+function initTheme() {
+  let saved = 'light';
+  try { saved = localStorage.getItem(THEME_KEY) || 'light'; } catch (e) { /* bỏ qua */ }
+  applyTheme(saved);
+  const btn = $('btnTheme');
+  if (btn) btn.onclick = () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    applyTheme(cur === 'dark' ? 'light' : 'dark');
+  };
+}
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -2067,17 +2085,23 @@ function renderLayerList() {
       nm.appendChild(badge);
       row.classList.add('in-group');
     }
-    const mkBtn = (cls, title, txt) => {
+    const mkBtn = (cls, title, svg) => {
       const b = document.createElement('button');
-      b.type = 'button'; b.className = 'icon-btn ' + cls; b.title = title; b.textContent = txt;
-      b.dataset.id = layer.id;
+      b.type = 'button'; b.className = 'icon-btn ' + cls; b.title = title;
+      b.innerHTML = svg; b.dataset.id = layer.id;
       return b;
     };
-    const bUp = mkBtn('ly-up', 'Đưa lên trên', '↑');
-    const bDn = mkBtn('ly-down', 'Đưa xuống dưới', '↓');
-    const bEye = mkBtn('ly-eye', layer.visible ? 'Ẩn layer' : 'Hiện layer', layer.visible ? '👁' : '🚫');
+    // Icon flat SVG (currentColor) — nhất quán, tự đổi theo theme
+    const SVG_UP = '<svg viewBox="0 0 24 24"><path d="M6 14l6-6 6 6"/></svg>';
+    const SVG_DN = '<svg viewBox="0 0 24 24"><path d="M6 10l6 6 6-6"/></svg>';
+    const SVG_EYE = '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>';
+    const SVG_EYE_OFF = '<svg viewBox="0 0 24 24"><path d="M4 4l16 16"/><path d="M9.9 5.9A9.8 9.8 0 0 1 12 5.5c6.5 0 10 6.5 10 6.5a17 17 0 0 1-3.3 4M6 7.5A16 16 0 0 0 2 12s3.5 6.5 10 6.5c1.2 0 2.4-.2 3.4-.6"/></svg>';
+    const SVG_X = '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    const bUp = mkBtn('ly-up', 'Đưa lên trên', SVG_UP);
+    const bDn = mkBtn('ly-down', 'Đưa xuống dưới', SVG_DN);
+    const bEye = mkBtn('ly-eye', layer.visible ? 'Ẩn layer' : 'Hiện layer', layer.visible ? SVG_EYE : SVG_EYE_OFF);
     if (!layer.visible) row.classList.add('hidden-layer');
-    const bDel = mkBtn('ly-del', 'Xóa layer', '×');
+    const bDel = mkBtn('ly-del', 'Xóa layer', SVG_X);
     row.append(thumb, nm, bUp, bDn, bEye, bDel);
     // Vẽ thumbnail từ raster (giữ tỉ lệ, căn giữa)
     try {
@@ -2296,6 +2320,7 @@ async function openProjectObj(proj) {
 
 // ---------- Khởi động ----------
 async function init() {
+  initTheme(); // chế độ sáng/tối (đọc localStorage trước để tránh nháy)
   const sel = $('selMockup');
   MOCKUPS.forEach((m) => {
     const o = document.createElement('option');
