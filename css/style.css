@@ -83,6 +83,8 @@ body {
 }
 .drophint small { font-size: 13px; color: #9aa1ad; }
 .canvas-wrap.dragover { outline: 3px dashed var(--accent); outline-offset: -3px; }
+/* Canvas đang active (đã click vào) -> viền xanh lá để biết phím tắt layer đang bật */
+.canvas-wrap.canvas-on { outline: 2px solid var(--accent); outline-offset: -2px; }
 
 .size-row {
   display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;
@@ -201,6 +203,8 @@ details.panel.adv .colorrow { margin-left: 0; }
 }
 .layer-row:hover { background: #f6f7f9; }
 .layer-row.active { border-color: var(--accent); background: #eef7f3; }
+/* Layer được chọn thêm (multi-select): viền hồng để phân biệt với layer chính */
+.layer-row.multisel { border-color: #ec4899; background: #fdf2f8; }
 .layer-row.hidden-layer { opacity: .55; }
 .layer-thumb {
   width: 44px; height: 44px; flex: none;
@@ -218,3 +222,16 @@ details.panel.adv .colorrow { margin-left: 0; }
 }
 .icon-btn:hover { background: #eef0f3; }
 .icon-btn.ly-del { color: var(--danger); font-size: 17px; font-weight: 700; }
+
+/* ---- Thanh căn chỉnh nhiều layer ---- */
+.align-bar {
+  margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line);
+}
+.align-bar[hidden] { display: none; }
+.align-grid {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 6px;
+}
+.align-grid .btn { padding: 6px 4px; font-size: 15px; }
+@media (max-width: 980px) {
+  .align-grid { grid-template-columns: repeat(4, 1fr); }
+}
