@@ -121,6 +121,7 @@ body {
 }
 .warnbar.danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
 
+.canvas-frame { position: relative; }
 .canvas-wrap {
   position: relative; background: #e4e4e4; border-radius: var(--radius);
   overflow: hidden; border: 1px solid var(--line); min-height: 200px;
