@@ -49,6 +49,26 @@ mockups/polo.json    config áo polo   (ảnh Polo.png  3469x1933, nền trong s
   xuất **từng layer** thành file riêng (nền trong suốt, 300dpi, đúng khổ cm,
   tên file theo tên layer).
 
+## Panel "Chất lượng & Xử lý" (gộp đánh giá + xử lý)
+
+- Trên cùng: huy hiệu DPI (Đạt chuẩn in / Nên xử lý thêm / Không nên in) + dòng
+  mô tả khổ in.
+- **DPI ≥ 300 (đạt chuẩn)**: các nút đề xuất (Chuyển vector / Phóng nét 2×/4×)
+  ở trạng thái **mờ (disabled)** + nhãn "Đã đạt 300dpi — không cần xử lý thêm."
+- **DPI < 300**: đề xuất hiện rõ, nút được gợi ý tô đậm (vector cho hình phẳng
+  ít màu, phóng nét 4× cho ảnh phức tạp). Bấm là **áp dụng ngay lên layer**,
+  thấy kết quả realtime trên canvas (không mở modal so sánh).
+- Khử nền trắng và Crop giữ modal riêng (cần kiểm tra trực quan / kéo khung).
+- Nút "Xóa hình in" đã bỏ — xóa layer bằng nút × trên mỗi dòng trong panel Layers.
+
+## Bố cục giao diện
+
+- **Desktop (≥1024px)**: canvas lớn bên trái, sidebar phải (Layers + Layer đang
+  chọn), hàng panel ngang **dưới canvas** (Chất lượng & Xử lý, Xuất file,
+  File làm việc, Nâng cao) để thao tác realtime trực tiếp trên ảnh.
+- **Mobile**: xếp dọc 1 cột (canvas → Layers → panel đang chọn → các panel dock).
+  Khung canvas ôm khít ảnh (không còn dải đen thừa).
+
 ## Thêm mockup mới (chỉ cần ảnh + JSON, không sửa code)
 
 1. Chụp/Render ảnh áo: **mặt trước bên trái, mặt sau bên phải**, áo trắng
