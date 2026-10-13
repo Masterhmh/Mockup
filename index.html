@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261013w">
+<link rel="stylesheet" href="css/style.css?v=20261013x">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -76,7 +76,7 @@
       </div>
     </div>
 
-    <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc) · <b>cuộn chuột / chụm 2 ngón để zoom canvas</b></p>
+    <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc) · cuộn chuột/chụm 2 ngón để zoom ảnh trong khung · <b>giữ Space + kéo</b> (hoặc kéo ở vùng trống) để di chuyển khung nhìn</p>
   </section>
 
   <!-- ============ PANEL ĐIỀU KHIỂN ============ -->
@@ -168,7 +168,7 @@
 
     <div class="panel" id="panelQuote">
       <h2>Báo giá</h2>
-      <label class="fld">Kỹ thuật in
+      <label class="fld">Kiểu in
         <select id="selPrintTech">
           <option value="inlua">In lụa</option>
           <option value="dtf" selected>DTF</option>
@@ -176,23 +176,14 @@
           <option value="theu">Thêu</option>
         </select>
       </label>
-      <h3>Đơn giá theo cỡ hình (VNĐ)</h3>
-      <div class="quote-grid">
-        <label>Nhỏ (≤15cm)<input type="number" id="qpNho" min="0" step="1000" placeholder="0"></label>
-        <label>Vừa (≤25cm)<input type="number" id="qpVua" min="0" step="1000" placeholder="0"></label>
-        <label>Lớn (≤35cm)<input type="number" id="qpLon" min="0" step="1000" placeholder="0"></label>
-        <label>Rất lớn (>35cm)<input type="number" id="qpRatlon" min="0" step="1000" placeholder="0"></label>
-      </div>
-      <h3>Hệ số kỹ thuật</h3>
-      <div class="quote-grid">
-        <label>In lụa ×<input type="number" id="qfInlua" min="0" step="0.1"></label>
-        <label>DTF ×<input type="number" id="qfDtf" min="0" step="0.1"></label>
-        <label>Decal ×<input type="number" id="qfDecal" min="0" step="0.1"></label>
-        <label>Thêu ×<input type="number" id="qfTheu" min="0" step="0.1"></label>
-      </div>
-      <div id="quoteDetail" class="quote-detail"></div>
+      <label class="fld">Số lượng
+        <input type="number" id="qQty" min="1" step="1" value="1">
+      </label>
+      <label class="fld">Đơn giá (VNĐ)
+        <input type="number" id="qPrice" min="0" step="1000" placeholder="0">
+      </label>
       <div id="quoteTotal" class="quote-total"></div>
-      <p class="muted small">Giá = đơn giá theo cỡ (cạnh lớn hơn của hình) × hệ số kỹ thuật. Cấu hình giá lưu trên máy này.</p>
+      <p class="muted small">Thành tiền = Số lượng × Đơn giá. Cấu hình lưu trên máy này.</p>
     </div>
 
     <details class="panel adv" id="panelAdv" open>
@@ -271,6 +262,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013w"></script>
+<script src="js/app.js?v=20261013x"></script>
 </body>
 </html>
