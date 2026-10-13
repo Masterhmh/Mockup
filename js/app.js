@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013g';
+const APP_V = '20261013h';
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -54,6 +54,7 @@ const S = {
   //   art: {raster, svgText, w, h, aspect, name, kind, colorCount, typeLabel}
   layers: [],
   activeLayerId: null,  // id layer đang chọn
+  clipboard: null,      // layer đã copy (Ctrl+C) để paste (Ctrl+V)
   ratioLocked: true,    // QUY TẮC CỨNG: luôn khóa tỉ lệ gốc
   drag: null,
   view: { dw: 0, dh: 0, dpr: 1 }, // ánh xạ ảnh gốc -> css px
@@ -317,14 +318,15 @@ function drawOneDesign(ctx, W, H, layer) {
 
   ctx.save();
   // Chọn cách hòa hình in vào áo:
+  // - Hình SÁNG (trắng/sáng): LUÔN vẽ đè trực tiếp (source-over) — mực sáng
+  //   cần đục mới nhìn thấy; multiply (trắng × màu áo) làm hình tàng hình
+  //   trên áo xám, cam, be... chứ không chỉ áo trắng.
   // - Áo tối: vẽ đè trực tiếp (source-over) vì multiply làm hình mất hút.
-  // - Hình SÁNG trên áo SÁNG: cũng vẽ đè trực tiếp — multiply (trắng × trắng)
-  //   sẽ làm hình tàng hình, mockup phải NHÌN THẤY hình để còn căn chỉnh.
   // - Còn lại (hình tối trên áo sáng): multiply để hình hòa vào chất vải.
   const artBright = (layer.art && typeof layer.art.brightness === 'number')
     ? layer.art.brightness : 0.5;
   const sLum = shirtLum(S.shirtColor);
-  if (sLum < 0.45 || (artBright > 0.75 && sLum > 0.6)) {
+  if (artBright > 0.7 || sLum < 0.45) {
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 0.96;
   } else {
@@ -809,7 +811,7 @@ async function setArtwork(rasterCanvas, name, kind, svgText, quiet) {
   S.activeLayerId = layer.id;
   syncProcVisibility();
   assess();
-  render(); renderLayerList(); updateSelPanel(); checkWarnings();
+  render(); renderLayerList(); updateSelPanel(); checkWarnings(); checkColorClash();
   updateSelPanel();
   if (!quiet) toast('Đã thêm layer mới — kéo để di chuyển tự do.');
 }
@@ -1297,16 +1299,18 @@ function afterProcess(msg) {
 // PHẦN 4: Vùng in an toàn, cảnh báo, panel số đo, xuất file, khởi động app
 // =====================================================================
 
-// Vùng in an toàn của mockup: lấy exportZone của vị trí "nguc-truoc"
-// (mặt trước) và "lung" (mặt sau) trong config; fallback cứng nếu thiếu.
-// Layer nên nằm GỌN trong ít nhất 1 trong 2 vùng này.
+// Vùng in an toàn của mockup: toàn bộ chiều dài thân áo (y 0.15–0.88),
+// chỉ trừ vùng cổ, nẹp nút, đường may (nằm trong warnZones của config).
+// Chiều ngang lấy theo exportZone của vị trí "nguc-truoc"/"lung".
 function safeZones() {
   const ps = (S.cfg && S.cfg.positions) || [];
   const front = ps.find((p) => p.id === 'nguc-truoc');
   const back = ps.find((p) => p.id === 'lung');
+  const fx = (front && front.exportZone) || { x0: 0.10, x1: 0.41 };
+  const bx = (back && back.exportZone) || { x0: 0.60, x1: 0.90 };
   return [
-    (front && front.exportZone) || { x0: 0.10, x1: 0.41, y0: 0.25, y1: 0.75 },
-    (back && back.exportZone) || { x0: 0.60, x1: 0.90, y0: 0.25, y1: 0.75 },
+    { x0: fx.x0, x1: fx.x1, y0: 0.15, y1: 0.88 },
+    { x0: bx.x0, x1: bx.x1, y0: 0.15, y1: 0.88 },
   ];
 }
 
@@ -1343,6 +1347,18 @@ function checkWarnings() {
   bar.hidden = !msgs.length;
   bar.className = 'warnbar' + (msgs.length ? ' danger' : '');
   bar.innerHTML = msgs.map((m) => '• ' + esc(m)).join('<br>');
+}
+
+// Cảnh báo khi màu hình in gần giống màu áo (chênh lệch độ sáng < 0.25)
+// → lên áo có thể không nổi. Chỉ cảnh báo, không chặn.
+function checkColorClash() {
+  const L = activeLayer();
+  if (!L || !L.art) return;
+  const artBright = (typeof L.art.brightness === 'number') ? L.art.brightness : 0.5;
+  const diff = Math.abs(artBright - shirtLum(S.shirtColor));
+  if (diff < 0.25) {
+    toast(`Hình “${L.name}” có màu gần giống màu áo (${S.shirtColorName}), lên áo có thể không nổi. Hãy thử đổi màu áo hoặc xử lý lại hình.`, 5000);
+  }
 }
 
 // Panel thông số áo + tỉ lệ px/cm hiện tại
@@ -1483,6 +1499,58 @@ function deleteLayer(id) {
   syncSizeInputs(); syncProcVisibility();
   assess(); render(); renderLayerList(); updateSelPanel(); checkWarnings();
   toast(`Đã xóa layer “${rm.name}”.`);
+}
+
+// Copy layer đang chọn vào clipboard nội bộ (Ctrl+C)
+function copyLayer() {
+  const L = activeLayer();
+  if (!L || !L.art) { toast('Chưa có layer nào để copy.'); return; }
+  S.clipboard = L;
+  toast(`Đã copy layer “${L.name}” — bấm Ctrl+V để paste.`);
+}
+
+// Paste layer từ clipboard: artwork mới, lệch +1cm, tên thêm "(copy)" (Ctrl+V)
+function pasteLayer() {
+  const src = S.clipboard;
+  if (!src || !src.art) { toast('Clipboard trống — hãy copy 1 layer trước (Ctrl+C).'); return; }
+  const W = S.cfg.kichThuocAnh.w, H = S.cfg.kichThuocAnh.h;
+  const ppc = pxPerCm();
+  const art = src.art;
+  const newArt = {
+    raster: art.raster, svgText: art.svgText || null,
+    w: art.w, h: art.h, aspect: art.aspect, name: art.name,
+    kind: art.kind, colorCount: art.colorCount, typeLabel: art.typeLabel,
+    brightness: (typeof art.brightness === 'number') ? art.brightness : 0.5,
+  };
+  const layer = {
+    id: 'L' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36),
+    name: src.name + ' (copy)', art: newArt,
+    x: Math.min(0.98, src.x + ppc / W), y: Math.min(0.98, src.y + ppc / H),
+    wCm: src.wCm, visible: true,
+  };
+  S.layers.push(layer);
+  S.activeLayerId = layer.id;
+  syncProcVisibility(); assess();
+  render(); renderLayerList(); updateSelPanel(); checkWarnings(); checkColorClash();
+  toast(`Đã paste layer “${layer.name}”.`);
+}
+
+// Phím tắt toàn cục cho layer: Ctrl+C / Ctrl+V / Delete.
+// Bỏ qua khi đang gõ trong ô nhập liệu.
+function initLayerHotkeys() {
+  document.addEventListener('keydown', (e) => {
+    const ae = document.activeElement;
+    const tag = (ae && ae.tagName) || '';
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag) || (ae && ae.isContentEditable)) return;
+    const mod = e.ctrlKey || e.metaKey;
+    const k = (e.key || '').toLowerCase();
+    if (mod && k === 'c') { copyLayer(); e.preventDefault(); }
+    else if (mod && k === 'v') { pasteLayer(); e.preventDefault(); }
+    else if ((e.key === 'Delete' || e.key === 'Backspace') && activeLayer()) {
+      deleteLayer(S.activeLayerId);
+      e.preventDefault();
+    }
+  });
 }
 // Cập nhật panel "Layer đang chọn": tên + kích thước in + thông số file.
 function updateSelPanel() {
@@ -1872,7 +1940,7 @@ async function init() {
       S.shirtColor = b.dataset.c;
       S.shirtColorName = b.dataset.n || b.dataset.c;
       syncShirtColorUI();
-      render(); updateShirtPanel();
+      render(); updateShirtPanel(); checkColorClash();
     }, 30);
   });
   syncShirtColorUI();
@@ -1883,6 +1951,7 @@ async function init() {
   // Panel Layers kiểu Photoshop
   initLayerList();
   renderLayerList();
+  initLayerHotkeys(); // Ctrl+C / Ctrl+V / Delete cho layer
 
   // Lưu / mở file làm việc
   $('btnSaveCm').onclick = saveProjectFile;
