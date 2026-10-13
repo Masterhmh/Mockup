@@ -7,7 +7,7 @@
 
 // Mã phiên bản chống cache cho mọi file tải riêng (JSON config...).
 // Safari giữ cache rất lì: mỗi lần sửa JSON là PHẢI đổi mã này rồi push.
-const APP_V = '20261013d';
+const APP_V = '20261013e';
 
 // ---------- Tiện ích ----------
 const $ = (id) => document.getElementById(id);
@@ -356,6 +356,8 @@ function fitStage() {
   stage.width = Math.round(dw * dpr);
   stage.height = Math.round(dh * dpr);
   S.view = { dw, dh, dpr };
+  // Canvas đã có kích thước thật -> khung ôm khít, không để dải đen/trống (mobile)
+  wrap.classList.add('fitted');
   render();
 }
 
@@ -941,15 +943,16 @@ function analyzeArtwork(canvas) {
   return { colors, kind: colors <= 40 ? 'flat' : 'photo', brightness };
 }
 
-// Tự động đánh giá mỗi khi thêm artwork hoặc đổi khổ in.
-// Ngưỡng: >=300 xanh (đạt chuẩn), 150-300 vàng (nên xử lý), <150 đỏ (không nên in).
-// Đề xuất chỉ là gợi ý — người dùng chốt tay sau khi so sánh.
+// Đánh giá chất lượng + đề xuất xử lý TRONG CÙNG 1 panel.
+// Logic: DPI >= 300 (đạt chuẩn) -> các nút đề xuất MỜ (disabled), chỉ hiện
+// nhãn "Đã đạt 300dpi". DPI < 300 -> đề xuất hiện rõ, bấm là ÁP DỤNG NGAY
+// lên layer và thấy kết quả realtime trên canvas (không modal).
 function assess() {
-  const box = $('dpiBox'), sg = $('suggestBox');
+  const panel = $('panelQuality');
   const L = activeLayer();
-  if (!L || !L.art) { box.hidden = true; sg.hidden = true; return; }
+  if (!L || !L.art) { if (panel) panel.hidden = true; return; }
+  if (panel) panel.hidden = false;
   const dpi = artworkDPI();
-  box.hidden = false; sg.hidden = false;
   const badge = $('dpiBadge');
   let cls, label;
   if (dpi >= 300) { cls = 'ok'; label = 'Đạt chuẩn in'; }
@@ -961,19 +964,42 @@ function assess() {
   $('dpiText').textContent =
     `DPI thực tế: ${Math.round(dpi)} (khổ ${fmt(wCm)} × ${fmt(hCm)} cm)`;
 
-  const rec = dpi >= 300 ? 'keep'
-    : (L.art.typeLabel.indexOf('Hình phẳng') === 0 ? 'vector' : 'up');
-  const note = $('suggestNote');
-  ['sgKeep', 'sgVector', 'sgUp2', 'sgUp4'].forEach((id) => $(id).classList.remove('rec'));
-  if (rec === 'keep') {
-    $('sgKeep').classList.add('rec');
-    note.textContent = 'File đã đủ 300dpi ở khổ in này — giữ nguyên là in đẹp.';
-  } else if (rec === 'vector') {
-    $('sgVector').classList.add('rec');
-    note.textContent = `Hình phẳng ít màu (${L.art.colorCount} màu) — chuyển vector cho nét ở mọi khổ in.`;
+  const note = $('qualityNote');
+  const box = $('qualityActions');
+  box.innerHTML = '';
+  const mkBtn = (txt, rec, fn) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn' + (rec ? ' primary' : '');
+    b.textContent = txt;
+    if (fn) b.onclick = fn;
+    return b;
+  };
+
+  if (dpi >= 300) {
+    // Đạt chuẩn: đề xuất mờ đi (disabled)
+    note.textContent = 'Đã đạt 300dpi — không cần xử lý thêm.';
+    [['Chuyển vector', btnVector], ['Phóng nét 2×', () => btnUpscale(2)],
+     ['Phóng nét 4×', () => btnUpscale(4)]].forEach(([txt]) => {
+      const b = mkBtn(txt, false, null);
+      b.disabled = true;
+      b.title = 'Đã đạt chuẩn in — không cần xử lý thêm';
+      box.appendChild(b);
+    });
   } else {
-    $('sgUp4').classList.add('rec');
-    note.textContent = 'Ảnh phức tạp — vector sẽ méo hình, nên phóng nét để tăng mật độ điểm ảnh.';
+    // Chưa đạt: hiện đề xuất rõ, bấm là áp dụng ngay (realtime)
+    const isFlat = L.art.typeLabel.indexOf('Hình phẳng') === 0;
+    if (isFlat) {
+      note.textContent = `Hình phẳng ít màu (${L.art.colorCount} màu) — chuyển vector cho nét ở mọi khổ in.`;
+      box.appendChild(mkBtn('Chuyển vector', true, btnVector));
+      box.appendChild(mkBtn('Phóng nét 2×', false, () => btnUpscale(2)));
+      box.appendChild(mkBtn('Phóng nét 4×', false, () => btnUpscale(4)));
+    } else {
+      note.textContent = 'Ảnh phức tạp — vector sẽ méo hình, nên phóng nét để tăng mật độ điểm ảnh.';
+      box.appendChild(mkBtn('Phóng nét 4×', true, () => btnUpscale(4)));
+      box.appendChild(mkBtn('Phóng nét 2×', false, () => btnUpscale(2)));
+      box.appendChild(mkBtn('Chuyển vector', false, btnVector));
+    }
   }
 }
 
@@ -1021,20 +1047,14 @@ function btnVector() {
     try {
       const { svg, layers, skippedWhite } = traceArtwork(activeArt().raster, 8);
       rasterizeSVG(svg, 1600).then((raster) => {
-        openCompare(
-          activeArt().raster, raster, 'So sánh: gốc vs vector',
-          `Tracing tạo ${layers} lớp path vector thật${skippedWhite ? ' (đã bỏ nền trắng)' : ''}. ` +
-          'Kiểm tra kỹ ở 100%: nếu méo hình thì bấm “Bỏ qua” và dùng Phóng nét.',
-          () => {
-            const a = activeArt();
-            a.raster = raster;
-            a.svgText = svg;   // giữ vector thật để xuất file in SVG
-            a.kind = 'vector';
-            a.w = raster.width; a.h = raster.height; // tỉ lệ giữ nguyên
-            a.colorCount = layers;
-            afterProcess('Đã chuyển vector.');
-          }
-        );
+        // Áp dụng TRỰC TIẾP lên layer — thấy kết quả ngay trên canvas (realtime)
+        const a = activeArt();
+        a.raster = raster;
+        a.svgText = svg;   // giữ vector thật để xuất file in SVG
+        a.kind = 'vector';
+        a.w = raster.width; a.h = raster.height; // tỉ lệ giữ nguyên
+        a.colorCount = layers;
+        afterProcess(`Đã chuyển vector (${layers} lớp path${skippedWhite ? ', đã bỏ nền trắng' : ''}).`);
       }).catch(() => toast('Không vẽ được vector ra ảnh xem trước.'));
     } catch (e) {
       console.error(e);
@@ -1231,6 +1251,7 @@ function simplify(pts, eps) {
 }
 
 // ---------- Phóng nét: nội suy canvas 2x/4x (ghi chú rõ: chưa phải AI upscale) ----------
+// Áp dụng TRỰC TIẾP lên layer — thấy kết quả ngay trên canvas (realtime).
 function btnUpscale(f) {
   if (!needArt()) return;
   const src = activeArt().raster;
@@ -1240,14 +1261,10 @@ function btnUpscale(f) {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(src, 0, 0, cv.width, cv.height);
-  openCompare(src, cv, `So sánh: gốc vs phóng nét ${f}× (nội suy)`,
-    'Phóng nét nội suy chỉ tăng mật độ điểm ảnh, không thêm chi tiết thật như AI upscale.',
-    () => {
-      const a = activeArt();
-      a.raster = cv; a.svgText = null; a.kind = 'raster';
-      a.w = cv.width; a.h = cv.height; // tỉ lệ giữ nguyên (cùng nhân f)
-      afterProcess(`Đã phóng nét ${f}×.`);
-    });
+  const a = activeArt();
+  a.raster = cv; a.svgText = null; a.kind = 'raster';
+  a.w = cv.width; a.h = cv.height; // tỉ lệ giữ nguyên (cùng nhân f)
+  afterProcess(`Đã phóng nét ${f}× (nội suy).`);
 }
 
 // Cập nhật sau mỗi lần xử lý: đếm lại màu, đánh giá DPI, vẽ lại
@@ -1455,13 +1472,6 @@ function deleteLayer(id) {
   assess(); render(); renderLayerList(); updateSelPanel(); checkWarnings();
   toast(`Đã xóa layer “${rm.name}”.`);
 }
-// Nút "Xóa hình in": xóa layer đang chọn
-function clearArt() {
-  const L = activeLayer();
-  if (!L) { toast('Chưa có layer nào để xóa.'); return; }
-  deleteLayer(L.id);
-}
-
 // Cập nhật panel "Layer đang chọn": tên + kích thước in + thông số file.
 function updateSelPanel() {
   const el = $('selInfo');
@@ -1482,9 +1492,9 @@ function updateSelPanel() {
     (L.art.svgText ? ' · đã vector hóa' : '') + colInfo + '</span>';
 }
 
-// Ẩn panel "Xử lý ảnh" khi chưa có layer nào đang chọn (đỡ rối)
+// Ẩn panel "Chất lượng & Xử lý" khi chưa có layer nào đang chọn (đỡ rối)
 function syncProcVisibility() {
-  const p = $('panelProc');
+  const p = $('panelQuality');
   if (p) p.hidden = !activeLayer();
 }
 
@@ -1784,24 +1794,12 @@ async function init() {
     }
   });
 
-  // Nút xử lý ảnh
-  $('btnVector').onclick = btnVector;
-  $('btnUp2').onclick = () => btnUpscale(2);
-  $('btnUp4').onclick = () => btnUpscale(4);
+  // Nút xử lý ảnh (khử nền trắng / crop — giữ modal so sánh/cắt)
+  // Vector & phóng nét do assess() tạo nút động trong #qualityActions
   $('btnWhite').onclick = btnWhite;
   $('btnCrop').onclick = openCrop;
   $('cropCancel').onclick = () => { $('modalCrop').hidden = true; };
   $('cropApply').onclick = applyCrop;
-  $('btnKeep').onclick = () => {
-    if (!needArt()) return;
-    toast('Đang dùng file gốc — không cần xử lý thêm.');
-  };
-
-  // Nút đề xuất trong panel đánh giá
-  $('sgKeep').onclick = () => toast('File đang dùng bản gốc — không cần xử lý thêm.');
-  $('sgVector').onclick = btnVector;
-  $('sgUp2').onclick = () => btnUpscale(2);
-  $('sgUp4').onclick = () => btnUpscale(4);
 
   // Nút xuất file
   $('btnExpMockup').onclick = exportMockup;
@@ -1809,8 +1807,7 @@ async function init() {
   $('btnExpSVG').onclick = exportPrintSVG;
   $('btnExpSpec').onclick = exportSpec;
 
-  // Xóa hình in ở vị trí đang chọn
-  $('btnClearArt').onclick = clearArt;
+  // (Đã bỏ nút "Xóa hình in" — xóa layer bằng nút × trên mỗi dòng trong panel Layers)
 
   // Nút Auto: đưa layer đang chọn về giữa ngực trước với cỡ in mặc định
   // (giữ đúng tỉ lệ gốc)
