@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261013y">
+<link rel="stylesheet" href="css/style.css?v=20261013z">
 <!-- PDF.js để đọc thử file .ai/.eps (file .ai lưu mặc định có nhân PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <!-- JSZip để gói file in thành ZIP (mockup + file in + thông tin) -->
@@ -76,7 +76,7 @@
       </div>
     </div>
 
-    <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc) · <b>cuộn chuột / chụm 2 ngón để zoom canvas</b></p>
+    <p class="hint">Bấm vào hình để chọn layer · kéo để di chuyển · kéo tay cầm 4 góc để thu/phóng (luôn giữ đúng tỉ lệ gốc) · <b>cuộn chuột / chụm 2 ngón để zoom canvas</b> · giữ <b>Space</b> + kéo hoặc kéo vùng trống (khi zoom &gt; 100%) để di chuyển vùng nhìn</p>
   </section>
 
   <!-- ============ PANEL ĐIỀU KHIỂN ============ -->
@@ -208,6 +208,7 @@
         <input type="number" id="qPrice" min="0" step="1000" placeholder="0">
       </label>
       <div id="quoteTotal" class="quote-total"></div>
+      <button class="btn primary" id="btnExpQuote" style="margin-top:8px" title="Tạo ảnh báo giá (PNG) để gửi khách hàng">Xuất ảnh báo giá</button>
       <p class="muted small">Thành tiền = Số lượng × Đơn giá. Cấu hình lưu trên máy này.</p>
     </div>
 
@@ -251,7 +252,7 @@
 <!-- ============ MODAL XEM TRƯỚC MOCKUP ============ -->
 <div class="modal" id="modalPreview" hidden>
   <div class="modal-box wide">
-    <h3>Mockup gửi khách</h3>
+    <h3 id="pvTitle">Mockup gửi khách</h3>
     <img id="previewImg" alt="Xem trước mockup">
     <p class="muted small">Nếu mở trong trình duyệt của app chat (Zalo/Messenger) mà bấm tải không được, hãy <b>chạm giữ vào ảnh</b> rồi chọn “Lưu ảnh”.</p>
     <div class="modal-actions">
@@ -263,6 +264,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="js/app.js?v=20261013y"></script>
+<script src="js/app.js?v=20261013z"></script>
 </body>
 </html>
