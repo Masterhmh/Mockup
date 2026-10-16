@@ -77,7 +77,8 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   Tên file ZIP = `{Tên KH}-{Mã đơn}.zip` (trống tên KH thì chỉ `{Mã đơn}.zip`).
 - Xuất file: "Xuất mockup" vẽ tất cả layer hiện; "Xuất file in (ZIP)" tải gói ZIP gồm
   **mockup.png** + từng file in **300dpi** nền trong suốt đúng khổ cm (tên theo layer)
-  + **thong-tin.txt** (tên KH, mã đơn, vị trí mặt trước/lưng, kích thước từng hình);
+  + **thong-tin.txt** (tên KH, mã đơn, vị trí mặt trước/lưng, kích thước từng hình)
+  + **file dự án .cm** (đúng định dạng nút "Lưu file (.cm)" — mở lại bằng "Mở file (.cm)" để chỉnh sửa tiếp);
   "Xuất file in SVG (ZIP)" tải gói ZIP gồm **mockup.png** + từng file **SVG** đúng khổ cm
   + **thong-tin.txt**. Khi xuất ZIP hiện **chỉ báo tiến trình ở lại màn hình**:
   "Đang tạo file in i/N…" từng file, rồi "Đang nén ZIP… x%" (theo callback của JSZip);
