@@ -80,7 +80,7 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   + **thong-tin.txt** (tên KH, mã đơn, vị trí mặt trước/lưng, kích thước từng hình)
   + **file dự án .cm** (đúng định dạng nút "Lưu file (.cm)" — mở lại bằng "Mở file (.cm)" để chỉnh sửa tiếp);
   "Xuất file in SVG (ZIP)" tải gói ZIP gồm **mockup.png** + từng file **SVG** đúng khổ cm
-  + **thong-tin.txt**. Khi xuất ZIP hiện **chỉ báo tiến trình ở lại màn hình**:
+  + **thong-tin.txt** + **file dự án .cm** (mở lại bằng "Mở file (.cm)"). Khi xuất ZIP hiện **chỉ báo tiến trình ở lại màn hình**:
   "Đang tạo file in i/N…" từng file, rồi "Đang nén ZIP… x%" (theo callback của JSZip);
   xong mới ẩn + hiện toast thành công; lỗi giữa chừng ẩn chỉ báo + toast lỗi rõ ràng.
 - Cảnh báo trùng màu: hình có độ sáng gần giống màu áo (chênh < 0.3, cả sáng-trên-sáng
