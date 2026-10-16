@@ -226,6 +226,28 @@ mới (khuyên dùng ảnh vuông 512x512, nền đơn sắc).
   Màu file in...) · thân chính 13–14px · chữ phụ (.muted/.small/mô tả/ghi chú) 12–12.5px ·
   số THÀNH TIỀN giữ 18px (16px mobile) làm điểm nhấn.
 
+## Cảnh báo trùng tông màu (hue) + cảnh báo độ sáng (20261014w)
+
+- App phân tích artwork theo HSL (hue trung bình = vector có trọng số độ bão hòa,
+  lấy mẫu đều ~6000 pixel khắp ảnh, chỉ tính pixel có nội dung) và lưu `hue/sat/satFrac`
+  vào art (kèm `brightness` có sẵn; tự di trú qua snapshot/.cm/lịch sử).
+- Ngưỡng cảnh báo: màu có độ bão hòa trung bình ≥ 0.25, > 50% pixel có màu, và màu áo
+  cũng có tông rõ → nếu **hue hình chênh hue áo ≤ 30°** và độ sáng chênh **< 0.22**
+  thì báo **trùng tông**: "Hình "…" có tông màu gần với màu áo … — in lên dễ bị chìm.
+  Cân nhắc đổi màu in hoặc màu áo."
+- Hình gần như xám/đen/trắng (hue vô nghĩa) → giữ quy tắc cũ theo độ sáng (chênh < 0.3).
+- Khi bật **In 1 màu**: so sánh bằng đúng màu đơn đã chọn (đó mới là màu thực in).
+
+## Chống giật với file siêu nặng (20261014w)
+
+- Artwork có cạnh dài vượt **2048px** được tạo thêm **bản hiển thị** (rút gọn, giữ đúng
+  tỉ lệ) làm cache của layer (`_view`, khóa theo canvas nguồn — tái tạo được bất cứ lúc
+  nào, không đưa vào snapshot/.cm/lịch sử). Stage (hiển thị/kéo/zoom) vẽ từ bản này.
+- Raster gốc (`art.raster`) giữ nguyên mọi nơi: các xử lý (khử nền/vector/phóng nét/
+  crop) và mọi đầu ra xuất file (mockup, ZIP PNG/SVG, phiếu, ảnh báo giá) đều chạy từ
+  ảnh gốc — chất lượng file in không đổi. Sau xử lý, bản hiển thị tự tạo lại theo
+  raster mới.
+
 ## Lịch sử theo khách
 
 - Panel **"Lịch sử"**: tự ghi 1 mục mỗi lần **xuất mockup / file in (PNG, SVG) / phiếu kỹ thuật /
